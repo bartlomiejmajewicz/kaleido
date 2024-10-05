@@ -7,6 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 void main() {
+  MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -37,12 +38,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+late final player = Player();
+late final controller = VideoController(player);
+int framerate = 25;
+
+
+  @override
+  void dispose(){
+    player.dispose();
+    super.dispose();
   }
 
   @override
@@ -59,39 +64,67 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+        child: Row(
+          children: [
+            videoPlayer(context),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                fpsSelector(),
+                const Text(
+                  'You have pushed the button this many times:',
+                ),
+                ElevatedButton(
+                  onPressed: (){},
+                  child: Text("elevated")
+                  ),
+                TextButton(
+                  onPressed: ()=>{},
+                  child: Text("text button"),
+                  ),
+                OutlinedButton(
+                  onPressed: ()=>{},
+                  child: Text("outlinedButt"),
+                  ),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+
+
+  Center videoPlayer(BuildContext context){
+    return Center(
+      child: SizedBox(
+        //width: MediaQuery.of(context).size.width,
+        //height: MediaQuery.of(context).size.width * 9.0 / 16.0,
+        width: 500,
+        height: 500,
+        // Use [Video] widget to display video output.
+        child: Video(controller: controller),
+      ),
+    );
+  }
+
+
+  DropdownMenu fpsSelector(){
+    return DropdownMenu(
+      width: 200,
+      label: const Text("framerate"),
+      onSelected: (value) {
+        framerate = value;
+      },
+      dropdownMenuEntries: const <DropdownMenuEntry>[
+        DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
+        DropdownMenuEntry(value: 25, label: "25 fps"),
+        DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
+      ],
+      );
+  }
+
+
+
 }

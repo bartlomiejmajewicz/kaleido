@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 
+
 class Timecode implements Comparable<Timecode> {
 
   int framerate = 25; // TODO FRAMERATE SET
+
   
 
   int h=0;
