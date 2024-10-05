@@ -69,6 +69,17 @@ class Timecode implements Comparable<Timecode> {
 
   }
 
+
+  Duration tcAsDuration(){
+    // TODO do sprawdzenia
+    return Duration(
+      hours: h,
+      minutes: m,
+      seconds: s,
+      milliseconds:  ((f/framerate)*1000).round()
+      );
+  }
+
   
   @override
   int compareTo(Timecode other) {

@@ -44,6 +44,10 @@ late final player = Player();
 late final controller = VideoController(player);
 int framerate = 25;
 Timecode startTC = Timecode();
+// int videoWidth = 500;
+// int videoHeight = 500;
+double _sliderHeightValue = 200;
+double _sliderWidthValue = 200;
 
 
   @override
@@ -67,30 +71,55 @@ Timecode startTC = Timecode();
       ),
       body: Center(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             videoPlayer(context),
             Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 fpsSelector(),
                 startTcEntryWidget(),
-                const Text(
-                  'You have pushed the button this many times:',
-                ),
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: (){},
-                  child: Text("elevated")
+                  child: Text("Open video file...")
                   ),
-                TextButton(
+                OutlinedButton(
                   onPressed: (){},
-                  child: Text("text button"),
+                  child: Text("Open Script file..."),
                   ),
                 OutlinedButton(
                   onPressed: ()=>{},
-                  child: Text("outlinedButt"),
+                  child: Text("Save script file"),
                   ),
+                Text("Video Height:"),
+                Slider(
+                  min: 50,
+                  max: MediaQuery.sizeOf(context).height,
+                  value: _sliderHeightValue,
+                  onChanged: (value){
+                    setState(() {
+                    _sliderHeightValue = value;
+                    });
+                  }
+                ),
+                Text("Video Width:"),
+                Slider(
+                  min: 50,
+                  max: MediaQuery.sizeOf(context).width,
+                  value: _sliderWidthValue,
+                  onChanged: (value){
+                    setState(() {
+                    _sliderWidthValue = value;
+                    });
+                  }
+                )
               ],
             ),
+            Column(
+              children: [
+                OutlinedButton(onPressed: (){}, child: Text("Insert new TC..."))
+              ],
+            )
           ],
         ),
       ),
@@ -99,13 +128,13 @@ Timecode startTC = Timecode();
 
 
 
-  Center videoPlayer(BuildContext context){
-    return Center(
+  Widget videoPlayer(BuildContext context){
+    return SizedBox(
       child: SizedBox(
         //width: MediaQuery.of(context).size.width,
         //height: MediaQuery.of(context).size.width * 9.0 / 16.0,
-        width: 500,
-        height: 500,
+        width: _sliderWidthValue,
+        height: _sliderHeightValue,
         // Use [Video] widget to display video output.
         child: Video(controller: controller),
       ),
