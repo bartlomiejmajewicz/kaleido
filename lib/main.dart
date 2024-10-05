@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:script_editor/classes.dart';
 
 void main() {
   MediaKit.ensureInitialized();
@@ -42,6 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
 late final player = Player();
 late final controller = VideoController(player);
 int framerate = 25;
+Timecode startTC = Timecode();
 
 
   @override
@@ -71,6 +73,7 @@ int framerate = 25;
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 fpsSelector(),
+                startTcEntryWidget(),
                 const Text(
                   'You have pushed the button this many times:',
                 ),
@@ -79,7 +82,7 @@ int framerate = 25;
                   child: Text("elevated")
                   ),
                 TextButton(
-                  onPressed: ()=>{},
+                  onPressed: (){},
                   child: Text("text button"),
                   ),
                 OutlinedButton(
@@ -112,8 +115,8 @@ int framerate = 25;
 
   DropdownMenu fpsSelector(){
     return DropdownMenu(
-      width: 200,
-      label: const Text("framerate"),
+      width: 200, // TODO szerokość zale
+      label: const Text("set video framerate"),
       onSelected: (value) {
         framerate = value;
       },
@@ -123,6 +126,89 @@ int framerate = 25;
         DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
       ],
       );
+  }
+
+  Widget startTcEntryWidget(){
+    return Column(
+      children: [
+        const Text("entry start TC:"),
+        Row(children: [
+          Container(
+            width: 50,
+            child: TextFormField(
+              initialValue: "00",
+              textAlign: TextAlign.center,
+              onChanged: (value) {
+                if (value != "") {
+                  setStartTcFromTextField(0, int.parse(value));
+                }
+              },
+            ),
+          ),
+          Text(":"),
+          Container(
+            width: 50,
+            child: TextFormField(
+              initialValue: "00",
+              textAlign: TextAlign.center,
+              onChanged: (value) {
+                if (value != "") {
+                  setStartTcFromTextField(1, int.parse(value));
+                }
+              },
+            ),
+          ),
+          Text(":"),
+          Container(
+            width: 50,
+            child: TextFormField(
+              initialValue: "00",
+              textAlign: TextAlign.center,
+              onChanged: (value) {
+                if (value != "") {
+                  setStartTcFromTextField(2, int.parse(value));
+                }
+              },
+            ),
+          ),
+          Text(":"),
+          Container(
+            width: 50,
+            child: TextFormField(
+              initialValue: "00",
+              textAlign: TextAlign.center,
+              onChanged: (value) {
+                if (value != "") {
+                  setStartTcFromTextField(3, int.parse(value));
+                }
+              },
+            ),
+          ),
+        ],)
+      ],
+    );
+  }
+
+
+  void setStartTcFromTextField(int field, int value){
+    // function changes video startTC from entry in the menu
+
+    switch (field) {
+      case 0:
+        startTC.h = value;
+      break;
+      case 1:
+        startTC.m = value;
+      break;
+      case 2:
+        startTC.s = value;
+      break;
+      case 3:
+        startTC.f = value;
+      break;
+    }
+
+    print(startTC);
   }
 
 

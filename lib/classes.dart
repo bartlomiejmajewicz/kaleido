@@ -16,14 +16,14 @@ class Timecode implements Comparable<Timecode> {
   int f=0;
 
 
-  Timecode(String timecodeAsText) {
+  Timecode([String timecodeAsText="00:00:00:00"]) {
     List<String> splittedTc = timecodeAsText.split(':');
     h = int.parse(splittedTc[0]);
     m = int.parse(splittedTc[1]);
     s = int.parse(splittedTc[2]);
     f = int.parse(splittedTc[3]);
-
   }
+
 
   String showTimecode(){
     String output="";
