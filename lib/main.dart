@@ -49,6 +49,16 @@ Timecode startTC = Timecode();
 double _sliderHeightValue = 200;
 double _sliderWidthValue = 200;
 
+late File videoFile;
+File excelFile = new File("");
+late dynamic excel;
+
+bool _sheetSelectorActive = true;
+//List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
+//List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
+List<String> sheetsList = List.empty(growable: true);
+
+
 
   @override
   void dispose(){
@@ -80,15 +90,18 @@ double _sliderWidthValue = 200;
                 fpsSelector(),
                 startTcEntryWidget(),
                 OutlinedButton(
-                  onPressed: (){},
+                  onPressed: selectVideoFile,
                   child: Text("Open video file...")
                   ),
                 OutlinedButton(
-                  onPressed: (){},
+                  onPressed: (){
+                    selectExcelFile();
+                  }  ,
                   child: Text("Open Script file..."),
                   ),
+                sheetSelector(),
                 OutlinedButton(
-                  onPressed: ()=>{},
+                  onPressed: saveScriptFile,
                   child: Text("Save script file"),
                   ),
                 Text("Video Height:"),
@@ -141,7 +154,6 @@ double _sliderWidthValue = 200;
     );
   }
 
-
   DropdownMenu fpsSelector(){
     return DropdownMenu(
       width: 200, // TODO szerokość zale
@@ -155,6 +167,24 @@ double _sliderWidthValue = 200;
         DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
       ],
       );
+  }
+
+  DropdownMenu<String> sheetSelector(){
+    // TODO
+    return DropdownMenu<String>(
+    enabled: _sheetSelectorActive,
+    width: 200, // TODO szerokość zale
+    label: const Text("select excel sheet"),
+    onSelected: (value) {
+      print(value);
+    },
+    dropdownMenuEntries: getDropdownMenuEntries(),
+    );
+  }
+
+  void saveScriptFile(){
+    // TODO
+    print("PLACEHOLDER");
   }
 
   Widget startTcEntryWidget(){
@@ -218,7 +248,6 @@ double _sliderWidthValue = 200;
     );
   }
 
-
   void setStartTcFromTextField(int field, int value){
     // function changes video startTC from entry in the menu
 
@@ -239,6 +268,83 @@ double _sliderWidthValue = 200;
 
     print(startTC);
   }
+
+  Future<void> selectVideoFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+    File file = File(result.files.single.path!);
+    player.open(Media(result.files.single.path!));
+    } else {
+    // User canceled the picker
+    }
+  }
+
+  Future<void> selectExcelFile() async {
+    // select the excel file, list the sheets and save the excel file to the var
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      excelFile = File(result.files.single.path!);
+      var bytes = await excelFile.readAsBytesSync();
+      excel = await Excel.decodeBytes(bytes);
+      _sheetSelectorActive = true;
+      for (var table in excel.tables.keys) {
+        print(table); //sheet Name
+        sheetsList.add(table);
+      }
+      setState(() {
+        
+      });
+    } else {
+    // User canceled the picker
+    }
+  }
+
+  List<DropdownMenuEntry<String>> getDropdownMenuEntries() {
+    return sheetsList.map((String item) {
+      return DropdownMenuEntry<String>(
+        value: item,
+        label: item,
+      );
+    }).toList();
+  }
+
+
+
+
+  // List<ScriptNode> excelToNode(){
+  //   List<ScriptNode> myList=[];
+  //   file = '/Users/bmajewicz/Desktop/Zeszyt1.xlsx';
+  //   bytes = File(file).readAsBytesSync();
+  //   excel = Excel.decodeBytes(bytes);
+  //   for (var table in excel.tables.keys) {
+  //     print(table); //sheet Name
+  //     //print(excel.tables[table]?.maxColumns);
+  //     //print(excel.tables[table]?.maxRows);
+  //     for (var row in excel.tables[table]!.rows) {
+  //       int collNr = 0;
+  //       ScriptNode scriptNode = ScriptNode.empty();
+  //       for (var cell in row) {
+  //         switch (collNr) {
+  //           case 0:
+  //             scriptNode.timecode = Timecode(cell.value.value.toString());
+  //             break;
+  //           case 1:
+  //             scriptNode.charName = cell.value.value.toString();
+  //             break;
+  //           case 2:
+  //             scriptNode.dial = cell.value.value.toString();
+  //             break;
+  //           default:
+  //         }
+  //         collNr++;
+  //       }
+  //       myList.add(scriptNode);
+  //     }
+  //   }
+  //   print(myList.length);
+  //   nodes = myList;
+  //   return myList;
+  // }
 
 
 
