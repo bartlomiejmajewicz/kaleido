@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
+import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/classes.dart';
@@ -49,6 +51,10 @@ Timecode startTC = Timecode();
 double _sliderHeightValue = 200;
 double _sliderWidthValue = 200;
 
+late double _screenWidth;
+late double _screenHeight;
+
+
 late File videoFile;
 File excelFile = new File("");
 late dynamic excel;
@@ -57,6 +63,7 @@ bool _sheetSelectorActive = true;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 List<String> sheetsList = List.empty(growable: true);
+List<ScriptNode> _scriptTable = List.empty(growable: true);
 
 
 
@@ -69,6 +76,9 @@ List<String> sheetsList = List.empty(growable: true);
   @override
   Widget build(BuildContext context) {
 
+    double _screenWidth =  MediaQuery.sizeOf(context).width;
+    double _screenHeight =  MediaQuery.sizeOf(context).height;
+
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -79,8 +89,8 @@ List<String> sheetsList = List.empty(growable: true);
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Row(
+      body: Column(
+        children: [Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             videoPlayer(context),
@@ -135,6 +145,9 @@ List<String> sheetsList = List.empty(growable: true);
             )
           ],
         ),
+        showTableAsListView()
+        //justTable()
+        ]
       ),
     );
   }
@@ -170,13 +183,12 @@ List<String> sheetsList = List.empty(growable: true);
   }
 
   DropdownMenu<String> sheetSelector(){
-    // TODO
     return DropdownMenu<String>(
     enabled: _sheetSelectorActive,
     width: 200, // TODO szerokość zale
     label: const Text("select excel sheet"),
     onSelected: (value) {
-      print(value);
+      importSheetToList(value!, _scriptTable);
     },
     dropdownMenuEntries: getDropdownMenuEntries(),
     );
@@ -270,18 +282,19 @@ List<String> sheetsList = List.empty(growable: true);
   }
 
   Future<void> selectVideoFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
     File file = File(result.files.single.path!);
     player.open(Media(result.files.single.path!));
     } else {
     // User canceled the picker
+      _showPickerDialogCancelled('video file');
     }
   }
 
   Future<void> selectExcelFile() async {
     // select the excel file, list the sheets and save the excel file to the var
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
       excelFile = File(result.files.single.path!);
       var bytes = await excelFile.readAsBytesSync();
@@ -296,6 +309,7 @@ List<String> sheetsList = List.empty(growable: true);
       });
     } else {
     // User canceled the picker
+      _showPickerDialogCancelled('script file');
     }
   }
 
@@ -307,6 +321,159 @@ List<String> sheetsList = List.empty(growable: true);
       );
     }).toList();
   }
+
+
+// Działa, ale brak kontroli nad szerokością składowych
+  Widget showTableAsListView(){
+    return Flexible(
+      child: ListView(
+        shrinkWrap: false,
+        children: [
+          DataTable(columns: const [
+            DataColumn(label: Text("TC UP")),
+            DataColumn(label: Text("TC DOWN")),
+            DataColumn(label: Text("character")),
+            DataColumn(label: SizedBox(width: 800, child: Text("dial"))),
+          ],
+            rows: dataRows()
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget justTable(){ // ŚMIEĆ
+    return DataTable(columns: const [
+            DataColumn(label: Text("TC UP")),
+            DataColumn(label: Text("TC DOWN")),
+            DataColumn(label: Text("character")),
+            DataColumn(label: Text("dial")),
+          ],
+            rows: dataRows()
+          );
+  }
+
+  List<DataRow> dataRows(){
+    // TEST
+    List<DataRow> myList = List.empty(growable: true);
+
+    for (var i = 0; i < 100; i++) {
+      myList.add(DataRow(cells: [
+        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(100,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC UP")))),
+        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(150,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC DOWN")))),
+        DataCell(SizedBox( width: 150, child: TextFormField(initialValue: "ELO MORDZIA $i"))),
+        DataCell(TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,)),
+      ]));
+    }
+
+    return myList;
+  }
+
+  void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
+      //sctiptList = List.empty(growable: true);
+      sctiptList.clear();
+      for (var row in excel.tables[sheetName]!.rows) {
+        int collNr = 0;
+        ScriptNode scriptNode = ScriptNode.empty();
+        for (var cell in row) {
+          print(cell.value.value.toString());
+          switch (collNr) {
+            case 0:
+              scriptNode.timecode = Timecode(cell.value.value.toString());
+              break;
+            case 1:
+              scriptNode.charName = cell.value.value.toString();
+            break;
+            case 2:
+              scriptNode.dial = cell.value.value.toString();
+            break;
+          }
+          collNr++;
+        }
+        sctiptList.add(scriptNode);
+      }
+  }
+
+
+
+// Działa, ale wszystkie kolumny takiej samej szerokości
+  Expanded showTableAsGridView(){
+    return Expanded(
+      child: GridView.count(
+        // Create a grid with 2 columns. If you change the scrollDirection to
+        // horizontal, this produces 2 rows.
+        crossAxisCount: 4,
+        // Generate 100 widgets that display their index in the List.
+        mainAxisSpacing: 0,
+        childAspectRatio: 8,
+        children: dataWidgets(),
+        )
+      );
+  }
+
+  List<Widget> dataWidgets(){
+    List<Widget> myList = List.empty(growable: true);
+    for (var i = 0; i < 100; i++) {
+        myList.add(ElevatedButton(onPressed: (){}, child: Text("TC UP")),);
+        myList.add(ElevatedButton(onPressed: (){}, child: Text("TC DOWN")));
+        myList.add(TextFormField(initialValue: "ELO MORDZIA $i"));
+        myList.add(TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,));
+    }
+    return myList;
+
+  }
+
+  Table showTableAsTable(){
+    return Table(
+      children: dataRowsForTable(),
+    );
+  }
+
+  List<TableRow> dataRowsForTable(){
+    List<TableRow> myList = List.empty(growable: true);
+    for (var i = 0; i < 100; i++) {
+      myList.add(TableRow(
+        children: [
+          ElevatedButton(onPressed: (){}, child: Text("TC UP")),
+          ElevatedButton(onPressed: (){}, child: Text("TC DOWN")),
+          TextFormField(initialValue: "ELO MORDZIA $i"),
+          TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,)
+        ]
+      ));
+    }
+    return myList;
+
+  }
+
+
+
+  Future<void> _showPickerDialogCancelled(String whichFile) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Selector canceled'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('You have to select a $whichFile to continue'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Ok'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
 
 
