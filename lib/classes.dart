@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class Timecode implements Comparable<Timecode> {
 
-  int framerate = 25; // TODO FRAMERATE SET
+  static int framerate = 25; // TODO FRAMERATE SET
 
   
 
@@ -69,9 +69,18 @@ class Timecode implements Comparable<Timecode> {
 
   }
 
+  tcFromDuration(Duration duration){
+    int millis = duration.inMilliseconds;
+    h = millis ~/ (1000*3600);
+    millis = millis - (h*1000*3600);
+    m = millis ~/ (1000*60);
+    millis = millis - (m*1000*60);
+    s = millis ~/ (1000);
+    millis = millis - s*1000;
+    f = (framerate * millis / 1000).round();
+  }
 
   Duration tcAsDuration(){
-    // TODO do sprawdzenia
     return Duration(
       hours: h,
       minutes: m,
@@ -115,6 +124,8 @@ class ScriptNode implements Comparable<ScriptNode>{
   late String charName;
   late String dial;
   late Widget widget;
+
+  TextEditingController textControllerTc=TextEditingController();
 
   ScriptNode(Timecode timecodeIn, String characterName, String dialogue){
     timecode = timecodeIn;
@@ -199,5 +210,3 @@ class MyExcellApp {
     }
   }
 }
-
-

@@ -44,7 +44,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
 late final player = Player();
 late final controller = VideoController(player);
-int framerate = 25;
 Timecode startTC = Timecode();
 // int videoWidth = 500;
 // int videoHeight = 500;
@@ -56,6 +55,7 @@ late double _screenHeight;
 
 
 late File videoFile;
+Duration currentPlaybackPosition = Duration();
 File excelFile = new File("");
 late dynamic excel;
 
@@ -66,7 +66,9 @@ List<String> sheetsList = List.empty(growable: true);
 List<ScriptNode> _scriptTable = List.empty(growable: true);
 List <DataRow> _dataRows = List.empty(growable: true);
 
+String temporaryStr = "";
 
+  TextEditingController tempTextEditController = TextEditingController();
 
   @override
   void dispose(){
@@ -112,7 +114,7 @@ List <DataRow> _dataRows = List.empty(growable: true);
                   ),
                 sheetSelector(),
                 OutlinedButton(
-                  onPressed: saveScriptFile,
+                  onPressed: saveSheetToFile,
                   child: Text("Save script file"),
                   ),
                 Text("Video Height:"),
@@ -141,7 +143,19 @@ List <DataRow> _dataRows = List.empty(growable: true);
             ),
             Column(
               children: [
-                OutlinedButton(onPressed: (){}, child: Text("Insert new TC..."))
+                OutlinedButton(onPressed: (){}, child: Text("Insert new TC...")),
+                SizedBox(
+                  width: 200, 
+                  child: TextFormField(
+                    //initialValue: temporaryStr,
+                    //key: Key(temporaryStr),
+                    controller: tempTextEditController,)),
+                OutlinedButton(onPressed: (){
+                  newEntry(_scriptTable);
+                  setState(() {
+                    _dataRows = scriptListToTable(_scriptTable);
+                  });
+                }, child: Text("new entry..."))
               ],
             )
           ],
@@ -173,7 +187,7 @@ List <DataRow> _dataRows = List.empty(growable: true);
       width: 200, // TODO szerokość zale
       label: const Text("set video framerate"),
       onSelected: (value) {
-        framerate = value;
+        Timecode.framerate = value;
       },
       dropdownMenuEntries: const <DropdownMenuEntry>[
         DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
@@ -198,10 +212,6 @@ List <DataRow> _dataRows = List.empty(growable: true);
     );
   }
 
-  void saveScriptFile(){
-    // TODO
-    print("PLACEHOLDER");
-  }
 
   Widget startTcEntryWidget(){
     return Column(
@@ -288,8 +298,10 @@ List <DataRow> _dataRows = List.empty(growable: true);
   Future<void> selectVideoFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
-    File file = File(result.files.single.path!);
-    player.open(Media(result.files.single.path!));
+      File file = File(result.files.single.path!);
+      player.open(Media(result.files.single.path!));
+      // DO SPRAWDZENIA 
+      player.stream.position.listen((e) => currentPlaybackPosition = e);
     } else {
     // User canceled the picker
       _showPickerDialogCancelled('video file');
@@ -327,7 +339,6 @@ List <DataRow> _dataRows = List.empty(growable: true);
   }
 
 
-// Działa, ale brak kontroli nad szerokością składowych
   Widget showTableAsListView(){
     return Flexible(
       child: ListView(
@@ -335,11 +346,11 @@ List <DataRow> _dataRows = List.empty(growable: true);
         shrinkWrap: false,
         children: [
           DataTable(columns: const [
-            DataColumn(label: Text("TC UP")),
-            DataColumn(label: Text("TC DOWN")),
+            DataColumn(label: Text("TC from script to player")),
+            DataColumn(label: Text("TC from player to script")),
             DataColumn(label: Text("TC")),
             DataColumn(label: Text("character")),
-            DataColumn(label: SizedBox(width: 800, child: Text("dial"))),
+            DataColumn(label: SizedBox(width: 400, child: Text("dial"))),
           ],
             rows: _dataRows
           )
@@ -348,22 +359,6 @@ List <DataRow> _dataRows = List.empty(growable: true);
     );
   }
 
-
-  List<DataRow> dataRows(){
-    // TEST
-    List<DataRow> myList = List.empty(growable: true);
-
-    for (var i = 0; i < 100; i++) {
-      myList.add(DataRow(cells: [
-        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(100,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC UP")))),
-        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(150,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC DOWN")))),
-        DataCell(SizedBox( width: 150, child: TextFormField(initialValue: "ELO MORDZIA $i"))),
-        DataCell(TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,)),
-      ]));
-    }
-
-    return myList;
-  }
 
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
       //sctiptList = List.empty(growable: true);
@@ -388,82 +383,82 @@ List <DataRow> _dataRows = List.empty(growable: true);
         sctiptList.add(scriptNode);
       }
   }
+  
+  void exportListToSheet(){
+    // TODO
+  }
+    void saveSheetToFile(){
+    // TODO
+  }
 
+  void jumpToTc(Timecode tc){
+    player.seek(tc.tcAsDuration());
+  }
+
+  Timecode tcFromVideo(){
+    print(currentPlaybackPosition.toString());
+    Timecode tc = Timecode();
+    tc.tcFromDuration(currentPlaybackPosition);
+    return tc;
+    
+  }
 
   List <DataRow> scriptListToTable(List<ScriptNode> scriptList){
     List<DataRow> myList = List.empty(growable: true);
     for (var scriptNode in scriptList) {
       myList.add(DataRow(cells: [
-        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(100,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC UP")))),
-        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(150,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC DOWN")))),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints.tight(Size(100,30)), 
+            child: ElevatedButton(
+              onPressed: (){
+                jumpToTc(scriptNode.timecode);
+              },
+              child: Text("TC UP")))),
+        
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints.tight(Size(150,30)),
+            child: ElevatedButton(
+              onPressed: (){
+                scriptNode.timecode = tcFromVideo();
+                setState(() {
+                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.timecode.toString());
+                  tempTextEditController.value = TextEditingValue(text: scriptNode.timecode.toString());
+                  print("TU");
+
+                });
+              },
+              child: Text("TC DOWN")))),
+        
         DataCell(SizedBox( width: 150, child: TextFormField(
-          initialValue: scriptNode.timecode.toString(),
-          key: Key(scriptNode.timecode.toString())))),
+          //initialValue: scriptNode.timecode.toString(),
+          //key: Key(scriptNode.timecode.toString()),
+          controller: scriptNode.textControllerTc,
+          ))),
+        
         DataCell(SizedBox( width: 150, child: TextFormField(
           initialValue: scriptNode.charName,
           key: Key(scriptNode.charName)))),
-        DataCell(TextFormField(
-          scribbleEnabled: false, 
-          initialValue: scriptNode.dial, 
-          maxLines: 10,
-          key: Key(scriptNode.dial),)),
+       
+        DataCell(Expanded(
+          child: TextFormField(
+            onChanged: (value) => {
+              scriptNode.dial = value
+              // zobaczymy czy będzie to wystarczająco efficient ?
+            },
+            scribbleEnabled: false, 
+            initialValue: scriptNode.dial, 
+            maxLines: 10,
+            key: Key(scriptNode.dial),),
+        )),
         //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
       ]));
+      scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.timecode.toString());
     }
     return myList;
 }
-
-
-// Działa, ale wszystkie kolumny takiej samej szerokości
-  Expanded showTableAsGridView(){
-    return Expanded(
-      child: GridView.count(
-        // Create a grid with 2 columns. If you change the scrollDirection to
-        // horizontal, this produces 2 rows.
-        crossAxisCount: 4,
-        // Generate 100 widgets that display their index in the List.
-        mainAxisSpacing: 0,
-        childAspectRatio: 8,
-        children: dataWidgets(),
-        )
-      );
-  }
-
-  List<Widget> dataWidgets(){
-    List<Widget> myList = List.empty(growable: true);
-    for (var i = 0; i < 100; i++) {
-        myList.add(ElevatedButton(onPressed: (){}, child: Text("TC UP")),);
-        myList.add(ElevatedButton(onPressed: (){}, child: Text("TC DOWN")));
-        myList.add(TextFormField(initialValue: "ELO MORDZIA $i"));
-        myList.add(TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,));
-    }
-    return myList;
-
-  }
-
-  Table showTableAsTable(){
-    return Table(
-      children: dataRowsForTable(),
-    );
-  }
-
-  List<TableRow> dataRowsForTable(){
-    List<TableRow> myList = List.empty(growable: true);
-    for (var i = 0; i < 100; i++) {
-      myList.add(TableRow(
-        children: [
-          ElevatedButton(onPressed: (){}, child: Text("TC UP")),
-          ElevatedButton(onPressed: (){}, child: Text("TC DOWN")),
-          TextFormField(initialValue: "ELO MORDZIA $i"),
-          TextFormField(initialValue: "ELO MORDZIA $i", maxLines: 10,)
-        ]
-      ));
-    }
-    return myList;
-
-  }
-
 
 
   Future<void> _showPickerDialogCancelled(String whichFile) async {
@@ -532,6 +527,9 @@ List <DataRow> _dataRows = List.empty(growable: true);
   //   return myList;
   // }
 
-
-
+  void newEntry(List<ScriptNode> scriptList) {
+    Timecode timecode = Timecode();
+    timecode.tcFromDuration(currentPlaybackPosition);
+    scriptList.add(ScriptNode(timecode, "characterName", "dialogue"));
+  }
 }
