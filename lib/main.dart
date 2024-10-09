@@ -64,6 +64,7 @@ bool _sheetSelectorActive = true;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 List<String> sheetsList = List.empty(growable: true);
 List<ScriptNode> _scriptTable = List.empty(growable: true);
+List <DataRow> _dataRows = List.empty(growable: true);
 
 
 
@@ -189,6 +190,9 @@ List<ScriptNode> _scriptTable = List.empty(growable: true);
     label: const Text("select excel sheet"),
     onSelected: (value) {
       importSheetToList(value!, _scriptTable);
+      setState(() {
+        _dataRows = scriptListToTable(_scriptTable);
+      });
     },
     dropdownMenuEntries: getDropdownMenuEntries(),
     );
@@ -327,31 +331,23 @@ List<ScriptNode> _scriptTable = List.empty(growable: true);
   Widget showTableAsListView(){
     return Flexible(
       child: ListView(
+        addAutomaticKeepAlives: false,
         shrinkWrap: false,
         children: [
           DataTable(columns: const [
             DataColumn(label: Text("TC UP")),
             DataColumn(label: Text("TC DOWN")),
+            DataColumn(label: Text("TC")),
             DataColumn(label: Text("character")),
             DataColumn(label: SizedBox(width: 800, child: Text("dial"))),
           ],
-            rows: dataRows()
+            rows: _dataRows
           )
         ],
       ),
     );
   }
 
-  Widget justTable(){ // ŚMIEĆ
-    return DataTable(columns: const [
-            DataColumn(label: Text("TC UP")),
-            DataColumn(label: Text("TC DOWN")),
-            DataColumn(label: Text("character")),
-            DataColumn(label: Text("dial")),
-          ],
-            rows: dataRows()
-          );
-  }
 
   List<DataRow> dataRows(){
     // TEST
@@ -376,7 +372,6 @@ List<ScriptNode> _scriptTable = List.empty(growable: true);
         int collNr = 0;
         ScriptNode scriptNode = ScriptNode.empty();
         for (var cell in row) {
-          print(cell.value.value.toString());
           switch (collNr) {
             case 0:
               scriptNode.timecode = Timecode(cell.value.value.toString());
@@ -394,6 +389,30 @@ List<ScriptNode> _scriptTable = List.empty(growable: true);
       }
   }
 
+
+  List <DataRow> scriptListToTable(List<ScriptNode> scriptList){
+    List<DataRow> myList = List.empty(growable: true);
+    for (var scriptNode in scriptList) {
+      myList.add(DataRow(cells: [
+        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(100,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC UP")))),
+        DataCell(ConstrainedBox(constraints: BoxConstraints.tight(Size(150,30)), child: ElevatedButton(onPressed: (){}, child: Text("TC DOWN")))),
+        DataCell(SizedBox( width: 150, child: TextFormField(
+          initialValue: scriptNode.timecode.toString(),
+          key: Key(scriptNode.timecode.toString())))),
+        DataCell(SizedBox( width: 150, child: TextFormField(
+          initialValue: scriptNode.charName,
+          key: Key(scriptNode.charName)))),
+        DataCell(TextFormField(
+          scribbleEnabled: false, 
+          initialValue: scriptNode.dial, 
+          maxLines: 10,
+          key: Key(scriptNode.dial),)),
+        //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
+        //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
+      ]));
+    }
+    return myList;
+}
 
 
 // Działa, ale wszystkie kolumny takiej samej szerokości
