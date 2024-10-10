@@ -96,28 +96,8 @@ String temporaryStr = "";
         children: [Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            videoPlayer(context),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                fpsSelector(),
-                startTcEntryWidget(),
-                OutlinedButton(
-                  onPressed: selectVideoFile,
-                  child: Text("Open video file...")
-                  ),
-                OutlinedButton(
-                  onPressed: (){
-                    selectExcelFile();
-                  }  ,
-                  child: Text("Open Script file..."),
-                  ),
-                sheetSelector(),
-                OutlinedButton(
-                  onPressed: saveSheetToFile,
-                  child: Text("Save script file"),
-                  ),
-                Text("Video Height:"),
+            Column(children: [
+              Text("Video Height:"),
                 Slider(
                   min: 50,
                   max: MediaQuery.sizeOf(context).height,
@@ -139,6 +119,30 @@ String temporaryStr = "";
                     });
                   }
                 )
+            ],),
+            videoPlayer(context),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                fpsSelector(),
+                startTcEntryWidget(),
+                OutlinedButton(
+                  onPressed: selectVideoFile,
+                  child: Text("Open video file...")
+                  ),
+                OutlinedButton(
+                  onPressed: (){
+                    selectExcelFile();
+                  }  ,
+                  child: Text("Open Script file..."),
+                  ),
+                sheetSelector(),
+                OutlinedButton(
+                  onPressed: saveSheetToFile,
+                  child: Text("Save script file"),
+                  ),
+                
               ],
             ),
             Column(
@@ -155,7 +159,12 @@ String temporaryStr = "";
                   setState(() {
                     _dataRows = scriptListToTable(_scriptTable);
                   });
-                }, child: Text("new entry..."))
+                }, child: Text("new entry...")),
+                SizedBox(
+                  width: 200,
+                  child: TextFormField(
+                    initialValue: "TC VALIDATION TEST",
+                    inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],))
               ],
             )
           ],
@@ -184,7 +193,7 @@ String temporaryStr = "";
 
   DropdownMenu fpsSelector(){
     return DropdownMenu(
-      width: 200, // TODO szerokość zale
+      width: 200, // TODO: szerokość zale
       label: const Text("set video framerate"),
       onSelected: (value) {
         Timecode.framerate = value;
@@ -200,7 +209,7 @@ String temporaryStr = "";
   DropdownMenu<String> sheetSelector(){
     return DropdownMenu<String>(
     enabled: _sheetSelectorActive,
-    width: 200, // TODO szerokość zale
+    width: 200, // TODO: szerokość zale
     label: const Text("select excel sheet"),
     onSelected: (value) {
       importSheetToList(value!, _scriptTable);
@@ -230,7 +239,7 @@ String temporaryStr = "";
               },
             ),
           ),
-          Text(":"),
+          const Text(":"),
           Container(
             width: 50,
             child: TextFormField(
@@ -243,7 +252,7 @@ String temporaryStr = "";
               },
             ),
           ),
-          Text(":"),
+          const Text(":"),
           Container(
             width: 50,
             child: TextFormField(
@@ -256,7 +265,7 @@ String temporaryStr = "";
               },
             ),
           ),
-          Text(":"),
+          const Text(":"),
           Container(
             width: 50,
             child: TextFormField(
@@ -301,7 +310,9 @@ String temporaryStr = "";
       File file = File(result.files.single.path!);
       player.open(Media(result.files.single.path!));
       // DO SPRAWDZENIA 
-      player.stream.position.listen((e) => currentPlaybackPosition = e);
+      player.stream.position.listen((e) {
+        currentPlaybackPosition = e;
+        });
     } else {
     // User canceled the picker
       _showPickerDialogCancelled('video file');
@@ -352,7 +363,7 @@ String temporaryStr = "";
             DataColumn(label: Text("character")),
             DataColumn(label: SizedBox(width: 400, child: Text("dial"))),
           ],
-            rows: _dataRows
+            rows: _dataRows,
           )
         ],
       ),
@@ -385,14 +396,14 @@ String temporaryStr = "";
   }
   
   void exportListToSheet(){
-    // TODO
+    // TODO:
   }
     void saveSheetToFile(){
-    // TODO
+    // TODO:
   }
 
   void jumpToTc(Timecode tc){
-    player.seek(tc.tcAsDuration());
+    player.seek((tc-startTC).tcAsDuration());
   }
 
   Timecode tcFromVideo(){
@@ -421,12 +432,9 @@ String temporaryStr = "";
             constraints: BoxConstraints.tight(Size(150,30)),
             child: ElevatedButton(
               onPressed: (){
-                scriptNode.timecode = tcFromVideo();
+                scriptNode.timecode = tcFromVideo()+startTC;
                 setState(() {
                   scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.timecode.toString());
-                  tempTextEditController.value = TextEditingValue(text: scriptNode.timecode.toString());
-                  print("TU");
-
                 });
               },
               child: Text("TC DOWN")))),
@@ -441,17 +449,15 @@ String temporaryStr = "";
           initialValue: scriptNode.charName,
           key: Key(scriptNode.charName)))),
        
-        DataCell(Expanded(
-          child: TextFormField(
-            onChanged: (value) => {
-              scriptNode.dial = value
-              // zobaczymy czy będzie to wystarczająco efficient ?
-            },
-            scribbleEnabled: false, 
-            initialValue: scriptNode.dial, 
-            maxLines: 10,
-            key: Key(scriptNode.dial),),
-        )),
+        DataCell(TextFormField(
+          onChanged: (value) => {
+            scriptNode.dial = value
+            // zobaczymy czy będzie to wystarczająco efficient ?
+          },
+          scribbleEnabled: false, 
+          initialValue: scriptNode.dial, 
+          maxLines: 10,
+          key: Key(scriptNode.dial),)),
         //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
       ]));
@@ -530,6 +536,41 @@ String temporaryStr = "";
   void newEntry(List<ScriptNode> scriptList) {
     Timecode timecode = Timecode();
     timecode.tcFromDuration(currentPlaybackPosition);
-    scriptList.add(ScriptNode(timecode, "characterName", "dialogue"));
+    scriptList.add(ScriptNode(timecode+startTC, "characterName", "dialogue"));
+  }
+
+  TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
+    String returnedValue="";
+    //var tcPattern = RegExp(buildTimecodePattern(Timecode.framerate));
+    var tcInProgressPattern = RegExp(r'^\d{0,2}:?\d{0,2}:?\d{0,2}:?\d{0,2}$');
+    if (tcInProgressPattern.hasMatch(newValue.text)){
+      returnedValue = newValue.text;
+
+      if(returnedValue.length==2 || returnedValue.length==5 || returnedValue.length==8){
+        returnedValue+= ":";
+      }
+
+    } else {
+      returnedValue = oldValue.text;
+    }
+    
+    
+    return TextEditingValue(text: returnedValue);
+  }
+
+
+  String buildTimecodePattern(int fps) {
+  // Sprawdzenie, ile maksymalnie klatek na sekundę jest dopuszczalne
+  String framePattern;
+  if (fps <= 10) {
+    framePattern = r'[0-9]';  // dla FPS <= 10 (klatki 0-9)
+  } else if (fps <= 99) {
+    framePattern = r'[0-' + (fps - 1).toString().padLeft(2, '0')[0] + '][0-9]';
+  } else {
+    throw ArgumentError('FPS musi być w zakresie 1-99');
+  }
+  // Budowanie pełnego wzorca timecode
+  return r'^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d:' + framePattern + r'$';
   }
 }
+

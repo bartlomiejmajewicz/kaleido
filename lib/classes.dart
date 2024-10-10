@@ -24,6 +24,10 @@ class Timecode implements Comparable<Timecode> {
     f = int.parse(splittedTc[3]);
   }
 
+  Timecode.fromDuration(Duration duration){
+    tcFromDuration(duration);
+  }
+
 
   String showTimecode(){
     String output="";
@@ -89,6 +93,13 @@ class Timecode implements Comparable<Timecode> {
       );
   }
 
+  Timecode operator + (Timecode other){
+    return Timecode.fromDuration(tcAsDuration()+other.tcAsDuration());
+  }
+
+  Timecode operator - (Timecode other){
+    return Timecode.fromDuration(tcAsDuration()-other.tcAsDuration());
+  }
   
   @override
   int compareTo(Timecode other) {
