@@ -110,7 +110,6 @@ class Timecode implements Comparable<Timecode> {
     } else {
       return 0;
     }
-    // TODO: implement compareTo
     throw UnimplementedError();
   }
   
@@ -137,6 +136,7 @@ class ScriptNode implements Comparable<ScriptNode>{
   late Widget widget;
 
   TextEditingController textControllerTc=TextEditingController();
+
 
   ScriptNode(Timecode timecodeIn, String characterName, String dialogue){
     timecode = timecodeIn;

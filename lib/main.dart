@@ -443,6 +443,16 @@ String temporaryStr = "";
           //initialValue: scriptNode.timecode.toString(),
           //key: Key(scriptNode.timecode.toString()),
           controller: scriptNode.textControllerTc,
+          onChanged: (value) {
+            //FIXME:
+            if(tcValidateCheck(value)){
+              scriptNode.timecode = Timecode(value);
+            }
+            print(scriptNode.timecode.toString());
+          },
+          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+          //style: TextStyle(backgroundColor: Colors.green),
+          //style: TextStyle().apply(backgroundColor: Colors.amber),
           ))),
         
         DataCell(SizedBox( width: 150, child: TextFormField(
@@ -546,15 +556,13 @@ String temporaryStr = "";
     if (tcInProgressPattern.hasMatch(newValue.text)){
       returnedValue = newValue.text;
 
-      if(returnedValue.length==2 || returnedValue.length==5 || returnedValue.length==8){
+      if((returnedValue.length==2 || returnedValue.length==5 || returnedValue.length==8) && oldValue.text.length < newValue.text.length){
         returnedValue+= ":";
       }
 
     } else {
       returnedValue = oldValue.text;
     }
-    
-    
     return TextEditingValue(text: returnedValue);
   }
 
@@ -571,6 +579,16 @@ String temporaryStr = "";
   }
   // Budowanie pełnego wzorca timecode
   return r'^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d:' + framePattern + r'$';
+  }
+  
+  bool tcValidateCheck(String value) {
+    // check if the TC is a valid value
+    var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    if(tcValidateCheck.hasMatch(value)){
+      return true;
+    } else{
+      return false;
+    }
   }
 }
 
