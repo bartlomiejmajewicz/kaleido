@@ -98,10 +98,10 @@ String temporaryStr = "";
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Column(children: [
-              Text("Video Height:"),
+              const Text("Video Height:"),
                 Slider(
                   min: 50,
-                  max: MediaQuery.sizeOf(context).height,
+                  max: _screenHeight,
                   value: _sliderHeightValue,
                   onChanged: (value){
                     setState(() {
@@ -109,10 +109,10 @@ String temporaryStr = "";
                     });
                   }
                 ),
-                Text("Video Width:"),
+                const Text("Video Width:"),
                 Slider(
                   min: 50,
-                  max: MediaQuery.sizeOf(context).width,
+                  max: _screenWidth,
                   value: _sliderWidthValue,
                   onChanged: (value){
                     setState(() {
@@ -468,7 +468,7 @@ String temporaryStr = "";
           controller: scriptNode.textControllerTc,
           onChanged: (value) {
             //FIXME:
-            if(tcValidateCheck(value)){
+            if(Timecode.tcValidateCheck(value)){
               scriptNode.timecode = Timecode(value);
             }
             print(scriptNode.timecode.toString());
@@ -594,28 +594,28 @@ String temporaryStr = "";
   }
 
 
-  String buildTimecodePattern(int fps) {
-  // Sprawdzenie, ile maksymalnie klatek na sekundę jest dopuszczalne
-  String framePattern;
-  if (fps <= 10) {
-    framePattern = r'[0-9]';  // dla FPS <= 10 (klatki 0-9)
-  } else if (fps <= 99) {
-    framePattern = r'[0-' + (fps - 1).toString().padLeft(2, '0')[0] + '][0-9]';
-  } else {
-    throw ArgumentError('FPS musi być w zakresie 1-99');
-  }
-  // Budowanie pełnego wzorca timecode
-  return r'^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d:' + framePattern + r'$';
-  }
+  // String buildTimecodePattern(int fps) {
+  // // Sprawdzenie, ile maksymalnie klatek na sekundę jest dopuszczalne
+  // String framePattern;
+  // if (fps <= 10) {
+  //   framePattern = r'[0-9]';  // dla FPS <= 10 (klatki 0-9)
+  // } else if (fps <= 99) {
+  //   framePattern = r'[0-' + (fps - 1).toString().padLeft(2, '0')[0] + '][0-9]';
+  // } else {
+  //   throw ArgumentError('FPS musi być w zakresie 1-99');
+  // }
+  // // Budowanie pełnego wzorca timecode
+  // return r'^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d:' + framePattern + r'$';
+  // }
   
-  bool tcValidateCheck(String value) {
-    // check if the TC is a valid value
-    var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
-    if(tcValidateCheck.hasMatch(value)){
-      return true;
-    } else{
-      return false;
-    }
-  }
+  // bool tcValidateCheck(String value) {
+  //   // check if the TC is a valid value
+  //   var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+  //   if(tcValidateCheck.hasMatch(value)){
+  //     return true;
+  //   } else{
+  //     return false;
+  //   }
+  // }
 }
 

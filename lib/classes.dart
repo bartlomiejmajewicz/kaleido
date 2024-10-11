@@ -17,6 +17,9 @@ class Timecode implements Comparable<Timecode> {
 
 
   Timecode([String timecodeAsText="00:00:00:00"]) {
+    if (!tcValidateCheck(timecodeAsText)) {
+      timecodeAsText = "00:00:00:00";
+    }
     List<String> splittedTc = timecodeAsText.split(':');
     h = int.parse(splittedTc[0]);
     m = int.parse(splittedTc[1]);
@@ -28,6 +31,16 @@ class Timecode implements Comparable<Timecode> {
     tcFromDuration(duration);
   }
 
+
+  static bool tcValidateCheck(String timecodeAsText) {
+  // check if the TC is a valid value
+  var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    if(tcValidateCheck.hasMatch(timecodeAsText)){
+      return true;
+    } else{
+      return false;
+    }
+  }
 
   String showTimecode(){
     String output="";
