@@ -65,6 +65,7 @@ bool _sheetSelectorActive = true;
 List<String> sheetsList = List.empty(growable: true);
 List<ScriptNode> _scriptTable = List.empty(growable: true);
 List <DataRow> _dataRows = List.empty(growable: true);
+late String sheetName;
 
 String temporaryStr = "";
 
@@ -215,6 +216,7 @@ String temporaryStr = "";
       importSheetToList(value!, _scriptTable);
       setState(() {
         _dataRows = scriptListToTable(_scriptTable);
+        sheetName = value;
       });
     },
     dropdownMenuEntries: getDropdownMenuEntries(),
@@ -393,13 +395,34 @@ String temporaryStr = "";
         }
         sctiptList.add(scriptNode);
       }
+      sctiptList.sort();
+      // TODO: sprawdź w których miejscach sortować listy
   }
   
-  void exportListToSheet(){
+  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc){
+    Sheet sheetObject = excel[sheetNameLoc];
+    int a=0;
+    for (var scriptNode in myList) {
+      //sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.timecode.toString()));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
+      a++;
+    }
     // TODO:
   }
-    void saveSheetToFile(){
-    // TODO:
+  
+  void saveSheetToFile(){
+    // Sheet sheetObject = excel[sheetName];
+    // sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
+    exportListToSheet(_scriptTable, sheetName);
+
+    var fileBytes = excel.save();
+
+    //FIXME: FIX SAVED FILE LOCATION
+    File('/Users/bmajewicz/Desktop/output_file_name.xlsx')
+    ..createSync(recursive: true)
+    ..writeAsBytesSync(fileBytes);
   }
 
   void jumpToTc(Timecode tc){
@@ -457,7 +480,11 @@ String temporaryStr = "";
         
         DataCell(SizedBox( width: 150, child: TextFormField(
           initialValue: scriptNode.charName,
-          key: Key(scriptNode.charName)))),
+          key: Key(scriptNode.charName),
+          onChanged: (value){
+            scriptNode.charName = value;
+          },
+          ))),
        
         DataCell(TextFormField(
           onChanged: (value) => {
