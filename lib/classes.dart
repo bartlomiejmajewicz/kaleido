@@ -137,10 +137,6 @@ class Timecode implements Comparable<Timecode> {
 
 
 
-
-
-
-
 class ScriptNode implements Comparable<ScriptNode>{
 
   late Timecode timecode;
@@ -183,10 +179,7 @@ class ScriptNode implements Comparable<ScriptNode>{
 
 
 
-
-
-
-
+// UNUSED CLASS
 class MyExcellApp {
 
   MyExcellApp(){
@@ -234,3 +227,83 @@ class MyExcellApp {
     }
   }
 }
+
+
+
+abstract class SourceFile{
+  late File _file;
+
+  void loadFile();
+  void saveFile();
+  void exportListToFileFormat();
+
+  SourceFile(String fileLocation){
+    _file = File(fileLocation);
+  }
+  SourceFile.fromFile(File file){
+    _file = file;
+  }
+
+}
+
+class ExcelFile extends SourceFile{
+
+  ExcelFile(super.fileLocation);
+
+  late dynamic excel;
+
+  @override
+  void loadFile() async {
+    // TODO: implement loadFile
+    var bytes = await _file.readAsBytesSync();
+    excel = Excel.decodeBytes(bytes);
+  }
+
+  @override
+  void saveFile() {
+    // TODO: implement saveFile
+  }
+  
+  @override
+  void exportListToFileFormat() {
+    // TODO: implement exportListToFileFormat
+  }
+
+  void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
+    //sctiptList = List.empty(growable: true);
+    sctiptList.clear();
+    for (var row in excel.tables[sheetName]!.rows) {
+      int collNr = 0;
+      ScriptNode scriptNode = ScriptNode.empty();
+      for (var cell in row) {
+        switch (collNr) {
+          case 0:
+            scriptNode.timecode = Timecode(cell.value.value.toString());
+            break;
+          case 1:
+            scriptNode.charName = cell.value.value.toString();
+          break;
+          case 2:
+            scriptNode.dial = cell.value.value.toString();
+          break;
+        }
+        collNr++;
+      }
+      sctiptList.add(scriptNode);
+    }
+    sctiptList.sort();
+    // TODO: sprawdź w których miejscach sortować listy
+  }
+
+
+  List<dynamic> listSheets(){
+    List<dynamic> sheetsList = List.empty(growable: true);
+    for (var table in excel.tables.keys) {
+      sheetsList.add(table);
+    }
+    return sheetsList;
+  }
+
+}
+
+

@@ -80,8 +80,8 @@ String temporaryStr = "";
   @override
   Widget build(BuildContext context) {
 
-    double _screenWidth =  MediaQuery.sizeOf(context).width;
-    double _screenHeight =  MediaQuery.sizeOf(context).height;
+    _screenWidth =  MediaQuery.sizeOf(context).width;
+    _screenHeight =  MediaQuery.sizeOf(context).height;
 
     return Scaffold(
       appBar: AppBar(
@@ -130,18 +130,18 @@ String temporaryStr = "";
                 startTcEntryWidget(),
                 OutlinedButton(
                   onPressed: selectVideoFile,
-                  child: Text("Open video file...")
+                  child: const Text("Open video file...")
                   ),
                 OutlinedButton(
                   onPressed: (){
                     selectExcelFile();
                   }  ,
-                  child: Text("Open Script file..."),
+                  child: const Text("Open Script file..."),
                   ),
                 sheetSelector(),
                 OutlinedButton(
-                  onPressed: saveSheetToFile,
-                  child: Text("Save script file"),
+                  onPressed: saveFile,
+                  child: const Text("Save script file"),
                   ),
                 
               ],
@@ -358,12 +358,19 @@ String temporaryStr = "";
         addAutomaticKeepAlives: false,
         shrinkWrap: false,
         children: [
-          DataTable(columns: const [
-            DataColumn(label: Text("TC from script to player")),
-            DataColumn(label: Text("TC from player to script")),
-            DataColumn(label: Text("TC")),
-            DataColumn(label: Text("character")),
-            DataColumn(label: SizedBox(width: 400, child: Text("dial"))),
+          DataTable(columns: [
+            const DataColumn(label: Text("TC from script to player")),
+            const DataColumn(label: Text("TC from player to script")),
+            DataColumn(label: const Text("TC"),
+              onSort:(columnIndex, ascending) {
+                //FIXME: sorting values
+                setState(() {
+                _scriptTable.sort();
+                _dataRows = scriptListToTable(_scriptTable);
+                });
+              },),
+            const DataColumn(label: Text("character")),
+            const DataColumn(label: SizedBox(width: 400, child: Text("dial"))),
           ],
             rows: _dataRows,
           )
@@ -420,9 +427,16 @@ String temporaryStr = "";
     var fileBytes = excel.save();
 
     //FIXME: FIX SAVED FILE LOCATION
-    File('/Users/bmajewicz/Desktop/output_file_name.xlsx')
+    // File('/Users/bmajewicz/Desktop/output_file_name.xlsx')
+    // ..createSync(recursive: true)
+    // ..writeAsBytesSync(fileBytes);
+    excelFile
     ..createSync(recursive: true)
     ..writeAsBytesSync(fileBytes);
+  }
+
+  void saveFile(){
+    saveSheetToFile();
   }
 
   void jumpToTc(Timecode tc){
