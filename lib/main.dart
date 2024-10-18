@@ -162,7 +162,8 @@ String temporaryStr = "";
                 OutlinedButton(onPressed: (){
                   newEntry(_scriptTable);
                   setState(() {
-                    _dataRows = scriptListToTable(_scriptTable);
+                    //_dataRows = scriptListToTable(_scriptTable);
+                    scriptListToTable(_scriptTable, _dataRows);
                   });
                 }, child: Text("new entry...")),
                 SizedBox(
@@ -219,7 +220,8 @@ String temporaryStr = "";
     onSelected: (value) {
       importSheetToList(value!, _scriptTable);
       setState(() {
-        _dataRows = scriptListToTable(_scriptTable);
+        //_dataRows = scriptListToTable(_scriptTable);
+        scriptListToTable(_scriptTable, _dataRows);
         sheetName = value;
       });
     },
@@ -370,7 +372,8 @@ String temporaryStr = "";
                 //FIXME: sorting values
                 setState(() {
                 _scriptTable.sort();
-                _dataRows = scriptListToTable(_scriptTable);
+                scriptListToTable(_scriptTable, _dataRows);
+                //_dataRows = scriptListToTable(_scriptTable);
                 });
               },),
             const DataColumn(label: Text("character")),
@@ -531,8 +534,11 @@ String temporaryStr = "";
     
   }
 
-  List <DataRow> scriptListToTable(List<ScriptNode> scriptList){
-    List<DataRow> myList = List.empty(growable: true);
+
+
+void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
+    //myList = List.empty(growable: true);
+    myList.clear();
     for (var scriptNode in scriptList) {
       myList.add(DataRow(cells: [
         DataCell(
@@ -597,7 +603,6 @@ String temporaryStr = "";
       ]));
       scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
     }
-    return myList;
 }
 
 
