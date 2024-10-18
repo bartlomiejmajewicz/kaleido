@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -76,6 +78,8 @@ String temporaryStr = "";
     player.dispose();
     super.dispose();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +169,7 @@ String temporaryStr = "";
                   width: 200,
                   child: TextFormField(
                     initialValue: "TC VALIDATION TEST",
-                    inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],))
+                    inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],)),
               ],
             )
           ],
@@ -311,7 +315,7 @@ String temporaryStr = "";
     if (result != null) {
       File file = File(result.files.single.path!);
       player.open(Media(result.files.single.path!));
-      // DO SPRAWDZENIA 
+      // TODO: DO SPRAWDZENIA 
       player.stream.position.listen((e) {
         currentPlaybackPosition = e;
         });
@@ -359,8 +363,8 @@ String temporaryStr = "";
         shrinkWrap: false,
         children: [
           DataTable(columns: [
-            const DataColumn(label: Text("TC from script to player")),
-            const DataColumn(label: Text("TC from player to script")),
+            DataColumn(label: Text("TC from script\nto player")),
+            DataColumn(label: Text("TC from player\nto script")),
             DataColumn(label: const Text("TC"),
               onSort:(columnIndex, ascending) {
                 //FIXME: sorting values
@@ -370,7 +374,7 @@ String temporaryStr = "";
                 });
               },),
             const DataColumn(label: Text("character")),
-            const DataColumn(label: SizedBox(width: 400, child: Text("dial"))),
+            DataColumn(label: SizedBox(width: _screenWidth-900, child: Text("dialogue"))),
           ],
             rows: _dataRows,
           )
@@ -387,9 +391,11 @@ String temporaryStr = "";
         int collNr = 0;
         ScriptNode scriptNode = ScriptNode.empty();
         for (var cell in row) {
-          switch (collNr) {
+          //FIXME: popraw te warunki, bo wiocha
+          if(cell != null && cell.value != null && cell.value.value != null){
+            switch (collNr) {
             case 0:
-              scriptNode.timecode = Timecode(cell.value.value.toString());
+              scriptNode.tcIn = Timecode(cell.value.value.toString());
               break;
             case 1:
               scriptNode.charName = cell.value.value.toString();
@@ -397,7 +403,9 @@ String temporaryStr = "";
             case 2:
               scriptNode.dial = cell.value.value.toString();
             break;
+            }
           }
+          
           collNr++;
         }
         sctiptList.add(scriptNode);
@@ -411,7 +419,7 @@ String temporaryStr = "";
     int a=0;
     for (var scriptNode in myList) {
       //sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.timecode.toString()));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.tcIn.toString()));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
       a++;
@@ -460,39 +468,42 @@ String temporaryStr = "";
             constraints: BoxConstraints.tight(Size(100,30)), 
             child: ElevatedButton(
               onPressed: (){
-                jumpToTc(scriptNode.timecode);
+                jumpToTc(scriptNode.tcIn);
               },
-              child: Text("TC UP")))),
+              //child: Text("TC UP")))),
+              child: Icon(Icons.arrow_upward)))),
         
         DataCell(
           ConstrainedBox(
-            constraints: BoxConstraints.tight(Size(150,30)),
+            constraints: BoxConstraints.tight(Size(100,30)),
             child: ElevatedButton(
               onPressed: (){
-                scriptNode.timecode = tcFromVideo()+startTC;
+                scriptNode.tcIn = tcFromVideo()+startTC;
                 setState(() {
-                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.timecode.toString());
+                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
                 });
               },
-              child: Text("TC DOWN")))),
+              //child: Text("TC DOWN")))),
+              child: Icon(Icons.arrow_downward)))),
         
-        DataCell(SizedBox( width: 150, child: TextFormField(
+        DataCell(SizedBox( width: 100, child: TextFormField(
           //initialValue: scriptNode.timecode.toString(),
           //key: Key(scriptNode.timecode.toString()),
+          // FIXME: popraw to, ze nie aktualizuje się cały czas
           controller: scriptNode.textControllerTc,
           onChanged: (value) {
             //FIXME:
             if(Timecode.tcValidateCheck(value)){
-              scriptNode.timecode = Timecode(value);
+              scriptNode.tcIn = Timecode(value);
             }
-            print(scriptNode.timecode.toString());
+            print(scriptNode.tcIn.toString());
           },
           inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
           //style: TextStyle(backgroundColor: Colors.green),
           //style: TextStyle().apply(backgroundColor: Colors.amber),
           ))),
         
-        DataCell(SizedBox( width: 150, child: TextFormField(
+        DataCell(SizedBox( width: 200, child: TextFormField(
           initialValue: scriptNode.charName,
           key: Key(scriptNode.charName),
           onChanged: (value){
@@ -512,7 +523,7 @@ String temporaryStr = "";
         //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
       ]));
-      scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.timecode.toString());
+      scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
     }
     return myList;
 }

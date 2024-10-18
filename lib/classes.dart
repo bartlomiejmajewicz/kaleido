@@ -139,16 +139,16 @@ class Timecode implements Comparable<Timecode> {
 
 class ScriptNode implements Comparable<ScriptNode>{
 
-  late Timecode timecode;
-  late String charName;
-  late String dial;
+  late Timecode tcIn = Timecode();
+  late String charName="";
+  late String dial="";
   late Widget widget;
 
   TextEditingController textControllerTc=TextEditingController();
 
 
   ScriptNode(Timecode timecodeIn, String characterName, String dialogue){
-    timecode = timecodeIn;
+    tcIn = timecodeIn;
     charName = characterName;
     dial = dialogue;
   }
@@ -163,7 +163,7 @@ class ScriptNode implements Comparable<ScriptNode>{
   
   @override
   int compareTo(ScriptNode other) {
-    if (timecode.framesCount()<other.timecode.framesCount()){
+    if (tcIn.framesCount()<other.tcIn.framesCount()){
       return -1;
     } else {
       return 1;
@@ -278,7 +278,7 @@ class ExcelFile extends SourceFile{
       for (var cell in row) {
         switch (collNr) {
           case 0:
-            scriptNode.timecode = Timecode(cell.value.value.toString());
+            scriptNode.tcIn = Timecode(cell.value.value.toString());
             break;
           case 1:
             scriptNode.charName = cell.value.value.toString();
