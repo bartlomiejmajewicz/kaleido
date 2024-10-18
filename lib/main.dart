@@ -384,6 +384,78 @@ String temporaryStr = "";
   }
 
 
+// TESTY ALE NIEUDANE >>
+  Widget showTableAsRowsAndColls(){
+    return Flexible(
+      child: ListView(
+        children: scriptListToRows(_scriptTable)
+        )
+    );
+  }
+
+  List<Widget> scriptListToRows(List<ScriptNode> scriptList){
+    List<Widget> siema = List.empty(growable: true);
+    for (var scriptNode in scriptList) {
+      siema.add(Row(
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints.tight(Size(100,30)), 
+            child: ElevatedButton(
+              onPressed: (){
+                jumpToTc(scriptNode.tcIn);
+              },
+              //child: Text("TC UP")))),
+              child: Icon(Icons.arrow_upward))),
+          ConstrainedBox(
+            constraints: BoxConstraints.tight(Size(100,30)),
+            child: ElevatedButton(
+              onPressed: (){
+                scriptNode.tcIn = tcFromVideo()+startTC;
+                setState(() {
+                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+                });
+              },
+              //child: Text("TC DOWN")))),
+              child: Icon(Icons.arrow_downward))),
+          SizedBox( width: 100, child: TextFormField(
+            controller: scriptNode.textControllerTc,
+            onChanged: (value) {
+              //FIXME:
+              if(Timecode.tcValidateCheck(value)){
+                scriptNode.tcIn = Timecode(value);
+              }
+              print(scriptNode.tcIn.toString());
+            },
+            inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+            )),
+
+          SizedBox( width: 200, child: TextFormField(
+            initialValue: scriptNode.charName,
+            key: Key(scriptNode.charName),
+            onChanged: (value){
+              scriptNode.charName = value;
+            },
+          )),
+
+          Flexible(
+            child: TextFormField(
+            onChanged: (value) => {
+              scriptNode.dial = value
+              // zobaczymy czy będzie to wystarczająco efficient ?
+            },
+            scribbleEnabled: false, 
+            initialValue: scriptNode.dial, 
+            maxLines: 1,
+            key: Key(scriptNode.dial),),
+          )
+
+      ]));
+    }
+    return siema;
+  }
+// << TESTY ALE NIEUDANE
+
+
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
       //sctiptList = List.empty(growable: true);
       sctiptList.clear();
