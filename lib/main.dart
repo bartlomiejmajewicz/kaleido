@@ -48,7 +48,7 @@ Timecode startTC = Timecode();
 // int videoWidth = 500;
 // int videoHeight = 500;
 double _sliderHeightValue = 200;
-double _sliderWidthValue = 200;
+double _sliderWidthValue = 400;
 
 late double _screenWidth;
 late double _screenHeight;
@@ -71,19 +71,33 @@ String temporaryStr = "";
 
 TextEditingController tempTextEditController = TextEditingController();
 
+bool _firstInit=true;
+
   @override
   void dispose(){
     player.dispose();
     super.dispose();
   }
 
+  
+
 
 
   @override
   Widget build(BuildContext context) {
 
-    _screenWidth =  MediaQuery.sizeOf(context).width;
-    _screenHeight =  MediaQuery.sizeOf(context).height;
+
+    _screenWidth = MediaQuery.sizeOf(context).width;
+    _screenHeight = MediaQuery.sizeOf(context).height;
+
+    if(_firstInit){
+      _sliderHeightValue = _screenHeight/3;
+      _sliderWidthValue = _screenWidth/2;
+      _firstInit = false;
+    }
+
+
+
 
     return Scaffold(
       appBar: AppBar(
@@ -109,7 +123,7 @@ TextEditingController tempTextEditController = TextEditingController();
                     setState(() {
                     _sliderHeightValue = value;
                     });
-                  }
+                  },
                 ),
                 const Text("Video Width:"),
                 Slider(

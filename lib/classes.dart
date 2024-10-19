@@ -123,7 +123,6 @@ class Timecode implements Comparable<Timecode> {
     } else {
       return 0;
     }
-    throw UnimplementedError();
   }
   
   @override
@@ -168,8 +167,6 @@ class ScriptNode implements Comparable<ScriptNode>{
     } else {
       return 1;
     }
-    // TODO: implement compareTo
-    throw UnimplementedError();
   }
   
 
