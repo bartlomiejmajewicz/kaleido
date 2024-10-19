@@ -26,21 +26,22 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Script Editor'),
+      //home: MyHomePage(),
+      home: ScriptPage(title: "script editor"),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class ScriptPage extends StatefulWidget {
+  const ScriptPage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ScriptPage> createState() => _ScriptPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ScriptPageState extends State<ScriptPage> {
 
 late final player = Player();
 late final controller = VideoController(player);
@@ -67,7 +68,7 @@ late String sheetName;
 
 ExcelFile? scriptSourceFile=null;
 
-String temporaryStr = "";
+static String temporaryStr = "";
 
 TextEditingController tempTextEditController = TextEditingController();
 
@@ -109,87 +110,91 @@ bool _firstInit=true;
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Column(
-        children: [Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(children: [
-              const Text("Video Height:"),
-                Slider(
-                  min: 50,
-                  max: _screenHeight,
-                  value: _sliderHeightValue,
-                  onChanged: (value){
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(children: [
+                const Text("Video Height:"),
+                  Slider(
+                    min: 50,
+                    max: _screenHeight,
+                    value: _sliderHeightValue,
+                    onChanged: (value){
+                      setState(() {
+                      _sliderHeightValue = value;
+                      });
+                    },
+                  ),
+                  const Text("Video Width:"),
+                  Slider(
+                    min: 50,
+                    max: _screenWidth,
+                    value: _sliderWidthValue,
+                    onChanged: (value){
+                      setState(() {
+                      _sliderWidthValue = value;
+                      });
+                    }
+                  )
+              ],),
+              videoPlayer(context),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  fpsSelector(),
+                  startTcEntryWidget(),
+                  OutlinedButton(
+                    onPressed: selectVideoFile,
+                    child: const Text("Open video file...")
+                    ),
+                  OutlinedButton(
+                    onPressed: (){
+                      selectScriptFile();
+                    }  ,
+                    child: const Text("Open Script file..."),
+                    ),
+                  sheetSelector(),
+                  OutlinedButton(
+                    onPressed: saveFile,
+                    child: const Text("Save script file"),
+                    ),
+                  
+                ],
+              ),
+              Column(
+                children: [
+                  OutlinedButton(onPressed: (){}, child: Text("Insert new TC...")),
+                  SizedBox(
+                    width: 200, 
+                    child: TextFormField(
+                      //initialValue: temporaryStr,
+                      //key: Key(temporaryStr),
+                      controller: tempTextEditController,)),
+                  OutlinedButton(onPressed: (){
+                    newEntry(_scriptTable);
                     setState(() {
-                    _sliderHeightValue = value;
+                      //_dataRows = scriptListToTable(_scriptTable);
+                      scriptListToTable(_scriptTable, _dataRows);
                     });
-                  },
-                ),
-                const Text("Video Width:"),
-                Slider(
-                  min: 50,
-                  max: _screenWidth,
-                  value: _sliderWidthValue,
-                  onChanged: (value){
-                    setState(() {
-                    _sliderWidthValue = value;
-                    });
-                  }
-                )
-            ],),
-            videoPlayer(context),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                fpsSelector(),
-                startTcEntryWidget(),
-                OutlinedButton(
-                  onPressed: selectVideoFile,
-                  child: const Text("Open video file...")
-                  ),
-                OutlinedButton(
-                  onPressed: (){
-                    selectScriptFile();
-                  }  ,
-                  child: const Text("Open Script file..."),
-                  ),
-                sheetSelector(),
-                OutlinedButton(
-                  onPressed: saveFile,
-                  child: const Text("Save script file"),
-                  ),
-                
-              ],
-            ),
-            Column(
-              children: [
-                OutlinedButton(onPressed: (){}, child: Text("Insert new TC...")),
-                SizedBox(
-                  width: 200, 
-                  child: TextFormField(
-                    //initialValue: temporaryStr,
-                    //key: Key(temporaryStr),
-                    controller: tempTextEditController,)),
-                OutlinedButton(onPressed: (){
-                  newEntry(_scriptTable);
-                  setState(() {
-                    //_dataRows = scriptListToTable(_scriptTable);
-                    scriptListToTable(_scriptTable, _dataRows);
-                  });
-                }, child: Text("new entry...")),
-                SizedBox(
-                  width: 200,
-                  child: TextFormField(
-                    initialValue: "TC VALIDATION TEST",
-                    inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],)),
-              ],
-            )
-          ],
+                  }, child: Text("new entry...")),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      initialValue: "TC VALIDATION TEST",
+                      inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],)),
+                  Text(temporaryStr),
+                ],
+              )
+            ],
+          ),
+          showTableAsListView()
+          //justTable()
+          ]
         ),
-        showTableAsListView()
-        //justTable()
-        ]
       ),
     );
   }
@@ -692,3 +697,65 @@ Future<void> _showPickerDialogCancelled(String whichFile) async {
   // }
 }
 
+
+// CLASSES FOR THE NAVIGATION
+
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = ScriptPage(title: "script editor");
+      case 1:
+        page = OutlinedButton(onPressed: (){
+          _ScriptPageState.temporaryStr="123";
+        }, child: Text("data"));
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                extended: false,
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.playlist_play_rounded),
+                    label: Text('Home'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings),
+                    label: Text('Favorites'),
+                  ),
+                ],
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (value) {
+                  setState(() {
+                    selectedIndex = value;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: page,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
