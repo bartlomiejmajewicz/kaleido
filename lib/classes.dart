@@ -267,7 +267,6 @@ class ExcelFile extends SourceFile{
 
   @override
   void saveFile() {
-    // TODO: implement saveFile
     var fileBytes = _excel.save();
     _file
     ..createSync(recursive: true)
@@ -276,7 +275,7 @@ class ExcelFile extends SourceFile{
   
   @override
   void exportListToFileFormat() {
-    // TODO: implement exportListToFileFormat
+
   }
 
   File file_getter(){
@@ -318,6 +317,10 @@ class ExcelFile extends SourceFile{
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.tcIn.toString()));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
+      a++;
+    }
+    while(a<sheetObject.maxRows){
+      sheetObject.removeRow(a);
       a++;
     }
   }

@@ -387,6 +387,7 @@ TextEditingController tempTextEditController = TextEditingController();
               },),
             const DataColumn(label: Text("character")),
             DataColumn(label: SizedBox(width: _screenWidth-900, child: Text("dialogue"))),
+            const DataColumn(label: Text("Delete\nthe line")),
           ],
             rows: _dataRows,
           )
@@ -520,7 +521,6 @@ TextEditingController tempTextEditController = TextEditingController();
   }
 
 
-
 void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
     //myList = List.empty(growable: true);
     myList.clear();
@@ -585,6 +585,16 @@ void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
           key: Key(scriptNode.dial),)),
         //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
+        DataCell(
+          ElevatedButton(
+            child: Icon(Icons.delete),
+            onPressed: () {
+              scriptList.remove(scriptNode);
+              scriptListToTable(_scriptTable, _dataRows);
+              setState(() {
+                
+              });
+            },)),
       ]));
       scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
     }
@@ -618,44 +628,6 @@ Future<void> _showPickerDialogCancelled(String whichFile) async {
   );
 }
 
-
-
-
-
-  // List<ScriptNode> excelToNode(){
-  //   List<ScriptNode> myList=[];
-  //   file = '/Users/bmajewicz/Desktop/Zeszyt1.xlsx';
-  //   bytes = File(file).readAsBytesSync();
-  //   excel = Excel.decodeBytes(bytes);
-  //   for (var table in excel.tables.keys) {
-  //     print(table); //sheet Name
-  //     //print(excel.tables[table]?.maxColumns);
-  //     //print(excel.tables[table]?.maxRows);
-  //     for (var row in excel.tables[table]!.rows) {
-  //       int collNr = 0;
-  //       ScriptNode scriptNode = ScriptNode.empty();
-  //       for (var cell in row) {
-  //         switch (collNr) {
-  //           case 0:
-  //             scriptNode.timecode = Timecode(cell.value.value.toString());
-  //             break;
-  //           case 1:
-  //             scriptNode.charName = cell.value.value.toString();
-  //             break;
-  //           case 2:
-  //             scriptNode.dial = cell.value.value.toString();
-  //             break;
-  //           default:
-  //         }
-  //         collNr++;
-  //       }
-  //       myList.add(scriptNode);
-  //     }
-  //   }
-  //   print(myList.length);
-  //   nodes = myList;
-  //   return myList;
-  // }
 
   void newEntry(List<ScriptNode> scriptList) {
     Timecode timecode = Timecode();
