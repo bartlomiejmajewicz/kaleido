@@ -251,14 +251,14 @@ class ExcelFile extends SourceFile{
   ExcelFile(super.fileLocation);
   ExcelFile.fromFile(super.file) : super.fromFile();
 
-  late dynamic excel;
+  late dynamic _excel;
   List<String> sheetsList = List.empty(growable: true);
 
   @override
   void loadFile() {
     var bytes = _file.readAsBytesSync();
-    excel = Excel.decodeBytes(bytes);
-    for (var table in excel.tables.keys) {
+    _excel = Excel.decodeBytes(bytes);
+    for (var table in _excel.tables.keys) {
       print('from ExcelFile $table'); //sheet Name
       sheetsList.add(table);
     }
@@ -268,6 +268,10 @@ class ExcelFile extends SourceFile{
   @override
   void saveFile() {
     // TODO: implement saveFile
+    var fileBytes = _excel.save();
+    _file
+    ..createSync(recursive: true)
+    ..writeAsBytesSync(fileBytes);
   }
   
   @override
@@ -275,9 +279,13 @@ class ExcelFile extends SourceFile{
     // TODO: implement exportListToFileFormat
   }
 
+  File file_getter(){
+    return _file;
+  }
+
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
     sctiptList.clear();
-    for (var row in excel.tables[sheetName]!.rows) {
+    for (var row in _excel.tables[sheetName]!.rows) {
       int collNr = 0;
       ScriptNode scriptNode = ScriptNode.empty();
       for (var cell in row) {
@@ -302,10 +310,23 @@ class ExcelFile extends SourceFile{
     sctiptList.sort();
   }
 
+  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc){
+    Sheet sheetObject = _excel[sheetNameLoc];
+    int a=0;
+    for (var scriptNode in myList) {
+      //sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.tcIn.toString()));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
+      a++;
+    }
+  }
+
+
 
   List<dynamic> listSheets(){
     List<dynamic> sheetsList = List.empty(growable: true);
-    for (var table in excel.tables.keys) {
+    for (var table in _excel.tables.keys) {
       sheetsList.add(table);
     }
     return sheetsList;

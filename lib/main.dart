@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/services.dart';
@@ -58,20 +56,20 @@ late double _screenHeight;
 
 late File videoFile;
 Duration currentPlaybackPosition = Duration();
-File excelFile = new File("");
 late dynamic excel;
 
 bool _sheetSelectorActive = true;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
-List<String> sheetsList = List.empty(growable: true);
 List<ScriptNode> _scriptTable = List.empty(growable: true);
 List <DataRow> _dataRows = List.empty(growable: true);
 late String sheetName;
 
+ExcelFile? scriptSourceFile=null;
+
 String temporaryStr = "";
 
-  TextEditingController tempTextEditController = TextEditingController();
+TextEditingController tempTextEditController = TextEditingController();
 
   @override
   void dispose(){
@@ -138,7 +136,7 @@ String temporaryStr = "";
                   ),
                 OutlinedButton(
                   onPressed: (){
-                    selectExcelFile();
+                    selectScriptFile();
                   }  ,
                   child: const Text("Open Script file..."),
                   ),
@@ -218,7 +216,8 @@ String temporaryStr = "";
     width: 200, // TODO: szerokość zalezna
     label: const Text("select excel sheet"),
     onSelected: (value) {
-      importSheetToList(value!, _scriptTable);
+      scriptSourceFile!.importSheetToList(value!, _scriptTable);
+      //importSheetToList(value!, _scriptTable);
       setState(() {
         //_dataRows = scriptListToTable(_scriptTable);
         scriptListToTable(_scriptTable, _dataRows);
@@ -327,21 +326,25 @@ String temporaryStr = "";
     }
   }
 
-  Future<void> selectExcelFile() async {
+  Future<void> selectScriptFile() async {
     // select the excel file, list the sheets and save the excel file to the var
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
-      excelFile = File(result.files.single.path!);
-      var bytes = await excelFile.readAsBytesSync();
-      excel = await Excel.decodeBytes(bytes);
-      _sheetSelectorActive = true;
-      for (var table in excel.tables.keys) {
-        print(table); //sheet Name
-        sheetsList.add(table);
-      }
+      // excelFile = File(result.files.single.path!);
+      // var bytes = await excelFile.readAsBytesSync();
+      // excel = await Excel.decodeBytes(bytes);
+      // _sheetSelectorActive = true;
+      // for (var table in excel.tables.keys) {
+      //   print(table); //sheet Name
+      //   sheetsList.add(table);
+      // }
       //ExcelFile myExcelFile = ExcelFile(result.files.single.path!);
-      ExcelFile myExcelFile = ExcelFile.fromFile(excelFile);
-      myExcelFile.loadFile();
+      scriptSourceFile = ExcelFile(result.files.single.path!);
+      scriptSourceFile!.loadFile();
+      //sheetsList = scriptSourceFile!.sheetsList;
+      //excelFile = scriptSourceFile!.file_getter();
+
+
       setState(() {
         
       });
@@ -352,7 +355,10 @@ String temporaryStr = "";
   }
 
   List<DropdownMenuEntry<String>> getDropdownMenuEntries() {
-    return sheetsList.map((String item) {
+    if(scriptSourceFile?.sheetsList == null){
+      return [];
+    }
+    return scriptSourceFile!.sheetsList.map((String item) {
       return DropdownMenuEntry<String>(
         value: item,
         label: item,
@@ -391,6 +397,8 @@ String temporaryStr = "";
 
 
 // TESTY ALE NIEUDANE >>
+
+
   Widget showTableAsRowsAndColls(){
     return Flexible(
       child: ListView(
@@ -461,7 +469,7 @@ String temporaryStr = "";
   }
 // << TESTY ALE NIEUDANE
 
-  void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
+/* void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
       //sctiptList = List.empty(growable: true);
       sctiptList.clear();
       for (var row in excel.tables[sheetName]!.rows) {
@@ -490,38 +498,13 @@ String temporaryStr = "";
       sctiptList.sort();
       // TODO: sprawdź w których miejscach sortować listy
   }
-  
-  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc){
-    Sheet sheetObject = excel[sheetNameLoc];
-    int a=0;
-    for (var scriptNode in myList) {
-      //sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.tcIn.toString()));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
-      a++;
-    }
-    // TODO:
-  }
-  
-  void saveSheetToFile(){
-    // Sheet sheetObject = excel[sheetName];
-    // sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
-    exportListToSheet(_scriptTable, sheetName);
+  */
 
-    var fileBytes = excel.save();
 
-    //FIXME: FIX SAVED FILE LOCATION
-    // File('/Users/bmajewicz/Desktop/output_file_name.xlsx')
-    // ..createSync(recursive: true)
-    // ..writeAsBytesSync(fileBytes);
-    excelFile
-    ..createSync(recursive: true)
-    ..writeAsBytesSync(fileBytes);
-  }
 
   void saveFile(){
-    saveSheetToFile();
+    scriptSourceFile!.exportListToSheet(_scriptTable, sheetName);
+    scriptSourceFile!.saveFile();
   }
 
   void jumpToTc(Timecode tc){
