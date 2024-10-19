@@ -23,12 +23,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Script Editor',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Script Editor'),
     );
   }
 }
@@ -215,7 +215,7 @@ String temporaryStr = "";
   DropdownMenu<String> sheetSelector(){
     return DropdownMenu<String>(
     enabled: _sheetSelectorActive,
-    width: 200, // TODO: szerokość zale
+    width: 200, // TODO: szerokość zalezna
     label: const Text("select excel sheet"),
     onSelected: (value) {
       importSheetToList(value!, _scriptTable);
@@ -339,6 +339,9 @@ String temporaryStr = "";
         print(table); //sheet Name
         sheetsList.add(table);
       }
+      //ExcelFile myExcelFile = ExcelFile(result.files.single.path!);
+      ExcelFile myExcelFile = ExcelFile.fromFile(excelFile);
+      myExcelFile.loadFile();
       setState(() {
         
       });
@@ -457,7 +460,6 @@ String temporaryStr = "";
     return siema;
   }
 // << TESTY ALE NIEUDANE
-
 
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
       //sctiptList = List.empty(growable: true);
@@ -606,7 +608,7 @@ void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
 }
 
 
-  Future<void> _showPickerDialogCancelled(String whichFile) async {
+Future<void> _showPickerDialogCancelled(String whichFile) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!

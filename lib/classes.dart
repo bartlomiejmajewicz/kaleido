@@ -249,15 +249,21 @@ abstract class SourceFile{
 class ExcelFile extends SourceFile{
 
   ExcelFile(super.fileLocation);
+  ExcelFile.fromFile(super.file) : super.fromFile();
 
   late dynamic excel;
+  List<String> sheetsList = List.empty(growable: true);
 
   @override
-  void loadFile() async {
-    // TODO: implement loadFile
-    var bytes = await _file.readAsBytesSync();
+  void loadFile() {
+    var bytes = _file.readAsBytesSync();
     excel = Excel.decodeBytes(bytes);
+    for (var table in excel.tables.keys) {
+      print('from ExcelFile $table'); //sheet Name
+      sheetsList.add(table);
+    }
   }
+
 
   @override
   void saveFile() {
@@ -270,13 +276,14 @@ class ExcelFile extends SourceFile{
   }
 
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
-    //sctiptList = List.empty(growable: true);
     sctiptList.clear();
     for (var row in excel.tables[sheetName]!.rows) {
       int collNr = 0;
       ScriptNode scriptNode = ScriptNode.empty();
       for (var cell in row) {
-        switch (collNr) {
+        //FIXME: popraw te warunki, bo wiocha
+        if(cell != null && cell.value != null && cell.value.value != null){
+          switch (collNr) {
           case 0:
             scriptNode.tcIn = Timecode(cell.value.value.toString());
             break;
@@ -286,13 +293,13 @@ class ExcelFile extends SourceFile{
           case 2:
             scriptNode.dial = cell.value.value.toString();
           break;
+          }
         }
         collNr++;
       }
       sctiptList.add(scriptNode);
     }
     sctiptList.sort();
-    // TODO: sprawdź w których miejscach sortować listy
   }
 
 
