@@ -335,3 +335,14 @@ class ExcelFile extends SourceFile{
 }
 
 
+
+
+class SettingsClass{
+  static int rowNumber = 1;
+  static int collNumber = 1;
+  static String sheetName = "";
+  static String VideoFilePath = "";
+  static String ScriptFilePath = "";
+}
+
+

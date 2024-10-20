@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/classes.dart';
+import 'package:script_editor/resizableWidget.dart';
+import 'package:numberpicker/numberpicker.dart';
 
 void main() {
   MediaKit.ensureInitialized();
@@ -26,11 +28,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      //home: MyHomePage(),
-      home: ScriptPage(title: "script editor"),
+      home: MyHomePage(),
+      //home: ScriptPage(title: "script editor"),
+      //home: SettingsPage()
     );
   }
 }
+
 
 class ScriptPage extends StatefulWidget {
   const ScriptPage({super.key, required this.title});
@@ -698,6 +702,126 @@ Future<void> _showPickerDialogCancelled(String whichFile) async {
 }
 
 
+
+class SettingsPage extends StatefulWidget {
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SizedBox(
+        //width: MediaQuery.sizeOf(context).width,
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: ListView(
+            children: [
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                children: [
+                  TableRow(children: [
+                    const Text("select video file:"),
+                    OutlinedButton(onPressed: selectVideoFile, child: Text("select video file...")),
+                    SelectableText("selected file: ${SettingsClass.VideoFilePath}"),
+                  ]),
+                  TableRow(children: [
+                    const Text("select script file:"),
+                    OutlinedButton(onPressed: selectScriptFile, child: Text("select script file...")),
+                    SelectableText("selected file: ${SettingsClass.ScriptFilePath}"),
+                  ]),
+                    TableRow(children: [
+                    const Text("select sheet:"),
+                    Placeholder(),
+                    Text('selected sheet name: ${SettingsClass.sheetName}'),
+                  ]),
+                    TableRow(children: [
+                    const Text("select starting column: "),
+                    TextFormField(
+                      initialValue: "1", 
+                      onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value) : 1;}),
+                      inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
+                    ),
+                    Text('selected collumn: ${SettingsClass.collNumber}'),
+                  ]),
+                  TableRow(children: [
+                    const Text("select starting row: "),
+                    TextFormField(
+                      initialValue: "1", 
+                      onChanged: (value) => setState((){SettingsClass.rowNumber = (value!="") ? int.parse(value) : 1;}),
+                      inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
+                    ),
+                    Text('selected row: ${SettingsClass.rowNumber}'),
+                  ]),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Future<void> selectVideoFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
+    if (result != null) {
+      SettingsClass.VideoFilePath = result.files.single.path!;
+      File file = File(result.files.single.path!);
+      setState(() {
+        
+      });
+    } else {
+    // User canceled the picker
+    }
+  }
+
+
+  Future<void> selectScriptFile() async {
+    // select the excel file, list the sheets and save the excel file to the var
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
+    if (result != null) {
+      SettingsClass.ScriptFilePath = result.files.single.path!;
+      // excelFile = File(result.files.single.path!);
+      // var bytes = await excelFile.readAsBytesSync();
+      // excel = await Excel.decodeBytes(bytes);
+      // _sheetSelectorActive = true;
+      // for (var table in excel.tables.keys) {
+      //   print(table); //sheet Name
+      //   sheetsList.add(table);
+      // }
+      //ExcelFile myExcelFile = ExcelFile(result.files.single.path!);
+      //scriptSourceFile = ExcelFile(result.files.single.path!);
+      //scriptSourceFile!.loadFile();
+      //sheetsList = scriptSourceFile!.sheetsList;
+      //excelFile = scriptSourceFile!.file_getter();
+
+
+      setState(() {
+        
+      });
+    } else {
+    // User canceled the picker
+    }
+  }
+
+  TextEditingValue numberValidityCheck(TextEditingValue oldValue, TextEditingValue newValue) {
+    RegExp numberPattern = RegExp(r'^\d{0,2}$');
+    if (numberPattern.hasMatch(newValue.text)){
+      return newValue;
+    } else {
+      return oldValue;
+    }  
+  }
+
+
+}
+
+
 // CLASSES FOR THE NAVIGATION
 
 class MyHomePage extends StatefulWidget {
@@ -715,9 +839,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = ScriptPage(title: "script editor");
       case 1:
-        page = OutlinedButton(onPressed: (){
-          _ScriptPageState.temporaryStr="123";
-        }, child: Text("data"));
+        page = SettingsPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
