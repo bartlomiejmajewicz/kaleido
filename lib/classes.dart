@@ -338,11 +338,11 @@ class ExcelFile extends SourceFile{
 
 
 class SettingsClass{
-  static int rowNumber = 0;
-  static int collNumber = 0;
-  static String sheetName = "";
-  static String videoFilePath = "";
-  static String scriptFilePath = "";
+  static int rowNumber = 0; // TODO: implement this
+  static int collNumber = 0; // TODO: implement this
+  static String sheetName = "Arkusz1";
+  static String videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
+  static String scriptFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Zeszyt1.xlsx";
   static double videoWidth = 200;
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();

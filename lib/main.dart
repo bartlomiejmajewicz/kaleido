@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -135,7 +136,7 @@ bool _firstInit=true;
               Column(children: [
                 const Text("Video Height:"),
                   Slider(
-                    min: 50,
+                    min: 10,
                     max: _screenHeight,
                     value: _sliderHeightValue,
                     onChanged: (value){
@@ -146,7 +147,7 @@ bool _firstInit=true;
                   ),
                   const Text("Video Width:"),
                   Slider(
-                    min: 50,
+                    min: 10,
                     max: _screenWidth,
                     value: _sliderWidthValue,
                     onChanged: (value){
@@ -158,35 +159,12 @@ bool _firstInit=true;
               ],),
               videoPlayer(context),
               Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  fpsSelector(),
-                  startTcEntryWidget(),
-                  OutlinedButton(
-                    onPressed: selectVideoFile,
-                    child: const Text("Open video file...")
-                    ),
-                  OutlinedButton(
-                    onPressed: (){
-                      selectScriptFile();
-                    }  ,
-                    child: const Text("Open Script file..."),
-                    ),
-                  sheetSelector(),
-                  OutlinedButton(
-                    onPressed: saveFile,
-                    child: const Text("Save script file"),
-                    ),
                   
-                ],
-              ),
-              Column(
-                children: [
-                  OutlinedButton(onPressed: (){}, child: Text("Insert new TC...")),
                   SizedBox(
                     width: 200, 
                     child: TextFormField(
+                      
                       //initialValue: temporaryStr,
                       //key: Key(temporaryStr),
                       controller: tempTextEditController,)),
@@ -196,13 +174,8 @@ bool _firstInit=true;
                       //_dataRows = scriptListToTable(_scriptTable);
                       scriptListToTable(_scriptTable, _dataRows);
                     });
-                  }, child: Text("new entry...")),
-                  SizedBox(
-                    width: 200,
-                    child: TextFormField(
-                      initialValue: "TC VALIDATION TEST",
-                      inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],)),
-                  Text(temporaryStr),
+                  }, child: const Text("new entry...")),
+                  OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
                 ],
               )
             ],
@@ -420,7 +393,7 @@ bool _firstInit=true;
                 });
               },),
             const DataColumn(label: Text("character")),
-            DataColumn(label: SizedBox(width: _screenWidth-900, child: Text("dialogue"))),
+            DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
             const DataColumn(label: Text("Delete\nthe line")),
           ],
             rows: _dataRows,
@@ -429,7 +402,6 @@ bool _firstInit=true;
       ),
     );
   }
-
 
 // TESTY ALE NIEUDANE >>
   Widget showTableAsRowsAndColls(){
@@ -476,7 +448,7 @@ bool _firstInit=true;
             inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
             )),
 
-          SizedBox( width: 200, child: TextFormField(
+          SizedBox( width: 180, child: TextFormField(
             initialValue: scriptNode.charName,
             key: Key(scriptNode.charName),
             onChanged: (value){
@@ -607,15 +579,16 @@ bool _firstInit=true;
           },
           ))),
        
-        DataCell(TextFormField(
-          onChanged: (value) => {
-            scriptNode.dial = value
-            // zobaczymy czy będzie to wystarczająco efficient ?
-          },
-          scribbleEnabled: false, 
-          initialValue: scriptNode.dial, 
-          maxLines: 10,
-          key: Key(scriptNode.dial),)),
+        DataCell(
+          TextFormField(
+            onChanged: (value) => {
+              scriptNode.dial = value
+              // zobaczymy czy będzie to wystarczająco efficient ?
+            },
+            scribbleEnabled: false, 
+            initialValue: scriptNode.dial, 
+            maxLines: 10,
+            key: Key(scriptNode.dial),)),
         //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
         DataCell(
@@ -665,7 +638,7 @@ bool _firstInit=true;
   void newEntry(List<ScriptNode> scriptList) {
     Timecode timecode = Timecode();
     timecode.tcFromDuration(currentPlaybackPosition);
-    scriptList.add(ScriptNode(timecode+startTC, "characterName", "dialogue"));
+    scriptList.add(ScriptNode(timecode+startTC, tempTextEditController.text, "dialogue"));
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
