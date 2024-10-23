@@ -73,7 +73,6 @@ late String sheetName;
 
 ExcelFile? scriptSourceFile=null;
 
-static String temporaryStr = "";
 
 TextEditingController tempTextEditController = TextEditingController();
 TextEditingController charNameOldTEC = TextEditingController();
@@ -204,10 +203,6 @@ bool _firstInit=true;
                             ],
                         );
                       });
-
-
-
-                      // TODO: toast - ile rekordów zmieniono
                       scriptListToTable(_scriptTable, _dataRows);
                       setState(() {
                       });
@@ -240,102 +235,10 @@ bool _firstInit=true;
     );
   }
 
-  DropdownMenu fpsSelector(){
-    return DropdownMenu(
-      width: 200, // TODO: szerokość zale
-      label: const Text("set video framerate"),
-      onSelected: (value) {
-        Timecode.framerate = value;
-      },
-      dropdownMenuEntries: const <DropdownMenuEntry>[
-        DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
-        DropdownMenuEntry(value: 25, label: "25 fps"),
-        DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
-      ],
-      );
-  }
-
-  DropdownMenu<String> sheetSelector(){
-    return DropdownMenu<String>(
-    enabled: _sheetSelectorActive,
-    width: 200, // TODO: szerokość zalezna
-    label: const Text("select excel sheet"),
-    onSelected: (value) {
-      scriptSourceFile!.importSheetToList(value!, _scriptTable);
-      //importSheetToList(value!, _scriptTable);
-      setState(() {
-        //_dataRows = scriptListToTable(_scriptTable);
-        scriptListToTable(_scriptTable, _dataRows);
-        sheetName = value;
-      });
-    },
-    dropdownMenuEntries: getDropdownMenuEntries(),
-    );
-  }
-
-  void setStartTcFromTextField(int field, int value){
-    // function changes video startTC from entry in the menu
-
-    switch (field) {
-      case 0:
-        startTC.h = value;
-      break;
-      case 1:
-        startTC.m = value;
-      break;
-      case 2:
-        startTC.s = value;
-      break;
-      case 3:
-        startTC.f = value;
-      break;
-    }
-
-    print(startTC);
-  }
-
-  Future<void> selectVideoFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      player.open(Media(result.files.single.path!));
-      // TODO: DO SPRAWDZENIA 
-      player.stream.position.listen((e) {
-        currentPlaybackPosition = e;
-        });
-    } else {
-    // User canceled the picker
-      _showPickerDialogCancelled('video file');
-    }
-  }
-
-  Future<void> selectScriptFile() async {
-    // select the excel file, list the sheets and save the excel file to the var
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
-    if (result != null) {
-      // excelFile = File(result.files.single.path!);
-      // var bytes = await excelFile.readAsBytesSync();
-      // excel = await Excel.decodeBytes(bytes);
-      // _sheetSelectorActive = true;
-      // for (var table in excel.tables.keys) {
-      //   print(table); //sheet Name
-      //   sheetsList.add(table);
-      // }
-      //ExcelFile myExcelFile = ExcelFile(result.files.single.path!);
-      scriptSourceFile = ExcelFile(result.files.single.path!);
-      scriptSourceFile!.loadFile();
-      //sheetsList = scriptSourceFile!.sheetsList;
-      //excelFile = scriptSourceFile!.file_getter();
 
 
-      setState(() {
-        
-      });
-    } else {
-    // User canceled the picker
-      _showPickerDialogCancelled('script file');
-    }
-  }
+
+
 
   List<DropdownMenuEntry<String>> getDropdownMenuEntries() {
     if(scriptSourceFile?.sheetsList == null){
@@ -393,107 +296,6 @@ bool _firstInit=true;
     );
   }
 
-// TESTY ALE NIEUDANE >>
-  Widget showTableAsRowsAndColls(){
-    return Flexible(
-      child: ListView(
-        children: scriptListToRows(_scriptTable)
-        )
-    );
-  }
-
-  List<Widget> scriptListToRows(List<ScriptNode> scriptList){
-    List<Widget> siema = List.empty(growable: true);
-    for (var scriptNode in scriptList) {
-      siema.add(Row(
-        children: [
-          ConstrainedBox(
-            constraints: BoxConstraints.tight(Size(100,30)), 
-            child: ElevatedButton(
-              onPressed: (){
-                jumpToTc(scriptNode.tcIn);
-              },
-              //child: Text("TC UP")))),
-              child: Icon(Icons.arrow_upward))),
-          ConstrainedBox(
-            constraints: BoxConstraints.tight(Size(100,30)),
-            child: ElevatedButton(
-              onPressed: (){
-                scriptNode.tcIn = tcFromVideo()+startTC;
-                setState(() {
-                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-                });
-              },
-              //child: Text("TC DOWN")))),
-              child: Icon(Icons.arrow_downward))),
-          SizedBox( width: 100, child: TextFormField(
-            controller: scriptNode.textControllerTc,
-            onChanged: (value) {
-              //FIXME:
-              if(Timecode.tcValidateCheck(value)){
-                scriptNode.tcIn = Timecode(value);
-              }
-              print(scriptNode.tcIn.toString());
-            },
-            inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-            )),
-
-          SizedBox( width: 180, child: TextFormField(
-            initialValue: scriptNode.charName,
-            key: Key(scriptNode.charName),
-            onChanged: (value){
-              scriptNode.charName = value;
-            },
-          )),
-
-          Flexible(
-            child: TextFormField(
-            onChanged: (value) => {
-              scriptNode.dial = value
-              // zobaczymy czy będzie to wystarczająco efficient ?
-            },
-            scribbleEnabled: false, 
-            initialValue: scriptNode.dial, 
-            maxLines: 1,
-            key: Key(scriptNode.dial),),
-          )
-
-      ]));
-    }
-    return siema;
-  }
-// << TESTY ALE NIEUDANE
-
-/* void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
-      //sctiptList = List.empty(growable: true);
-      sctiptList.clear();
-      for (var row in excel.tables[sheetName]!.rows) {
-        int collNr = 0;
-        ScriptNode scriptNode = ScriptNode.empty();
-        for (var cell in row) {
-          //FIXME: popraw te warunki, bo wiocha
-          if(cell != null && cell.value != null && cell.value.value != null){
-            switch (collNr) {
-            case 0:
-              scriptNode.tcIn = Timecode(cell.value.value.toString());
-              break;
-            case 1:
-              scriptNode.charName = cell.value.value.toString();
-            break;
-            case 2:
-              scriptNode.dial = cell.value.value.toString();
-            break;
-            }
-          }
-          
-          collNr++;
-        }
-        sctiptList.add(scriptNode);
-      }
-      sctiptList.sort();
-      // TODO: sprawdź w których miejscach sortować listy
-  }
-  */
 
 
 
@@ -659,30 +461,6 @@ bool _firstInit=true;
     }
     return affected;
   }
-
-  // String buildTimecodePattern(int fps) {
-  // // Sprawdzenie, ile maksymalnie klatek na sekundę jest dopuszczalne
-  // String framePattern;
-  // if (fps <= 10) {
-  //   framePattern = r'[0-9]';  // dla FPS <= 10 (klatki 0-9)
-  // } else if (fps <= 99) {
-  //   framePattern = r'[0-' + (fps - 1).toString().padLeft(2, '0')[0] + '][0-9]';
-  // } else {
-  //   throw ArgumentError('FPS musi być w zakresie 1-99');
-  // }
-  // // Budowanie pełnego wzorca timecode
-  // return r'^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d:' + framePattern + r'$';
-  // }
-  
-  // bool tcValidateCheck(String value) {
-  //   // check if the TC is a valid value
-  //   var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
-  //   if(tcValidateCheck.hasMatch(value)){
-  //     return true;
-  //   } else{
-  //     return false;
-  //   }
-  // }
 }
 
 
@@ -791,6 +569,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } else {
     // User canceled the picker
+      _showPickerDialogCancelled('video file');
     }
   }
 
@@ -807,6 +586,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } else {
     // User canceled the picker
+      _showPickerDialogCancelled('script file');
     }
   }
 
@@ -865,6 +645,33 @@ class _SettingsPageState extends State<SettingsPage> {
         label: item,
       );
     }).toList();
+  }
+
+  Future<void> _showPickerDialogCancelled(String whichFile) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Selector canceled'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('You have to select a $whichFile to continue'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -940,10 +747,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
-                  setState(() {
-                    //TODO: sprawdź czy wszystkie parametry są wypełnione
-                    selectedIndex = value;
-                  });
+
+                  if(SettingsClass.scriptFilePath.isEmpty
+                  || SettingsClass.sheetName.isEmpty){
+                    showDialog(context: context, builder: (BuildContext context){
+                        return const SimpleDialog(
+                            children: [
+                              Text('You have to select all required options',
+                                textAlign: TextAlign.center,),
+                            ],
+                        );
+                      });
+                  } else {
+                    setState(() {
+                      //TODO: sprawdź czy wszystkie parametry są wypełnione
+                      selectedIndex = value;
+                    });
+                  }
+
+
                 },
               ),
             ),
