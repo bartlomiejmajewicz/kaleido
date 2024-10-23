@@ -338,11 +338,13 @@ class ExcelFile extends SourceFile{
 
 
 class SettingsClass{
-  static int rowNumber = 1;
-  static int collNumber = 1;
+  static int rowNumber = 0;
+  static int collNumber = 0;
   static String sheetName = "";
-  static String VideoFilePath = "";
+  static String videoFilePath = "";
   static String ScriptFilePath = "";
+  static double videoWidth = 200;
+  static double videoHeight = 200;
 }
 
 

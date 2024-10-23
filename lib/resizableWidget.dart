@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  MediaKit.ensureInitialized();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -23,17 +28,18 @@ class Demo extends StatefulWidget {
 }
 
 class _DemoState extends State<Demo> {
+  late final player = Player();
+  late final controller = VideoController(player);
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(60),
-      child: ResizebleWidget(
-        child: Text(
-'''I've just did simple prototype to show main idea.
-  1. Draw size handlers with container;
-  2. Use GestureDetector to get new variables of sizes
-  3. Refresh the main container size.''',
-        ),
+      child: Row(
+        children: [
+          ResizebleWidget(
+            child: Video(controller: controller),
+          ),
+        ],
       ),
     );
   }
@@ -90,15 +96,18 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
           child: ManipulatingBall(
             onDrag: (dx, dy) {
               var mid = (dx + dy) / 2;
+              //print('$dx : $dy');
 
-              var newHeight = height + 2 * mid;
-              var newWidth = width + 2 * mid;
+              //var newHeight = height + 2 * mid;
+              //var newWidth = width + 2 * mid;
+              var newHeight = height + dy;
+              var newWidth = width + dx;
 
               setState(() {
                 height = newHeight > 0 ? newHeight : 0;
                 width = newWidth > 0 ? newWidth : 0;
-                top = top - mid;
-                left = left - mid;
+                //top = top - mid;
+                //left = left - mid;
               });
             },
           ),

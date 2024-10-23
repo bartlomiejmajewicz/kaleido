@@ -106,12 +106,7 @@ bool _firstInit=true;
 
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Padding(
@@ -712,6 +707,10 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
+  ExcelFile? excelFile;
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -724,38 +723,39 @@ class _SettingsPageState extends State<SettingsPage> {
               Table(
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  TableRow(children: [
-                    const Text("select video file:"),
+                  PaddingTableRow(
+                    children: [
+                    PaddingCell(child: const Text("select video file:")),
                     OutlinedButton(onPressed: selectVideoFile, child: Text("select video file...")),
-                    SelectableText("selected file: ${SettingsClass.VideoFilePath}"),
+                    SelectableText("selected file: ${SettingsClass.videoFilePath}"),
                   ]),
-                  TableRow(children: [
-                    const Text("select script file:"),
+                  PaddingTableRow(children: [
+                    PaddingCell(child: const Text("select script file:")),
                     OutlinedButton(onPressed: selectScriptFile, child: Text("select script file...")),
                     SelectableText("selected file: ${SettingsClass.ScriptFilePath}"),
                   ]),
-                    TableRow(children: [
-                    const Text("select sheet:"),
-                    Placeholder(),
+                  PaddingTableRow(children: [
+                    PaddingCell(child: const Text("select sheet:")),
+                    sheetSelector(),
                     Text('selected sheet name: ${SettingsClass.sheetName}'),
                   ]),
-                    TableRow(children: [
-                    const Text("select starting column: "),
+                  PaddingTableRow(children: [
+                    PaddingCell(child: const Text("select starting column: "),),
                     TextFormField(
                       initialValue: "1", 
-                      onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value) : 1;}),
+                      onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value)-1 : 0;}),
                       inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
                     ),
-                    Text('selected collumn: ${SettingsClass.collNumber}'),
+                    Text('selected collumn: ${SettingsClass.collNumber+1}'),
                   ]),
-                  TableRow(children: [
+                  PaddingTableRow(children: [
                     const Text("select starting row: "),
                     TextFormField(
                       initialValue: "1", 
-                      onChanged: (value) => setState((){SettingsClass.rowNumber = (value!="") ? int.parse(value) : 1;}),
+                      onChanged: (value) => setState((){SettingsClass.rowNumber = (value!="") ? int.parse(value)-1 : 0;}),
                       inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
                     ),
-                    Text('selected row: ${SettingsClass.rowNumber}'),
+                    Text('selected row: ${SettingsClass.rowNumber+1}'),
                   ]),
                 ],
               ),
@@ -770,7 +770,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> selectVideoFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
-      SettingsClass.VideoFilePath = result.files.single.path!;
+      SettingsClass.videoFilePath = result.files.single.path!;
       File file = File(result.files.single.path!);
       setState(() {
         
@@ -786,21 +786,8 @@ class _SettingsPageState extends State<SettingsPage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
       SettingsClass.ScriptFilePath = result.files.single.path!;
-      // excelFile = File(result.files.single.path!);
-      // var bytes = await excelFile.readAsBytesSync();
-      // excel = await Excel.decodeBytes(bytes);
-      // _sheetSelectorActive = true;
-      // for (var table in excel.tables.keys) {
-      //   print(table); //sheet Name
-      //   sheetsList.add(table);
-      // }
-      //ExcelFile myExcelFile = ExcelFile(result.files.single.path!);
-      //scriptSourceFile = ExcelFile(result.files.single.path!);
-      //scriptSourceFile!.loadFile();
-      //sheetsList = scriptSourceFile!.sheetsList;
-      //excelFile = scriptSourceFile!.file_getter();
-
-
+      excelFile = ExcelFile(result.files.single.path!);
+      excelFile!.loadFile();
       setState(() {
         
       });
@@ -811,15 +798,55 @@ class _SettingsPageState extends State<SettingsPage> {
 
   TextEditingValue numberValidityCheck(TextEditingValue oldValue, TextEditingValue newValue) {
     RegExp numberPattern = RegExp(r'^\d{0,2}$');
-    if (numberPattern.hasMatch(newValue.text)){
+    if (numberPattern.hasMatch(newValue.text) && newValue.text!="0"){
       return newValue;
     } else {
       return oldValue;
     }  
   }
 
+  DropdownMenu<String> sheetSelector(){
+    return DropdownMenu<String>(
+    enabled: SettingsClass.ScriptFilePath.isNotEmpty,
+    width: 200, // TODO: szerokość zalezna
+    label: const Text("select excel sheet"),
+    onSelected: (value) {
+      setState(() {
+      SettingsClass.sheetName = value!;
+      });
+    },
+    dropdownMenuEntries: getSheetsDropdownMenuEntries(),
+    );
+  }
+
+  List<DropdownMenuEntry<String>> getSheetsDropdownMenuEntries() {
+    if(excelFile == null){
+      return [];
+    }
+    if(excelFile?.sheetsList == null){
+      return [];
+    }
+    return excelFile!.sheetsList.map((String item) {
+      return DropdownMenuEntry<String>(
+        value: item,
+        label: item,
+      );
+    }).toList();
+  }
 
 }
+
+
+
+class PaddingCell extends Padding {
+  PaddingCell({Key? key, required Widget child}) : super(key: key, padding: const EdgeInsets.all(10.0), child: child);
+}
+
+class PaddingTableRow extends TableRow{
+  PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => PaddingCell(child: child)).toList());
+
+}
+
 
 
 // CLASSES FOR THE NAVIGATION
