@@ -338,6 +338,7 @@ class ExcelFile extends SourceFile{
 
 
 class SettingsClass{
+  // TODO: WYZERUJ DO RELEASE
   static int rowNumber = 0; // TODO: implement this
   static int collNumber = 0; // TODO: implement this
   static String sheetName = "Arkusz1";

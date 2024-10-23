@@ -76,6 +76,8 @@ ExcelFile? scriptSourceFile=null;
 static String temporaryStr = "";
 
 TextEditingController tempTextEditController = TextEditingController();
+TextEditingController charNameOldTEC = TextEditingController();
+TextEditingController charNameNewTEC = TextEditingController();
 
 bool _firstInit=true;
 
@@ -177,6 +179,41 @@ bool _firstInit=true;
                   }, child: const Text("new entry...")),
                   OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
                 ],
+              ),
+              Column(
+                children: [
+                  Text("Replace the character name:"),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      controller: charNameOldTEC,
+                    )),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      controller: charNameNewTEC,
+                    )),
+                  OutlinedButton(
+                    onPressed: (){
+                      showDialog(context: context, builder: (BuildContext context){
+                        return SimpleDialog(
+                            children: [
+                              Text(
+                                'Records affected: ${replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable).toString()}',
+                                textAlign: TextAlign.center,),
+                            ],
+                        );
+                      });
+
+
+
+                      // TODO: toast - ile rekordów zmieniono
+                      scriptListToTable(_scriptTable, _dataRows);
+                      setState(() {
+                      });
+                    },
+                    child: const Text("replace!")),
+                ],
               )
             ],
           ),
@@ -233,67 +270,6 @@ bool _firstInit=true;
       });
     },
     dropdownMenuEntries: getDropdownMenuEntries(),
-    );
-  }
-
-  Widget startTcEntryWidget(){
-    return Column(
-      children: [
-        const Text("entry start TC:"),
-        Row(children: [
-          Container(
-            width: 50,
-            child: TextFormField(
-              initialValue: "00",
-              textAlign: TextAlign.center,
-              onChanged: (value) {
-                if (value != "") {
-                  setStartTcFromTextField(0, int.parse(value));
-                }
-              },
-            ),
-          ),
-          const Text(":"),
-          Container(
-            width: 50,
-            child: TextFormField(
-              initialValue: "00",
-              textAlign: TextAlign.center,
-              onChanged: (value) {
-                if (value != "") {
-                  setStartTcFromTextField(1, int.parse(value));
-                }
-              },
-            ),
-          ),
-          const Text(":"),
-          Container(
-            width: 50,
-            child: TextFormField(
-              initialValue: "00",
-              textAlign: TextAlign.center,
-              onChanged: (value) {
-                if (value != "") {
-                  setStartTcFromTextField(2, int.parse(value));
-                }
-              },
-            ),
-          ),
-          const Text(":"),
-          Container(
-            width: 50,
-            child: TextFormField(
-              initialValue: "00",
-              textAlign: TextAlign.center,
-              onChanged: (value) {
-                if (value != "") {
-                  setStartTcFromTextField(3, int.parse(value));
-                }
-              },
-            ),
-          ),
-        ],)
-      ],
     );
   }
 
@@ -375,30 +351,44 @@ bool _firstInit=true;
 
 
   Widget showTableAsListView(){
+    HardwareKeyboard hardwareKeyboard = HardwareKeyboard.instance;
     return Flexible(
-      child: ListView(
-        addAutomaticKeepAlives: false,
-        shrinkWrap: false,
-        children: [
-          DataTable(columns: [
-            DataColumn(label: Text("TC from script\nto player")),
-            DataColumn(label: Text("TC from player\nto script")),
-            DataColumn(label: const Text("TC"),
-              onSort:(columnIndex, ascending) {
-                //FIXME: sorting values
-                setState(() {
-                _scriptTable.sort();
-                scriptListToTable(_scriptTable, _dataRows);
-                //_dataRows = scriptListToTable(_scriptTable);
-                });
-              },),
-            const DataColumn(label: Text("character")),
-            DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
-            const DataColumn(label: Text("Delete\nthe line")),
+      child: KeyboardListener(
+        onKeyEvent: (value) {
+          if ((hardwareKeyboard.isMetaPressed || hardwareKeyboard.isControlPressed)
+          && value.logicalKey == LogicalKeyboardKey.keyS
+          && value.runtimeType == KeyDownEvent) {
+            saveFile();
+            print("FILE SAVED");
+          }
+          
+          
+        },
+        focusNode: FocusNode(),
+        child: ListView(
+          addAutomaticKeepAlives: false,
+          shrinkWrap: false,
+          children: [
+            DataTable(columns: [
+              DataColumn(label: Text("TC from script\nto player")),
+              DataColumn(label: Text("TC from player\nto script")),
+              DataColumn(label: const Text("TC"),
+                onSort:(columnIndex, ascending) {
+                  //FIXME: sorting values
+                  setState(() {
+                  _scriptTable.sort();
+                  scriptListToTable(_scriptTable, _dataRows);
+                  //_dataRows = scriptListToTable(_scriptTable);
+                  });
+                },),
+              const DataColumn(label: Text("character")),
+              DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
+              const DataColumn(label: Text("Delete\nthe line")),
+            ],
+              rows: _dataRows,
+            )
           ],
-            rows: _dataRows,
-          )
-        ],
+        ),
       ),
     );
   }
@@ -521,7 +511,6 @@ bool _firstInit=true;
     Timecode tc = Timecode();
     tc.tcFromDuration(currentPlaybackPosition);
     return tc;
-    
   }
 
 
@@ -658,6 +647,18 @@ bool _firstInit=true;
     return TextEditingValue(text: returnedValue);
   }
 
+
+  int replaceCharName(String nameOld, String nameNew, List<ScriptNode> scriptList){
+
+    int affected=0;
+    for (var scriptNode in scriptList) {
+      if (scriptNode.charName == nameOld) {
+        scriptNode.charName = nameNew;
+        affected++;
+      }
+    }
+    return affected;
+  }
 
   // String buildTimecodePattern(int fps) {
   // // Sprawdzenie, ile maksymalnie klatek na sekundę jest dopuszczalne
