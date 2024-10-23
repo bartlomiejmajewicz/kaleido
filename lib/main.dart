@@ -84,9 +84,6 @@ bool _firstInit=true;
     super.dispose();
   }
 
-  
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -96,9 +93,29 @@ bool _firstInit=true;
     _screenHeight = MediaQuery.sizeOf(context).height;
 
     if(_firstInit){
+      print("1st INIT");
       _sliderHeightValue = _screenHeight/3;
       _sliderWidthValue = _screenWidth/2;
       _firstInit = false;
+
+
+      player.open(Media(SettingsClass.videoFilePath));
+      // TODO: DO SPRAWDZENIA 
+      player.stream.position.listen((e) {
+        currentPlaybackPosition = e;
+      });
+      scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
+      scriptSourceFile!.loadFile();
+      scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
+      setState(() {
+        //_dataRows = scriptListToTable(_scriptTable);
+        scriptListToTable(_scriptTable, _dataRows);
+        sheetName = SettingsClass.sheetName;
+      });
+
+      startTC = SettingsClass.videoStartTc;
+      
+
     }
 
 
@@ -415,8 +432,6 @@ bool _firstInit=true;
 
 
 // TESTY ALE NIEUDANE >>
-
-
   Widget showTableAsRowsAndColls(){
     return Flexible(
       child: ListView(
@@ -530,7 +545,7 @@ bool _firstInit=true;
   }
 
   Timecode tcFromVideo(){
-    print(currentPlaybackPosition.toString());
+    print("TUTEJ: "+currentPlaybackPosition.toString());
     Timecode tc = Timecode();
     tc.tcFromDuration(currentPlaybackPosition);
     return tc;
@@ -538,7 +553,7 @@ bool _firstInit=true;
   }
 
 
-void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
+  void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
     //myList = List.empty(growable: true);
     myList.clear();
     for (var scriptNode in scriptList) {
@@ -559,8 +574,9 @@ void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
             child: ElevatedButton(
               onPressed: (){
                 scriptNode.tcIn = tcFromVideo()+startTC;
+                scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
                 setState(() {
-                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+
                 });
               },
               //child: Text("TC DOWN")))),
@@ -618,7 +634,7 @@ void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
 }
 
 
-Future<void> _showPickerDialogCancelled(String whichFile) async {
+  Future<void> _showPickerDialogCancelled(String whichFile) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
@@ -708,10 +724,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   ExcelFile? excelFile;
 
-
-
   @override
   Widget build(BuildContext context) {
+    if(SettingsClass.scriptFilePath.isNotEmpty){
+      excelFile=ExcelFile(SettingsClass.scriptFilePath);
+      excelFile!.loadFile();
+    }
     return Scaffold(
       body: SizedBox(
         //width: MediaQuery.sizeOf(context).width,
@@ -731,7 +749,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(children: [
                     const Text("select script file:"),
                     OutlinedButton(onPressed: selectScriptFile, child: Text("select script file...")),
-                    SelectableText("selected file: ${SettingsClass.ScriptFilePath}"),
+                    SelectableText("selected file: ${SettingsClass.scriptFilePath}"),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select sheet:"),
@@ -764,7 +782,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(children: [
                     Text("starting TC: "),
                     SizedBox( width: 100, child: TextFormField(
-                      initialValue: "00:00:00:00",
+                      initialValue: SettingsClass.videoStartTc.toString(),
                       onChanged: (value) {
                         //FIXME:
                         if(Timecode.tcValidateCheck(value)){
@@ -807,7 +825,7 @@ class _SettingsPageState extends State<SettingsPage> {
     // select the excel file, list the sheets and save the excel file to the var
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
-      SettingsClass.ScriptFilePath = result.files.single.path!;
+      SettingsClass.scriptFilePath = result.files.single.path!;
       excelFile = ExcelFile(result.files.single.path!);
       excelFile!.loadFile();
       setState(() {
@@ -829,9 +847,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   DropdownMenu<String> sheetSelector(){
     return DropdownMenu<String>(
-    enabled: SettingsClass.ScriptFilePath.isNotEmpty,
+    enabled: SettingsClass.scriptFilePath.isNotEmpty,
     width: 200, // TODO: szerokość zalezna
     label: const Text("select excel sheet"),
+    initialSelection: SettingsClass.sheetName.isNotEmpty ? SettingsClass.sheetName : null,
     onSelected: (value) {
       setState(() {
       SettingsClass.sheetName = value!;
@@ -850,6 +869,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Timecode.framerate = value;
         });
       },
+      initialSelection: Timecode.framerate,
       dropdownMenuEntries: const <DropdownMenuEntry>[
         DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
         DropdownMenuEntry(value: 25, label: "25 fps"),

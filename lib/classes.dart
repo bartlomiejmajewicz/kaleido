@@ -342,7 +342,7 @@ class SettingsClass{
   static int collNumber = 0;
   static String sheetName = "";
   static String videoFilePath = "";
-  static String ScriptFilePath = "";
+  static String scriptFilePath = "";
   static double videoWidth = 200;
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();
