@@ -920,9 +920,9 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = ScriptPage(title: "script editor");
-      case 1:
         page = SettingsPage();
+      case 1:
+        page = ScriptPage(title: "script editor");
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -936,17 +936,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 extended: false,
                 destinations: const [
                   NavigationRailDestination(
-                    icon: Icon(Icons.playlist_play_rounded),
+                    icon: Icon(Icons.settings),
                     label: Text('Home'),
                   ),
                   NavigationRailDestination(
-                    icon: Icon(Icons.settings),
+                    icon: Icon(Icons.playlist_play_rounded),
                     label: Text('Favorites'),
                   ),
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
                   setState(() {
+                    //TODO: sprawdź czy wszystkie parametry są wypełnione
                     selectedIndex = value;
                   });
                 },
