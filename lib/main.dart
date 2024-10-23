@@ -105,10 +105,10 @@ bool _firstInit=true;
 
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      //   title: Text(widget.title),
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -245,7 +245,6 @@ bool _firstInit=true;
     dropdownMenuEntries: getDropdownMenuEntries(),
     );
   }
-
 
   Widget startTcEntryWidget(){
     return Column(
@@ -725,22 +724,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   PaddingTableRow(
                     children: [
-                    PaddingCell(child: const Text("select video file:")),
+                    const Text("select video file:"),
                     OutlinedButton(onPressed: selectVideoFile, child: Text("select video file...")),
                     SelectableText("selected file: ${SettingsClass.videoFilePath}"),
                   ]),
                   PaddingTableRow(children: [
-                    PaddingCell(child: const Text("select script file:")),
+                    const Text("select script file:"),
                     OutlinedButton(onPressed: selectScriptFile, child: Text("select script file...")),
                     SelectableText("selected file: ${SettingsClass.ScriptFilePath}"),
                   ]),
                   PaddingTableRow(children: [
-                    PaddingCell(child: const Text("select sheet:")),
+                    const Text("select sheet:"),
                     sheetSelector(),
                     Text('selected sheet name: ${SettingsClass.sheetName}'),
                   ]),
                   PaddingTableRow(children: [
-                    PaddingCell(child: const Text("select starting column: "),),
+                    const Text("select starting column: "),
                     TextFormField(
                       initialValue: "1", 
                       onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value)-1 : 0;}),
@@ -757,6 +756,29 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     Text('selected row: ${SettingsClass.rowNumber+1}'),
                   ]),
+                  PaddingTableRow(children: [
+                    const Text("select project framerate: "),
+                    fpsSelector(),
+                    Text('selected fps: ${Timecode.framerate}'),
+                  ]),
+                  PaddingTableRow(children: [
+                    Text("starting TC: "),
+                    SizedBox( width: 100, child: TextFormField(
+                      initialValue: "00:00:00:00",
+                      onChanged: (value) {
+                        //FIXME:
+                        if(Timecode.tcValidateCheck(value)){
+                          setState(() {
+                            SettingsClass.videoStartTc = Timecode(value);
+                          });
+                        }
+                      },
+                      inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                      //style: TextStyle(backgroundColor: Colors.green),
+                      //style: TextStyle().apply(backgroundColor: Colors.amber),
+                    )),
+                    Text(SettingsClass.videoStartTc.showTimecode())
+                  ])
                 ],
               ),
             ],
@@ -819,6 +841,23 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  DropdownMenu fpsSelector(){
+    return DropdownMenu(
+      width: 200, // TODO: szerokość zale
+      label: const Text("set video framerate"),
+      onSelected: (value) {
+        setState(() {
+          Timecode.framerate = value;
+        });
+      },
+      dropdownMenuEntries: const <DropdownMenuEntry>[
+        DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
+        DropdownMenuEntry(value: 25, label: "25 fps"),
+        DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
+      ],
+      );
+  }
+
   List<DropdownMenuEntry<String>> getSheetsDropdownMenuEntries() {
     if(excelFile == null){
       return [];
@@ -834,16 +873,33 @@ class _SettingsPageState extends State<SettingsPage> {
     }).toList();
   }
 
+  TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
+    String returnedValue="";
+    //var tcPattern = RegExp(buildTimecodePattern(Timecode.framerate));
+    var tcInProgressPattern = RegExp(r'^\d{0,2}:?\d{0,2}:?\d{0,2}:?\d{0,2}$');
+    if (tcInProgressPattern.hasMatch(newValue.text)){
+      returnedValue = newValue.text;
+
+      if((returnedValue.length==2 || returnedValue.length==5 || returnedValue.length==8) && oldValue.text.length < newValue.text.length){
+        returnedValue+= ":";
+      }
+
+    } else {
+      returnedValue = oldValue.text;
+    }
+    return TextEditingValue(text: returnedValue);
+  }
+
 }
 
 
 
-class PaddingCell extends Padding {
-  PaddingCell({Key? key, required Widget child}) : super(key: key, padding: const EdgeInsets.all(10.0), child: child);
-}
+// class PaddingCell extends Padding {
+//   PaddingCell({Key? key, required Widget child}) : super(key: key, padding: const EdgeInsets.all(10.0), child: child);
+// }
 
 class PaddingTableRow extends TableRow{
-  PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => PaddingCell(child: child)).toList());
+  PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => Padding(padding: const EdgeInsets.all(10.0), child: child)).toList());
 
 }
 

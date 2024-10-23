@@ -345,6 +345,7 @@ class SettingsClass{
   static String ScriptFilePath = "";
   static double videoWidth = 200;
   static double videoHeight = 200;
+  static Timecode videoStartTc=Timecode();
 }
 
 
