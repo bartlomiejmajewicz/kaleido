@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
@@ -347,6 +348,7 @@ class SettingsClass{
   static double videoWidth = 200;
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();
+
 }
 
 

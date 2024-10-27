@@ -32,15 +32,16 @@ class _DemoState extends State<Demo> {
   late final controller = VideoController(player);
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(60),
-      child: Row(
-        children: [
-          ResizebleWidget(
-            child: Video(controller: controller),
+    return Column(
+      children: [
+        Flexible(
+          child: Row(
+            children: [
+              Flexible(child: ResizebleWidget(child: Video(controller: controller),)),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -141,12 +142,13 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
     });
   }
 
-  _handleUpdate(details) {
+  _handleUpdate(DragUpdateDetails details) {
     var dx = details.globalPosition.dx - initX;
     var dy = details.globalPosition.dy - initY;
     initX = details.globalPosition.dx;
     initY = details.globalPosition.dy;
-    widget.onDrag!(dx, dy);
+    print(details.localPosition);
+    //widget.onDrag!(dx, dy);
   }
 
   @override

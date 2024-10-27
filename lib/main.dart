@@ -11,6 +11,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/classes.dart';
 import 'package:script_editor/resizableWidget.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:script_editor/widgetsMy.dart';
 
 void main() {
   MediaKit.ensureInitialized();
@@ -161,7 +162,6 @@ bool _firstInit=true;
               videoPlayer(context),
               Column(
                 children: [
-                  
                   SizedBox(
                     width: 200, 
                     child: TextFormField(
@@ -194,17 +194,18 @@ bool _firstInit=true;
                     )),
                   OutlinedButton(
                     onPressed: (){
+                      int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                      setState(() {
+                        scriptListToTable(_scriptTable, _dataRows);
+                      });
                       showDialog(context: context, builder: (BuildContext context){
                         return SimpleDialog(
                             children: [
                               Text(
-                                'Records affected: ${replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable).toString()}',
+                                'Records affected: ${a.toString()}',
                                 textAlign: TextAlign.center,),
                             ],
                         );
-                      });
-                      scriptListToTable(_scriptTable, _dataRows);
-                      setState(() {
                       });
                     },
                     child: const Text("replace!")),
@@ -263,6 +264,7 @@ bool _firstInit=true;
           && value.runtimeType == KeyDownEvent) {
             saveFile();
             print("FILE SAVED");
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
           }
           
           
@@ -273,8 +275,13 @@ bool _firstInit=true;
           shrinkWrap: false,
           children: [
             DataTable(columns: [
-              DataColumn(label: Text("TC from script\nto player")),
-              DataColumn(label: Text("TC from player\nto script")),
+              //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
+              DataColumn(
+                mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+                label: ResizableGestureWidget(title: "TC from script\nto player")),
+              DataColumn(
+                mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+                label: ResizableGestureWidget(title: "TC from player\nto script")),
               DataColumn(label: const Text("TC"),
                 onSort:(columnIndex, ascending) {
                   //FIXME: sorting values
@@ -296,7 +303,7 @@ bool _firstInit=true;
     );
   }
 
-
+  
 
 
   void saveFile(){
@@ -322,28 +329,24 @@ bool _firstInit=true;
     for (var scriptNode in scriptList) {
       myList.add(DataRow(cells: [
         DataCell(
-          ConstrainedBox(
-            constraints: BoxConstraints.tight(Size(100,30)), 
-            child: ElevatedButton(
-              onPressed: (){
-                jumpToTc(scriptNode.tcIn);
-              },
-              //child: Text("TC UP")))),
-              child: Icon(Icons.arrow_upward)))),
+          ElevatedButton(
+            onPressed: (){
+              jumpToTc(scriptNode.tcIn);
+            },
+            //child: Text("TC UP")))),
+            child: Icon(Icons.arrow_upward))),
         
         DataCell(
-          ConstrainedBox(
-            constraints: BoxConstraints.tight(Size(100,30)),
-            child: ElevatedButton(
-              onPressed: (){
-                scriptNode.tcIn = tcFromVideo()+startTC;
-                scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-                setState(() {
-
-                });
-              },
-              //child: Text("TC DOWN")))),
-              child: Icon(Icons.arrow_downward)))),
+          ElevatedButton(
+            onPressed: (){
+              scriptNode.tcIn = tcFromVideo()+startTC;
+              scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+              setState(() {
+          
+              });
+            },
+            //child: Text("TC DOWN")))),
+            child: Icon(Icons.arrow_downward))),
         
         DataCell(SizedBox( width: 100, child: TextFormField(
           //initialValue: scriptNode.timecode.toString(),
