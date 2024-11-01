@@ -57,7 +57,6 @@ class _ScriptPageState extends State<ScriptPage> {
 
 late final player = Player();
 late final controller = VideoController(player);
-Timecode startTC = Timecode();
 // int videoWidth = 500;
 // int videoHeight = 500;
 double _sliderHeightValue = 200;
@@ -111,6 +110,7 @@ bool _firstInit=true;
       // TODO: DO SPRAWDZENIA 
       player.stream.position.listen((e) {
         currentPlaybackPosition = e;
+        markCurrentLine(_scriptTable);
       });
       scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
       scriptSourceFile!.loadFile();
@@ -120,10 +120,6 @@ bool _firstInit=true;
         scriptListToTable(_scriptTable, _dataRows);
         sheetName = SettingsClass.sheetName;
       });
-
-      startTC = SettingsClass.videoStartTc;
-      
-
     }
 
 
@@ -241,6 +237,18 @@ bool _firstInit=true;
     );
   }
 
+  void markCurrentLine(List<ScriptNode> scriptList){
+    bool isThereAChange = false;
+    for (var i = 0; i < scriptList.length; i++) {
+      if (currentPlaybackPosition+SettingsClass.videoStartTc.tcAsDuration() < scriptList[i].tcIn.tcAsDuration() && !isThereAChange && i>0) {
+        scriptList[i-1].isThisCurrentTCValueNotifier.value = true;
+        isThereAChange = true;
+      } else {
+        scriptList[i].isThisCurrentTCValueNotifier.value = false;
+      }
+    }
+  }
+
 
 
 
@@ -281,10 +289,10 @@ bool _firstInit=true;
           children: [
             DataTable(columns: [
               //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
-              DataColumn(
+              const DataColumn(
                 mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
                 label: ResizableGestureWidget(title: "TC from script\nto player")),
-              DataColumn(
+              const DataColumn(
                 mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
                 label: ResizableGestureWidget(title: "TC from player\nto script")),
               DataColumn(label: const Text("TC"),
@@ -317,7 +325,7 @@ bool _firstInit=true;
   }
 
   void jumpToTc(Timecode tc){
-    player.seek((tc-startTC).tcAsDuration());
+    player.seek((tc-SettingsClass.videoStartTc).tcAsDuration());
   }
 
   Timecode tcFromVideo(){
@@ -334,17 +342,20 @@ bool _firstInit=true;
     for (var scriptNode in scriptList) {
       myList.add(DataRow(cells: [
         DataCell(
-          ElevatedButton(
+          ValueListenableBuilder<bool>(valueListenable: scriptNode.isThisCurrentTCValueNotifier, builder: (context, value, child) {
+            return ElevatedButton(
+            style: scriptNode.isThisCurrentTCValueNotifier.value ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : ButtonStyle(),
             onPressed: (){
               jumpToTc(scriptNode.tcIn);
             },
             //child: Text("TC UP")))),
-            child: Icon(Icons.arrow_upward))),
+            child: Icon(Icons.arrow_upward));
+          },)),
         
         DataCell(
           ElevatedButton(
             onPressed: (){
-              scriptNode.tcIn = tcFromVideo()+startTC;
+              scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
               scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
               setState(() {
           
@@ -437,7 +448,7 @@ bool _firstInit=true;
   void newEntry(List<ScriptNode> scriptList) {
     Timecode timecode = Timecode();
     timecode.tcFromDuration(currentPlaybackPosition);
-    scriptList.add(ScriptNode(timecode+startTC, tempTextEditController.text, "dialogue"));
+    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, tempTextEditController.text, "dialogue"));
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -702,10 +713,6 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 
-
-// class PaddingCell extends Padding {
-//   PaddingCell({Key? key, required Widget child}) : super(key: key, padding: const EdgeInsets.all(10.0), child: child);
-// }
 
 class PaddingTableRow extends TableRow{
   PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => Padding(padding: const EdgeInsets.all(10.0), child: child)).toList());

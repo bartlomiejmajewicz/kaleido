@@ -143,6 +143,7 @@ class ScriptNode implements Comparable<ScriptNode>{
   late String charName="";
   late String dial="";
   late Widget widget;
+  ValueNotifier<bool> isThisCurrentTCValueNotifier = ValueNotifier(false);
 
   TextEditingController textControllerTc=TextEditingController();
 
