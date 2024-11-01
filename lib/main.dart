@@ -13,6 +13,7 @@ import 'package:script_editor/classes.dart';
 import 'package:script_editor/resizableWidget.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:script_editor/widgetsMy.dart';
+import 'package:multi_dropdown/multi_dropdown.dart';
 
 void main() {
   if (kDebugMode) {
@@ -249,6 +250,22 @@ bool _firstInit=true;
     }
   }
 
+  List<DropdownMenuEntry<String>> getCharactersMenuEntries(List <ScriptNode> scriptList){
+    List<String> characterNames = List<String>.empty(growable: true);
+
+    characterNames.add("ALL CHARACTERS");
+    for (ScriptNode scriptNode in scriptList) {
+      if (!characterNames.contains(scriptNode.charName)) {
+        characterNames.add(scriptNode.charName);
+      }
+    }
+
+    return characterNames.map((e){
+      return DropdownMenuEntry(
+        value: e,
+        label: e);
+    }).toList();
+  }
 
 
 
@@ -304,7 +321,20 @@ bool _firstInit=true;
                   //_dataRows = scriptListToTable(_scriptTable);
                   });
                 },),
-              const DataColumn(label: Text("character")),
+              DataColumn(
+                //label:Text("character"),
+                label: DropdownMenu(
+                  dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
+                  initialSelection: "ALL CHARACTERS",
+                  onSelected: (value) {
+                    setState(() {
+                      scriptListToTable(_scriptTable, _dataRows, value!);
+                    });
+                  },
+                  )
+                //label: MultiDropdown(items: DropdownItem<dynamic>[DropdownItem(label: "label", value: 4)])
+                //label: MultiDropdown(items: items),
+              ),
               DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
               const DataColumn(label: Text("Delete\nthe line")),
             ],
@@ -336,11 +366,12 @@ bool _firstInit=true;
   }
 
 
-  void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList){
+  void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList, [String charName = "ALL CHARACTERS"]){
     //myList = List.empty(growable: true);
     myList.clear();
     for (var scriptNode in scriptList) {
-      myList.add(DataRow(cells: [
+      if (scriptNode.charName == charName || charName == "ALL CHARACTERS") {
+        myList.add(DataRow(cells: [
         DataCell(
           ValueListenableBuilder<bool>(valueListenable: scriptNode.isThisCurrentTCValueNotifier, builder: (context, value, child) {
             return ElevatedButton(
@@ -411,8 +442,10 @@ bool _firstInit=true;
                 
               });
             },)),
-      ]));
-      scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+        ]));
+        scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+      }
+      
     }
 }
 

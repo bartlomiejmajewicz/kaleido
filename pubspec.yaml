@@ -34,6 +34,7 @@ dependencies:
   media_kit_video: ^1.2.5 # For video rendering.
   media_kit_libs_video: ^1.0.5 # Native video dependencies.
   numberpicker: ^2.1.2
+  multi_dropdown: ^3.0.1
   flutter:
     sdk: flutter
 
