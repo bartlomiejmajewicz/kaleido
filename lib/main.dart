@@ -11,9 +11,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/classes.dart';
 import 'package:script_editor/resizableWidget.dart';
-import 'package:numberpicker/numberpicker.dart';
 import 'package:script_editor/widgetsMy.dart';
-import 'package:multi_dropdown/multi_dropdown.dart';
 
 void main() {
   if (kDebugMode) {
@@ -183,15 +181,21 @@ bool _firstInit=true;
               ),
               Column(
                 children: [
-                  Text("Replace the character name:"),
+                  const Text("Replace the character name:"),
                   SizedBox(
                     width: 200,
                     child: TextFormField(
+                      decoration: const InputDecoration(
+                        helperText: "old character name"
+                      ),
                       controller: charNameOldTEC,
                     )),
                   SizedBox(
                     width: 200,
                     child: TextFormField(
+                        decoration: const InputDecoration(
+                          helperText: "new character name",
+                        ),
                       controller: charNameNewTEC,
                     )),
                   OutlinedButton(
@@ -199,6 +203,8 @@ bool _firstInit=true;
                       int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
                       setState(() {
                         scriptListToTable(_scriptTable, _dataRows);
+                        charNameOldTEC.text = "";
+                        charNameNewTEC.text = "";
                       });
                       showDialog(context: context, builder: (BuildContext context){
                         return SimpleDialog(
