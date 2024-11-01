@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +15,11 @@ import 'package:numberpicker/numberpicker.dart';
 import 'package:script_editor/widgetsMy.dart';
 
 void main() {
+  if (kDebugMode) {
+    SettingsClass.sheetName = "Arkusz1";
+    SettingsClass.videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
+    SettingsClass.scriptFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Zeszyt1.xlsx";
+  }
   MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
@@ -65,7 +71,6 @@ late File videoFile;
 Duration currentPlaybackPosition = Duration();
 late dynamic excel;
 
-bool _sheetSelectorActive = true;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 List<ScriptNode> _scriptTable = List.empty(growable: true);

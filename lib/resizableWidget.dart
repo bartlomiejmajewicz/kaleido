@@ -75,49 +75,53 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        Positioned(
-          top: top,
-          left: left,
-          child: Container(
-            height: height,
-            width: width,
-            color: Colors.red[100],
-            child: widget.child,
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            top: top,
+            left: left,
+            child: Container(
+              height: height,
+              width: width,
+              color: Colors.red[100],
+              child: widget.child,
+            ),
           ),
-        ),
-        // top left
-        // top middle
-        // top right
-        // center right
-        Positioned(
-          top: top + height - ballDiameter / 2,
-          left: left + width - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var mid = (dx + dy) / 2;
-              //print('$dx : $dy');
-
-              //var newHeight = height + 2 * mid;
-              //var newWidth = width + 2 * mid;
-              var newHeight = height + dy;
-              var newWidth = width + dx;
-
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                width = newWidth > 0 ? newWidth : 0;
-                //top = top - mid;
-                //left = left - mid;
-              });
-            },
+          // top left
+          // top middle
+          // top right
+          // center right
+          Positioned(
+            top: top + height - ballDiameter / 2,
+            left: left + width - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var mid = (dx + dy) / 2;
+                //print('$dx : $dy');
+      
+                //var newHeight = height + 2 * mid;
+                //var newWidth = width + 2 * mid;
+                var newHeight = height + dy;
+                var newWidth = width + dx;
+      
+                setState(() {
+                  height = newHeight > 0 ? newHeight : 0;
+                  width = newWidth > 0 ? newWidth : 0;
+                  //top = top - mid;
+                  //left = left - mid;
+                });
+              },
+            ),
           ),
-        ),
-        // bottom center
-        // bottom left
-        //left center
-        // center center
-      ],
+          // bottom center
+          // bottom left
+          //left center
+          // center center
+        ],
+      ),
     );
   }
 }
