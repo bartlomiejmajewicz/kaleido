@@ -32,17 +32,7 @@ class _DemoState extends State<Demo> {
   late final controller = VideoController(player);
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Flexible(
-          child: Row(
-            children: [
-              Flexible(child: ResizebleWidget(child: Video(controller: controller),)),
-            ],
-          ),
-        ),
-      ],
-    );
+    return ResizebleWidget(child: Video(controller: controller),);
   }
 }
 
@@ -57,8 +47,8 @@ class ResizebleWidget extends StatefulWidget {
 const ballDiameter = 30.0;
 
 class _ResizebleWidgetState extends State<ResizebleWidget> {
-  double height = 400;
-  double width = 200;
+  double height = 200;
+  double width = 400;
 
   double top = 0;
   double left = 0;
@@ -68,16 +58,16 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
     var newWidth = width + dx;
 
     setState(() {
-      height = newHeight > 0 ? newHeight : 0;
-      width = newWidth > 0 ? newWidth : 0;
+      height = newHeight > 0 ? newHeight : 50;
+      width = newWidth > 0 ? newWidth : 50;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
       height: height,
+      width: width,
       child: Stack(
         children: <Widget>[
           Positioned(
@@ -95,31 +85,20 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
           // top right
           // center right
           Positioned(
-            top: top + height - ballDiameter / 2,
-            left: left + width - ballDiameter / 2,
+            top: top + height - ballDiameter,
+            left: left + width - ballDiameter,
             child: ManipulatingBall(
               onDrag: (dx, dy) {
-                var mid = (dx + dy) / 2;
-                //print('$dx : $dy');
-      
-                //var newHeight = height + 2 * mid;
-                //var newWidth = width + 2 * mid;
                 var newHeight = height + dy;
                 var newWidth = width + dx;
       
                 setState(() {
                   height = newHeight > 0 ? newHeight : 0;
                   width = newWidth > 0 ? newWidth : 0;
-                  //top = top - mid;
-                  //left = left - mid;
                 });
               },
             ),
           ),
-          // bottom center
-          // bottom left
-          //left center
-          // center center
         ],
       ),
     );
@@ -151,8 +130,7 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
     var dy = details.globalPosition.dy - initY;
     initX = details.globalPosition.dx;
     initY = details.globalPosition.dy;
-    print(details.localPosition);
-    //widget.onDrag!(dx, dy);
+    widget.onDrag!(dx, dy);
   }
 
   @override
@@ -161,12 +139,10 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
       onPanStart: _handleDrag,
       onPanUpdate: _handleUpdate,
       child: Container(
+        color: ColorScheme.fromSeed(seedColor: Colors.deepPurple).primary.withOpacity(0.75),
         width: ballDiameter,
         height: ballDiameter,
-        decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.5),
-          shape: BoxShape.circle,
-        ),
+        child: Transform.rotate(angle: 3.14/2, child: const Icon(Icons.arrow_outward_sharp),),
       ),
     );
   }

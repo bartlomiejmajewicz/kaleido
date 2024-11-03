@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 
 class Timecode implements Comparable<Timecode> {
@@ -336,6 +337,13 @@ class ExcelFile extends SourceFile{
 
 }
 
+class KeyboardShortcutNode{
+  Set<LogicalKeyboardKey>? logicalKeySet;
+  String? characterName;
+  bool assignedNow=false;
+  late Function onClick;
+  KeyboardShortcutNode(this.onClick, [this.logicalKeySet, this.characterName]);
+}
 
 
 

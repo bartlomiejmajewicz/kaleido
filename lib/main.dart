@@ -159,7 +159,7 @@ bool _firstInit=true;
                     }
                   )
               ],),
-              videoPlayer(context),
+              ResizebleWidget(child: Video(controller: controller),),
               Column(
                 children: [
                   SizedBox(
@@ -170,13 +170,18 @@ bool _firstInit=true;
                       //key: Key(temporaryStr),
                       controller: tempTextEditController,)),
                   OutlinedButton(onPressed: (){
-                    newEntry(_scriptTable);
+                    newEntry(_scriptTable, tempTextEditController.text);
                     setState(() {
                       //_dataRows = scriptListToTable(_scriptTable);
                       scriptListToTable(_scriptTable, _dataRows);
                     });
                   }, child: const Text("new entry...")),
                   OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
+                  keyboardSensitiveWidgetTest(),
+                  keyboardExecuteWidgetTest(),
+                  OutlinedButton.icon(onPressed: (){
+                    logicalKeysListTest.clear();
+                  }, label: Text("empty"))
                 ],
               ),
               Column(
@@ -484,10 +489,10 @@ bool _firstInit=true;
 }
 
 
-  void newEntry(List<ScriptNode> scriptList) {
+  void newEntry(List<ScriptNode> scriptList, [String charName = "char name"]) {
     Timecode timecode = Timecode();
     timecode.tcFromDuration(currentPlaybackPosition);
-    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, tempTextEditController.text, "dialogue"));
+    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, charName, "dialogue"));
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -518,6 +523,63 @@ bool _firstInit=true;
       }
     }
     return affected;
+  }
+
+
+
+  List<Set<LogicalKeyboardKey>> logicalKeysListTest = List.empty(growable: true);
+  List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
+
+  Widget keyboardSensitiveWidgetTest(){
+    return SizedBox(
+      width: 100,
+      height: 100,
+      child: KeyboardListener(
+        focusNode: FocusNode(),
+        child: TextFormField(initialValue: "data"),
+        onKeyEvent: (value) {
+          if (value.runtimeType == KeyDownEvent) {
+            KeyDownEvent kde = value as KeyDownEvent;
+            HardwareKeyboard hk = HardwareKeyboard.instance;
+            if (hk.logicalKeysPressed.length > 1) {
+              logicalKeysListTest.add(hk.logicalKeysPressed);
+              shortcutsList.add(KeyboardShortcutNode(()=>{}, hk.logicalKeysPressed, "PLACEHOLDER"));
+            }
+
+            //print(kde.physicalKey.usbHidUsage);
+          }
+        },
+        
+        ),
+    );
+  }
+
+  Widget keyboardExecuteWidgetTest(){
+    return SizedBox(
+      width: 100,
+      height: 100,
+      child: KeyboardListener(
+        focusNode: FocusNode(),
+        child: TextFormField(initialValue: "data"),
+        onKeyEvent: (value) {
+          if (value.runtimeType == KeyDownEvent) {
+            KeyDownEvent kde = value as KeyDownEvent;
+            HardwareKeyboard hk = HardwareKeyboard.instance;
+            for (Set setOfKeys in logicalKeysListTest) {
+              if (setEquals(setOfKeys, hk.logicalKeysPressed)) {
+                print("oto on: $setOfKeys");
+              }
+            }
+            for (KeyboardShortcutNode element in shortcutsList) {
+                if (setEquals(element.logicalKeySet, hk.logicalKeysPressed)) {
+                print("oto on: ${element.logicalKeySet}");
+              }
+            }
+          }
+        },
+        
+        ),
+    );
   }
 }
 
