@@ -79,6 +79,8 @@ ExcelFile? scriptSourceFile=null;
 TextEditingController tempTextEditController = TextEditingController();
 TextEditingController charNameOldTEC = TextEditingController();
 TextEditingController charNameNewTEC = TextEditingController();
+TextEditingController tcEntryController = TextEditingController();
+bool tcEntryControllerActive = true;
 
 
 List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
@@ -109,6 +111,9 @@ bool _firstInit=true;
       player.stream.position.listen((e) {
         currentPlaybackPosition = e;
         markCurrentLine(_scriptTable);
+        if (tcEntryControllerActive) {  
+          tcEntryController.text =  Timecode.fromDuration(e+SettingsClass.videoStartTc.tcAsDuration()).toString();
+        }
       });
       scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
       scriptSourceFile!.loadFile();
@@ -139,25 +144,41 @@ bool _firstInit=true;
             children: [Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(children: [
-                  OutlinedButton(
-                    onPressed: () {},
-                    child: Icon(Icons.play_arrow)),
-                  //shortcutsPlayerControl(),
-                  generateButtonWithShortcut(shortcutsList[0]),
-                  generateButtonWithShortcut(shortcutsList[1]),
-                  generateButtonWithShortcut(shortcutsList[2]),
-                  generateButtonWithShortcut(shortcutsList[3])
-                ],),
-                ResizebleWidget(child: Video(controller: controller),),
+                Column(
+                  children: [
+                    ResizebleWidget(child: Video(controller: controller)),
+                    Row(children: [
+                      generateButtonWithShortcut(shortcutsList[2]),
+                      generateButtonWithShortcut(shortcutsList[0]),
+                      SizedBox(
+                        width: 120,
+                        child: TextFormField(
+                          textAlign: TextAlign.center,
+                          controller: tcEntryController,
+                          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                          onTap: (){
+                            tcEntryControllerActive = false;
+                          },
+                          onChanged: (String string){print("changed");},
+                          onEditingComplete: (){
+                            tcEntryControllerActive = true;
+                          },
+                          onTapOutside: (PointerDownEvent pde){
+                            tcEntryControllerActive = true;
+                          },
+                          onSaved: (newValue) => tcEntryControllerActive = true,
+                          onFieldSubmitted: (value) => tcEntryControllerActive = true,
+                        ),
+                      ),
+                      generateButtonWithShortcut(shortcutsList[1]),
+                    ])
+                  ],
+                ),
                 Column(
                   children: [
                     SizedBox(
                       width: 200, 
                       child: TextFormField(
-                        
-                        //initialValue: temporaryStr,
-                        //key: Key(temporaryStr),
                         controller: tempTextEditController,)),
                     OutlinedButton(onPressed: (){
                       newEntry(_scriptTable, tempTextEditController.text);
