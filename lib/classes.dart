@@ -340,10 +340,28 @@ class ExcelFile extends SourceFile{
 class KeyboardShortcutNode{
   Set<LogicalKeyboardKey>? logicalKeySet;
   String? characterName;
-  String? description;
+  String description;
   bool assignedNow=false;
+  List<IconData>? iconsList;
   late Function onClick;
-  KeyboardShortcutNode(this.onClick, [this.description, this.characterName, this.logicalKeySet]);
+
+  KeyboardShortcutNode(this.onClick, this.description, {this.characterName, this.logicalKeySet, this.iconsList});
+
+
+  String showShortcut(){
+    String result = "";
+    if (logicalKeySet != null) {
+      for (LogicalKeyboardKey lkk in logicalKeySet!) {
+        if (result != "") {
+          result = "$result + ";
+        }
+        result = result + lkk.keyLabel;
+      }
+    }
+    result = Platform.isMacOS ? result.replaceAll('Meta', 'Cmd') : result;
+    result = Platform.isWindows ? result.replaceAll('Meta', 'Win') : result;
+    return result;
+  }
 }
 
 
@@ -358,6 +376,30 @@ class SettingsClass{
   static double videoWidth = 200;
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();
+
+}
+
+class OutlinedButtonWithShortcut extends Tooltip {
+  OutlinedButtonWithShortcut(
+    {super.key,
+    required onPressed, 
+    required Widget child,
+    required KeyboardShortcutNode keyboardShortcutNode,
+    required List<KeyboardShortcutNode> shortcutsList}):
+    super(
+      message: keyboardShortcutNode.showShortcut(),
+      child: OutlinedButton(
+        onLongPress:(){
+          keyboardShortcutNode.assignedNow = true;
+        },
+        onPressed: (){
+          keyboardShortcutNode.onClick();
+        },
+        
+        child: Text(keyboardShortcutNode.assignedNow ? "assign the shortcut" : keyboardShortcutNode.description!)),
+    ){
+      shortcutsList.add(keyboardShortcutNode);
+  }
 
 }
 

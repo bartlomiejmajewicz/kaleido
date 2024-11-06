@@ -58,8 +58,6 @@ late final player = Player();
 late final controller = VideoController(player);
 // int videoWidth = 500;
 // int videoHeight = 500;
-double _sliderHeightValue = 200;
-double _sliderWidthValue = 400;
 
 late double _screenWidth;
 late double _screenHeight;
@@ -82,6 +80,9 @@ TextEditingController tempTextEditController = TextEditingController();
 TextEditingController charNameOldTEC = TextEditingController();
 TextEditingController charNameNewTEC = TextEditingController();
 
+
+List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
+
 bool _firstInit=true;
 
   @override
@@ -100,8 +101,6 @@ bool _firstInit=true;
 
     if(_firstInit){
       print("1st INIT");
-      _sliderHeightValue = _screenHeight/3;
-      _sliderWidthValue = _screenWidth/2;
       _firstInit = false;
 
 
@@ -126,111 +125,96 @@ bool _firstInit=true;
 
 
 
-    return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      //   title: Text(widget.title),
-      // ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(children: [
-                const Text("Video Height:"),
-                  Slider(
-                    min: 10,
-                    max: _screenHeight,
-                    value: _sliderHeightValue,
-                    onChanged: (value){
-                      setState(() {
-                      _sliderHeightValue = value;
-                      });
-                    },
-                  ),
-                  const Text("Video Width:"),
-                  Slider(
-                    min: 10,
-                    max: _screenWidth,
-                    value: _sliderWidthValue,
-                    onChanged: (value){
-                      setState(() {
-                      _sliderWidthValue = value;
-                      });
-                    }
-                  ),
-                OutlinedButton(
-                  onPressed: () {},
-                  child: Icon(Icons.play_arrow)),
-                shortcutsPlayerControl(),
-                  
-              ],),
-              ResizebleWidget(child: Video(controller: controller),),
-              Column(
-                children: [
-                  SizedBox(
-                    width: 200, 
-                    child: TextFormField(
-                      
-                      //initialValue: temporaryStr,
-                      //key: Key(temporaryStr),
-                      controller: tempTextEditController,)),
-                  OutlinedButton(onPressed: (){
-                    newEntry(_scriptTable, tempTextEditController.text);
-                    setState(() {
-                      //_dataRows = scriptListToTable(_scriptTable);
-                      scriptListToTable(_scriptTable, _dataRows);
-                    });
-                  }, child: const Text("new entry...")),
-                  OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text("Replace the character name:"),
-                  SizedBox(
-                    width: 200,
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        helperText: "old character name"
-                      ),
-                      controller: charNameOldTEC,
-                    )),
-                  SizedBox(
-                    width: 200,
-                    child: TextFormField(
-                        decoration: const InputDecoration(
-                          helperText: "new character name",
-                        ),
-                      controller: charNameNewTEC,
-                    )),
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: keyEventShortcutProcess,
+      child: Scaffold(
+        // appBar: AppBar(
+        //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        //   title: Text(widget.title),
+        // ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(children: [
                   OutlinedButton(
-                    onPressed: (){
-                      int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                    onPressed: () {},
+                    child: Icon(Icons.play_arrow)),
+                  //shortcutsPlayerControl(),
+                  generateButtonWithShortcut(shortcutsList[0]),
+                  generateButtonWithShortcut(shortcutsList[1]),
+                  generateButtonWithShortcut(shortcutsList[2]),
+                  generateButtonWithShortcut(shortcutsList[3])
+                ],),
+                ResizebleWidget(child: Video(controller: controller),),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 200, 
+                      child: TextFormField(
+                        
+                        //initialValue: temporaryStr,
+                        //key: Key(temporaryStr),
+                        controller: tempTextEditController,)),
+                    OutlinedButton(onPressed: (){
+                      newEntry(_scriptTable, tempTextEditController.text);
                       setState(() {
+                        //_dataRows = scriptListToTable(_scriptTable);
                         scriptListToTable(_scriptTable, _dataRows);
-                        charNameOldTEC.text = "";
-                        charNameNewTEC.text = "";
                       });
-                      showDialog(context: context, builder: (BuildContext context){
-                        return SimpleDialog(
-                            children: [
-                              Text(
-                                'Records affected: ${a.toString()}',
-                                textAlign: TextAlign.center,),
-                            ],
-                        );
-                      });
-                    },
-                    child: const Text("replace!")),
-                ],
-              )
-            ],
+                    }, child: const Text("new entry...")),
+                    OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("Replace the character name:"),
+                    SizedBox(
+                      width: 200,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          helperText: "old character name"
+                        ),
+                        controller: charNameOldTEC,
+                      )),
+                    SizedBox(
+                      width: 200,
+                      child: TextFormField(
+                          decoration: const InputDecoration(
+                            helperText: "new character name",
+                          ),
+                        controller: charNameNewTEC,
+                      )),
+                    OutlinedButton(
+                      onPressed: (){
+                        int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                        setState(() {
+                          scriptListToTable(_scriptTable, _dataRows);
+                          charNameOldTEC.text = "";
+                          charNameNewTEC.text = "";
+                        });
+                        showDialog(context: context, builder: (BuildContext context){
+                          return SimpleDialog(
+                              children: [
+                                Text(
+                                  'Records affected: ${a.toString()}',
+                                  textAlign: TextAlign.center,),
+                              ],
+                          );
+                        });
+                      },
+                      child: const Text("replace!")),
+                  ],
+                )
+              ],
+            ),
+            showTableAsListView()
+            //justTable()
+            ]
           ),
-          showTableAsListView()
-          //justTable()
-          ]
         ),
       ),
     );
@@ -243,8 +227,8 @@ bool _firstInit=true;
       child: SizedBox(
         //width: MediaQuery.of(context).size.width,
         //height: MediaQuery.of(context).size.width * 9.0 / 16.0,
-        width: _sliderWidthValue,
-        height: _sliderHeightValue,
+        // width: _sliderWidthValue,
+        // height: _sliderHeightValue,
         // Use [Video] widget to display video output.
         child: Video(controller: controller),
       ),
@@ -298,65 +282,48 @@ bool _firstInit=true;
 
 
   Widget showTableAsListView(){
-    HardwareKeyboard hardwareKeyboard = HardwareKeyboard.instance;
     return Flexible(
-      child: KeyboardListener(
-        onKeyEvent: (value) {
-          if ((hardwareKeyboard.isMetaPressed || hardwareKeyboard.isControlPressed)
-          && value.logicalKey == LogicalKeyboardKey.keyS
-          && value.runtimeType == KeyDownEvent) {
-            saveFile();
-            print("FILE SAVED");
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
-          } else {
-            keyEventShortcutProcess(value);
-          }
-          
-          
-        },
-        focusNode: FocusNode(),
-        child: ListView(
-          addAutomaticKeepAlives: false,
-          shrinkWrap: false,
-          children: [
-            DataTable(columns: [
-              //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
-              const DataColumn(
-                mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
-                label: ResizableGestureWidget(title: "TC from script\nto player")),
-              const DataColumn(
-                mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
-                label: ResizableGestureWidget(title: "TC from player\nto script")),
-              DataColumn(label: const Text("TC"),
-                onSort:(columnIndex, ascending) {
-                  //FIXME: sorting values
+      child: ListView(
+        addAutomaticKeepAlives: false,
+        shrinkWrap: false,
+        children: [
+          DataTable(columns: [
+            //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
+            const DataColumn(
+              mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+              label: ResizableGestureWidget(title: "TC from script\nto player")),
+            const DataColumn(
+              mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+              label: ResizableGestureWidget(title: "TC from player\nto script")),
+            DataColumn(label: const Text("TC"),
+              onSort:(columnIndex, ascending) {
+                //FIXME: sorting values
+                setState(() {
+                _scriptTable.sort();
+                scriptListToTable(_scriptTable, _dataRows);
+                //_dataRows = scriptListToTable(_scriptTable);
+                });
+              },),
+            DataColumn(
+              //label:Text("character"),
+              label: DropdownMenu(
+                dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
+                initialSelection: "ALL CHARACTERS",
+                onSelected: (value) {
                   setState(() {
-                  _scriptTable.sort();
-                  scriptListToTable(_scriptTable, _dataRows);
-                  //_dataRows = scriptListToTable(_scriptTable);
+                    scriptListToTable(_scriptTable, _dataRows, value!);
                   });
-                },),
-              DataColumn(
-                //label:Text("character"),
-                label: DropdownMenu(
-                  dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
-                  initialSelection: "ALL CHARACTERS",
-                  onSelected: (value) {
-                    setState(() {
-                      scriptListToTable(_scriptTable, _dataRows, value!);
-                    });
-                  },
-                  )
-                //label: MultiDropdown(items: DropdownItem<dynamic>[DropdownItem(label: "label", value: 4)])
-                //label: MultiDropdown(items: items),
-              ),
-              DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
-              const DataColumn(label: Text("Delete\nthe line")),
-            ],
-              rows: _dataRows,
-            )
+                },
+                )
+              //label: MultiDropdown(items: DropdownItem<dynamic>[DropdownItem(label: "label", value: 4)])
+              //label: MultiDropdown(items: items),
+            ),
+            DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
+            const DataColumn(label: Text("Delete\nthe line")),
           ],
-        ),
+            rows: _dataRows,
+          )
+        ],
       ),
     );
   }
@@ -530,13 +497,30 @@ bool _firstInit=true;
   }
 
 
-// >>> TESTS >>>
+
+
 
 
   void keyEventShortcutProcess(KeyEvent keyEvent){
     bool assignShortcutOperation = false; // operation type is assigning the shortcut
     HardwareKeyboard hk = HardwareKeyboard.instance;
-    if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > 1) {
+
+    // SAVE THE FILE
+    if ((hk.isMetaPressed || hk.isControlPressed)
+    && keyEvent.logicalKey == LogicalKeyboardKey.keyS
+    && keyEvent.runtimeType == KeyDownEvent) {
+      saveFile();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
+    }
+
+    int countModifiers = 0;
+
+    countModifiers = hk.isAltPressed ? countModifiers+1 : countModifiers;
+    countModifiers = hk.isControlPressed ? countModifiers+1 : countModifiers;
+    countModifiers = hk.isMetaPressed ? countModifiers+1 : countModifiers;
+    countModifiers = hk.isShiftPressed ? countModifiers+1 : countModifiers;
+
+    if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
       for (KeyboardShortcutNode keyboardShortcutNode in shortcutsList) {
         if (keyboardShortcutNode.assignedNow) {
           print("assign shortcut");
@@ -557,31 +541,48 @@ bool _firstInit=true;
     }
   }
   void initializeShortcutsList(){
-    shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause"));
-    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)) as Duration);}, "seek >"));
-    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)) as Duration);},"seek <"));
+    shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]));
+    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]));
+    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]));
   }
 
-  Widget shortcutsPlayerControl(){
-    return Column(
-      children:
-      shortcutsList.map((element){
-        return OutlinedButton(
-          onLongPress:(){
+
+  Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn){
+    Widget label;
+    if (ksn.iconsList != null) {
+      List<Widget> iconsList = List.empty(growable: true);
+      for (var element in ksn.iconsList!) {
+        iconsList.add(Icon(element));
+      }
+      label = Row(children: iconsList);
+    } else {
+      label = Text(ksn.description);
+    }
+    return Tooltip(
+      key: GlobalKey(),
+      message: ksn.showShortcut(),
+      child: OutlinedButton(
+        onLongPress:(){
+          setState(() {
+            ksn.assignedNow = true;
+          });
+        },
+        onPressed: (){
+          if (ksn.assignedNow) {
             setState(() {
-              element.assignedNow = true;
+              ksn.assignedNow = false;
             });
-          },
-          onPressed: (){
-            element.onClick();
-          },
-          child: Text(element.assignedNow ? "assign the shortcut" : element.description!));
-      }).toList()
+          } else {
+            ksn.onClick();
+          }
+        },
+        child: ksn.assignedNow ? const Text("assign the shortcut") : label,
+        //child: Text(ksn.assignedNow ? "assign the shortcut" : ksn.description!)
+        ),
     );
   }
 
-  List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
-
+// >>> TESTS >>>
 
 // <----- TESTS ------
 
