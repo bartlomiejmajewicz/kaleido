@@ -119,6 +119,8 @@ bool _firstInit=true;
         scriptListToTable(_scriptTable, _dataRows);
         sheetName = SettingsClass.sheetName;
       });
+
+      initializeShortcutsList();
     }
 
 
@@ -157,7 +159,12 @@ bool _firstInit=true;
                       _sliderWidthValue = value;
                       });
                     }
-                  )
+                  ),
+                OutlinedButton(
+                  onPressed: () {},
+                  child: Icon(Icons.play_arrow)),
+                shortcutsPlayerControl(),
+                  
               ],),
               ResizebleWidget(child: Video(controller: controller),),
               Column(
@@ -177,11 +184,6 @@ bool _firstInit=true;
                     });
                   }, child: const Text("new entry...")),
                   OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
-                  keyboardSensitiveWidgetTest(),
-                  keyboardExecuteWidgetTest(),
-                  OutlinedButton.icon(onPressed: (){
-                    logicalKeysListTest.clear();
-                  }, label: Text("empty"))
                 ],
               ),
               Column(
@@ -306,6 +308,8 @@ bool _firstInit=true;
             saveFile();
             print("FILE SAVED");
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
+          } else {
+            keyEventShortcutProcess(value);
           }
           
           
@@ -526,62 +530,63 @@ bool _firstInit=true;
   }
 
 
+// >>> TESTS >>>
 
-  List<Set<LogicalKeyboardKey>> logicalKeysListTest = List.empty(growable: true);
+
+  void keyEventShortcutProcess(KeyEvent keyEvent){
+    bool assignShortcutOperation = false; // operation type is assigning the shortcut
+    HardwareKeyboard hk = HardwareKeyboard.instance;
+    if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > 1) {
+      for (KeyboardShortcutNode keyboardShortcutNode in shortcutsList) {
+        if (keyboardShortcutNode.assignedNow) {
+          print("assign shortcut");
+          // we need to assign this shortcut
+          keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
+          assignShortcutOperation = true;
+          keyboardShortcutNode.assignedNow = false;
+          setState(() {
+          });
+        }
+        if (assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)) {
+          // we need to make and action
+          hk.logicalKeysPressed.forEach(print);
+          print("action shortcut");
+          keyboardShortcutNode.onClick();
+        }
+      }
+    }
+  }
+  void initializeShortcutsList(){
+    shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause"));
+    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)) as Duration);}, "seek >"));
+    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)) as Duration);},"seek <"));
+  }
+
+  Widget shortcutsPlayerControl(){
+    return Column(
+      children:
+      shortcutsList.map((element){
+        return OutlinedButton(
+          onLongPress:(){
+            setState(() {
+              element.assignedNow = true;
+            });
+          },
+          onPressed: (){
+            element.onClick();
+          },
+          child: Text(element.assignedNow ? "assign the shortcut" : element.description!));
+      }).toList()
+    );
+  }
+
   List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
 
-  Widget keyboardSensitiveWidgetTest(){
-    return SizedBox(
-      width: 100,
-      height: 100,
-      child: KeyboardListener(
-        focusNode: FocusNode(),
-        child: TextFormField(initialValue: "data"),
-        onKeyEvent: (value) {
-          if (value.runtimeType == KeyDownEvent) {
-            KeyDownEvent kde = value as KeyDownEvent;
-            HardwareKeyboard hk = HardwareKeyboard.instance;
-            if (hk.logicalKeysPressed.length > 1) {
-              logicalKeysListTest.add(hk.logicalKeysPressed);
-              shortcutsList.add(KeyboardShortcutNode(()=>{}, hk.logicalKeysPressed, "PLACEHOLDER"));
-            }
 
-            //print(kde.physicalKey.usbHidUsage);
-          }
-        },
-        
-        ),
-    );
-  }
+// <----- TESTS ------
 
-  Widget keyboardExecuteWidgetTest(){
-    return SizedBox(
-      width: 100,
-      height: 100,
-      child: KeyboardListener(
-        focusNode: FocusNode(),
-        child: TextFormField(initialValue: "data"),
-        onKeyEvent: (value) {
-          if (value.runtimeType == KeyDownEvent) {
-            KeyDownEvent kde = value as KeyDownEvent;
-            HardwareKeyboard hk = HardwareKeyboard.instance;
-            for (Set setOfKeys in logicalKeysListTest) {
-              if (setEquals(setOfKeys, hk.logicalKeysPressed)) {
-                print("oto on: $setOfKeys");
-              }
-            }
-            for (KeyboardShortcutNode element in shortcutsList) {
-                if (setEquals(element.logicalKeySet, hk.logicalKeysPressed)) {
-                print("oto on: ${element.logicalKeySet}");
-              }
-            }
-          }
-        },
-        
-        ),
-    );
-  }
 }
+
 
 
 

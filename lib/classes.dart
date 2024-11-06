@@ -340,9 +340,10 @@ class ExcelFile extends SourceFile{
 class KeyboardShortcutNode{
   Set<LogicalKeyboardKey>? logicalKeySet;
   String? characterName;
+  String? description;
   bool assignedNow=false;
   late Function onClick;
-  KeyboardShortcutNode(this.onClick, [this.logicalKeySet, this.characterName]);
+  KeyboardShortcutNode(this.onClick, [this.description, this.characterName, this.logicalKeySet]);
 }
 
 

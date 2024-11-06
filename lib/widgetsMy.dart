@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:script_editor/classes.dart';
 
 const ballDiameter = 15.0;
 
