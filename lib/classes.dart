@@ -278,33 +278,39 @@ class ExcelFile extends SourceFile{
 
   }
 
-  File file_getter(){
+  File fileGetter(){
     return _file;
   }
 
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
     sctiptList.clear();
+    int rowNr = 0;
     for (var row in _excel.tables[sheetName]!.rows) {
-      int collNr = 0;
-      ScriptNode scriptNode = ScriptNode.empty();
-      for (var cell in row) {
-        //FIXME: popraw te warunki, bo wiocha
-        if(cell != null && cell.value != null && cell.value.value != null){
-          switch (collNr) {
-          case 0:
-            scriptNode.tcIn = Timecode(cell.value.value.toString());
-            break;
-          case 1:
-            scriptNode.charName = cell.value.value.toString();
-          break;
-          case 2:
-            scriptNode.dial = cell.value.value.toString();
-          break;
+      if (rowNr >= SettingsClass.rowNumber) {
+        
+        int collNr = 0;
+        int tcInColl = SettingsClass.collNumber;
+        int charNameColl = SettingsClass.collNumber+1;
+        int dialColl = SettingsClass.collNumber+2;
+        ScriptNode scriptNode = ScriptNode.empty();
+        for (var cell in row) {
+          //FIXME: popraw te warunki, bo wiocha
+          if(cell != null && cell.value != null && cell.value.value != null){
+            if (collNr == tcInColl) {
+              scriptNode.tcIn = Timecode(cell.value.value.toString());
+            }
+            if (collNr == charNameColl) {
+              scriptNode.charName = cell.value.value.toString();
+            }
+            if (collNr == dialColl) {
+              scriptNode.dial = cell.value.value.toString();
+            }
           }
+          collNr++;
         }
-        collNr++;
+        sctiptList.add(scriptNode);
       }
-      sctiptList.add(scriptNode);
+      rowNr++;
     }
     sctiptList.sort();
   }
@@ -314,9 +320,9 @@ class ExcelFile extends SourceFile{
     int a=0;
     for (var scriptNode in myList) {
       //sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1), TextCellValue("ELO"));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: a), TextCellValue(scriptNode.tcIn.toString()));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: a), TextCellValue(scriptNode.charName));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: a), TextCellValue(scriptNode.dial));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.toString()));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+1, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.charName));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+2, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.dial));
       a++;
     }
     while(a<sheetObject.maxRows){
@@ -368,8 +374,8 @@ class KeyboardShortcutNode{
 
 class SettingsClass{
   // TODO: WYZERUJ DO RELEASE
-  static int rowNumber = 0; // TODO: implement this
-  static int collNumber = 0; // TODO: implement this
+  static int rowNumber = 0;
+  static int collNumber = 0;
   static String sheetName = "";
   static String videoFilePath = "";
   static String scriptFilePath = "";
@@ -379,6 +385,7 @@ class SettingsClass{
 
 }
 
+// UNUSED
 class OutlinedButtonWithShortcut extends Tooltip {
   OutlinedButtonWithShortcut(
     {super.key,

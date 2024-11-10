@@ -44,7 +44,7 @@ class ResizebleWidget extends StatefulWidget {
   _ResizebleWidgetState createState() => _ResizebleWidgetState();
 }
 
-const ballDiameter = 30.0;
+const resizeCornerDiameter = 30.0;
 
 class _ResizebleWidgetState extends State<ResizebleWidget> {
   double height = 200;
@@ -85,8 +85,8 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
           // top right
           // center right
           Positioned(
-            top: top + height - ballDiameter,
-            left: left + width - ballDiameter,
+            top: top + height - resizeCornerDiameter,
+            left: left + width - resizeCornerDiameter,
             child: ManipulatingBall(
               onDrag: (dx, dy) {
                 var newHeight = height + dy;
@@ -140,8 +140,8 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
       onPanUpdate: _handleUpdate,
       child: Container(
         color: ColorScheme.fromSeed(seedColor: Colors.deepPurple).primary.withOpacity(0.75),
-        width: ballDiameter,
-        height: ballDiameter,
+        width: resizeCornerDiameter,
+        height: resizeCornerDiameter,
         child: Transform.rotate(angle: 3.14/2, child: const Icon(Icons.arrow_outward_sharp),),
       ),
     );

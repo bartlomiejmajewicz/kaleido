@@ -622,6 +622,15 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
 
   ExcelFile? excelFile;
+  TextEditingController tecColl = TextEditingController();
+  TextEditingController tecRow = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    tecColl.text = (SettingsClass.collNumber+1).toString();
+    tecRow.text = (SettingsClass.rowNumber+1).toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -658,20 +667,67 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(children: [
                     const Text("select starting column: "),
                     TextFormField(
-                      initialValue: "1", 
+                      controller: tecColl,
                       onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value)-1 : 0;}),
                       inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
                     ),
-                    Text('selected collumn: ${SettingsClass.collNumber+1}'),
+                    Row(
+                      children: [
+                        Column(
+                          children: [
+                            OutlinedButton(onPressed: (){
+                              if (SettingsClass.collNumber >=0) {
+                                setState(() {
+                                  SettingsClass.collNumber++;
+                                  tecColl.text = (SettingsClass.collNumber+1).toString();
+                                });
+                              }
+                            }, child: Icon(Icons.plus_one)),
+                            OutlinedButton(onPressed: (){                        
+                              if (SettingsClass.collNumber >=1) {
+                                setState(() {
+                                  SettingsClass.collNumber--;
+                                  tecColl.text = (SettingsClass.collNumber+1).toString();
+                                });
+                              }
+                            }, child: Icon(Icons.exposure_minus_1)),
+                          ],
+                        ),
+                        Text('selected collumn: ${SettingsClass.collNumber+1}'),
+                      ],
+                    ),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select starting row: "),
                     TextFormField(
-                      initialValue: "1", 
+                      controller: tecRow,
                       onChanged: (value) => setState((){SettingsClass.rowNumber = (value!="") ? int.parse(value)-1 : 0;}),
                       inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
                     ),
-                    Text('selected row: ${SettingsClass.rowNumber+1}'),
+                    Row(
+                      children: [
+                        Column(
+                          children: [
+                            OutlinedButton(onPressed: (){
+                              if (SettingsClass.rowNumber >=0) {
+                                setState(() {
+                                  SettingsClass.rowNumber++;
+                                  tecRow.text = (SettingsClass.rowNumber+1).toString();
+                                });
+                              }
+                            }, child: Icon(Icons.plus_one)),
+                            OutlinedButton(onPressed: (){                        
+                              if (SettingsClass.rowNumber >=1) {
+                                setState(() {
+                                  SettingsClass.rowNumber--;
+                                  tecRow.text = (SettingsClass.rowNumber+1).toString();
+                                });
+                              }
+                            }, child: Icon(Icons.exposure_minus_1)),
+                          ],
+                        ),
+                        Text('selected row: ${SettingsClass.rowNumber+1}'),
+                      ],),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select project framerate: "),
@@ -698,6 +754,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ])
                 ],
               ),
+              showSheetPreview(),
             ],
           ),
         ),
@@ -836,6 +893,43 @@ class _SettingsPageState extends State<SettingsPage> {
       returnedValue = oldValue.text;
     }
     return TextEditingValue(text: returnedValue);
+  }
+
+
+  DataTable showSheetPreview(){
+    List<ScriptNode> list = List.empty(growable: true);
+    List<DataRow> datarows = List.empty(growable: true);
+    if (SettingsClass.scriptFilePath != "" && SettingsClass.sheetName != "" && excelFile != null) {
+      excelFile!.importSheetToList(SettingsClass.sheetName, list);
+      print(list.length);
+      for (var i = 0; i < 3 && i < list.length; i++) {
+        print("object");
+        datarows.add(
+          DataRow(cells:[
+            DataCell(Text(list[i].tcIn.toString())),
+            DataCell(Text(list[i].charName)),
+            DataCell(Text(list[i].dial)),
+          ]));
+      }
+    }
+
+    datarows.add(
+          const DataRow(cells:[
+            DataCell(Text("...")),
+            DataCell(Text("...")),
+            DataCell(Text("...")),
+          ]));
+
+    return DataTable(columns: const [
+            DataColumn(
+              label: Text("TC in"),),
+            DataColumn(
+              label: Text("Character")),
+            DataColumn(
+              label: Text("Dialogue"),),
+          ],
+    rows: datarows,
+    );
   }
 
 }
