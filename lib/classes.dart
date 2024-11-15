@@ -347,7 +347,6 @@ class KeyboardShortcutNode{
   Set<LogicalKeyboardKey>? logicalKeySet;
   String? characterName;
   String description;
-  bool assignedNow=false;
   ValueNotifier<bool> assignedNowNotifier = ValueNotifier(false);
   List<IconData>? iconsList;
   late Function onClick;
@@ -404,20 +403,18 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
         return OutlinedButton(
         onLongPress:(){
           updateUiMethod(0);
-          ksn.assignedNow = true;
           ksn.assignedNowNotifier.value = true;
           updateUiMethod(0);
         },
         onPressed: (){
-          if (ksn.assignedNow) {
-            ksn.assignedNow = false;
+          if (ksn.assignedNowNotifier.value) {
             ksn.assignedNowNotifier.value = false;
             updateUiMethod(0);
           } else {
             ksn.onClick();
           }
         },
-        child: ksn.assignedNow ? const Text("assign the shortcut") : label,
+        child: ksn.assignedNowNotifier.value ? const Text("assign the shortcut") : label,
         );
       }),
       
@@ -438,30 +435,4 @@ class SettingsClass{
   static Timecode videoStartTc=Timecode();
 
 }
-
-// UNUSED
-class OutlinedButtonWithShortcutOld extends Tooltip {
-  OutlinedButtonWithShortcutOld(
-    {super.key,
-    required onPressed, 
-    required Widget child,
-    required KeyboardShortcutNode keyboardShortcutNode,
-    required List<KeyboardShortcutNode> shortcutsList}):
-    super(
-      message: keyboardShortcutNode.showShortcut(),
-      child: OutlinedButton(
-        onLongPress:(){
-          keyboardShortcutNode.assignedNow = true;
-        },
-        onPressed: (){
-          keyboardShortcutNode.onClick();
-        },
-        
-        child: Text(keyboardShortcutNode.assignedNow ? "assign the shortcut" : keyboardShortcutNode.description!)),
-    ){
-      shortcutsList.add(keyboardShortcutNode);
-  }
-
-}
-
 

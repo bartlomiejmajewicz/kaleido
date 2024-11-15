@@ -147,8 +147,8 @@ bool _firstInit=true;
                   children: [
                     ResizebleWidget(child: Video(controller: controller)),
                     Row(children: [
-                      generateButtonWithShortcut(shortcutsList[2]),
-                      generateButtonWithShortcut(shortcutsList[0]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[2]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[0]),
                       SizedBox(
                         width: 120,
                         child: TextFormField(
@@ -181,10 +181,8 @@ bool _firstInit=true;
                           }  
                         ),
                       ),
-                      generateButtonWithShortcut(shortcutsList[1]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[1]),
                     ]),
-                    OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "mój przycisk"),
-                    OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[4]),
                   ],
                 ),
                 Column(
@@ -259,7 +257,7 @@ bool _firstInit=true;
                             ),
                           ),
                         ),
-                        generateButtonWithShortcut(shortcutsList[3]),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[3])
                       ],
                     ),
                       Row(
@@ -275,6 +273,7 @@ bool _firstInit=true;
                             ),
                           ),
                         ),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[4]),
                         //generateButtonWithShortcut(shortcutsList[4]),
                       ],
                     )
@@ -633,12 +632,12 @@ bool _firstInit=true;
 
     if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
       for (KeyboardShortcutNode keyboardShortcutNode in shortcutsList) {
-        if (keyboardShortcutNode.assignedNow) {
+        if (keyboardShortcutNode.assignedNowNotifier.value) {
           print("assign shortcut");
           // we need to assign this shortcut
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
-          keyboardShortcutNode.assignedNow = false;
+          keyboardShortcutNode.assignedNowNotifier.value = false;
           setState(() {
           });
         }
@@ -676,40 +675,40 @@ bool _firstInit=true;
   }
 
 
-  Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn){
-    Widget label;
-    if (ksn.iconsList != null) {
-      List<Widget> iconsList = List.empty(growable: true);
-      for (var element in ksn.iconsList!) {
-        iconsList.add(Icon(element));
-      }
-      label = Row(children: iconsList);
-    } else {
-      label = Text(ksn.description);
-    }
-    return Tooltip(
-      key: GlobalKey(),
-      message: ksn.showShortcut(),
-      child: OutlinedButton(
-        onLongPress:(){
-          setState(() {
-            ksn.assignedNow = true;
-          });
-        },
-        onPressed: (){
-          if (ksn.assignedNow) {
-            setState(() {
-              ksn.assignedNow = false;
-            });
-          } else {
-            ksn.onClick();
-          }
-        },
-        child: ksn.assignedNow ? const Text("assign the shortcut") : label,
-        //child: Text(ksn.assignedNow ? "assign the shortcut" : ksn.description!)
-        ),
-    );
-  }
+  // Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn){
+  //   Widget label;
+  //   if (ksn.iconsList != null) {
+  //     List<Widget> iconsList = List.empty(growable: true);
+  //     for (var element in ksn.iconsList!) {
+  //       iconsList.add(Icon(element));
+  //     }
+  //     label = Row(children: iconsList);
+  //   } else {
+  //     label = Text(ksn.description);
+  //   }
+  //   return Tooltip(
+  //     key: GlobalKey(),
+  //     message: ksn.showShortcut(),
+  //     child: OutlinedButton(
+  //       onLongPress:(){
+  //         setState(() {
+  //           ksn.assignedNow = true;
+  //         });
+  //       },
+  //       onPressed: (){
+  //         if (ksn.assignedNow) {
+  //           setState(() {
+  //             ksn.assignedNow = false;
+  //           });
+  //         } else {
+  //           ksn.onClick();
+  //         }
+  //       },
+  //       child: ksn.assignedNow ? const Text("assign the shortcut") : label,
+  //       //child: Text(ksn.assignedNow ? "assign the shortcut" : ksn.description!)
+  //       ),
+  //   );
+  // }
 
 // >>> TESTS >>>
 
