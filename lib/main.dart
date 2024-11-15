@@ -182,7 +182,9 @@ bool _firstInit=true;
                         ),
                       ),
                       generateButtonWithShortcut(shortcutsList[1]),
-                    ])
+                    ]),
+                    OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "mój przycisk"),
+                    OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[4]),
                   ],
                 ),
                 Column(
@@ -273,7 +275,7 @@ bool _firstInit=true;
                             ),
                           ),
                         ),
-                        generateButtonWithShortcut(shortcutsList[4]),
+                        //generateButtonWithShortcut(shortcutsList[4]),
                       ],
                     )
                   ],
@@ -422,7 +424,11 @@ bool _firstInit=true;
     myList.clear();
     for (var scriptNode in scriptList) {
       if (scriptNode.charName == charName || charName == "ALL CHARACTERS") {
-        myList.add(DataRow(cells: [
+        myList.add(DataRow(
+          // color: WidgetStateColor.resolveWith((states){
+          //   return scriptNode.isThisCurrentTCValueNotifier.value ? Colors.lightGreen : Colors.white;
+          // }),
+          cells: [
         DataCell(
           ValueListenableBuilder<bool>(valueListenable: scriptNode.isThisCurrentTCValueNotifier, builder: (context, value, child) {
             return ElevatedButton(
@@ -644,6 +650,10 @@ bool _firstInit=true;
         }
       }
     }
+  }
+
+  void updateUi(int a){
+    setState(){};
   }
   void initializeShortcutsList(){
     shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]));

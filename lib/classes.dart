@@ -348,6 +348,7 @@ class KeyboardShortcutNode{
   String? characterName;
   String description;
   bool assignedNow=false;
+  ValueNotifier<bool> assignedNowNotifier = ValueNotifier(false);
   List<IconData>? iconsList;
   late Function onClick;
 
@@ -370,6 +371,60 @@ class KeyboardShortcutNode{
   }
 }
 
+class OutlinedButtonWithShortcut extends StatelessWidget{
+  final ValueChanged<int>updateUiMethod;
+  String text;
+  KeyboardShortcutNode? kns;
+  OutlinedButtonWithShortcut({required this.updateUiMethod, required String this.text, KeyboardShortcutNode? this.kns});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kns != null) {
+      return generateButtonWithShortcut(kns!, context);
+    } else {
+      return OutlinedButton(onPressed: (){updateUiMethod(100);}, child: Text(text));
+    }
+  }
+
+  Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn, BuildContext context){
+    Widget label;
+    if (ksn.iconsList != null) {
+      List<Widget> iconsList = List.empty(growable: true);
+      for (var element in ksn.iconsList!) {
+        iconsList.add(Icon(element));
+      }
+      label = Row(children: iconsList);
+    } else {
+      label = Text(ksn.description);
+    }
+    return Tooltip(
+      key: GlobalKey(),
+      message: ksn.showShortcut(),
+      child: ValueListenableBuilder(valueListenable: ksn.assignedNowNotifier, builder: (context, value, child){
+        return OutlinedButton(
+        onLongPress:(){
+          updateUiMethod(0);
+          ksn.assignedNow = true;
+          ksn.assignedNowNotifier.value = true;
+          updateUiMethod(0);
+        },
+        onPressed: (){
+          if (ksn.assignedNow) {
+            ksn.assignedNow = false;
+            ksn.assignedNowNotifier.value = false;
+            updateUiMethod(0);
+          } else {
+            ksn.onClick();
+          }
+        },
+        child: ksn.assignedNow ? const Text("assign the shortcut") : label,
+        );
+      }),
+      
+    );
+  }
+
+}
 
 
 class SettingsClass{
@@ -385,8 +440,8 @@ class SettingsClass{
 }
 
 // UNUSED
-class OutlinedButtonWithShortcut extends Tooltip {
-  OutlinedButtonWithShortcut(
+class OutlinedButtonWithShortcutOld extends Tooltip {
+  OutlinedButtonWithShortcutOld(
     {super.key,
     required onPressed, 
     required Widget child,
