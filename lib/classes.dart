@@ -373,7 +373,6 @@ class KeyboardShortcutNode{
 
 
 class SettingsClass{
-  // TODO: WYZERUJ DO RELEASE
   static int rowNumber = 0;
   static int collNumber = 0;
   static String sheetName = "";

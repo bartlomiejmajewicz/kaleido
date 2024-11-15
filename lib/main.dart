@@ -107,7 +107,6 @@ bool _firstInit=true;
 
 
       player.open(Media(SettingsClass.videoFilePath));
-      // TODO: DO SPRAWDZENIA 
       player.stream.position.listen((e) {
         currentPlaybackPosition = e;
         markCurrentLine(_scriptTable);
@@ -157,17 +156,29 @@ bool _firstInit=true;
                           controller: tcEntryController,
                           inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
                           onTap: (){
+                            
                             tcEntryControllerActive = false;
                           },
                           onChanged: (String string){print("changed");},
                           onEditingComplete: (){
                             tcEntryControllerActive = true;
+                            print("edit complete");
                           },
                           onTapOutside: (PointerDownEvent pde){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
                             tcEntryControllerActive = true;
                           },
-                          onSaved: (newValue) => tcEntryControllerActive = true,
-                          onFieldSubmitted: (value) => tcEntryControllerActive = true,
+                          onSaved: (newValue){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
+                            tcEntryControllerActive = true;
+                          },
+                          onFieldSubmitted: (value){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
+                            tcEntryControllerActive = true;
+                          }  
                         ),
                       ),
                       generateButtonWithShortcut(shortcutsList[1]),
@@ -181,7 +192,7 @@ bool _firstInit=true;
                       child: TextFormField(
                         controller: tempTextEditController,)),
                     OutlinedButton(onPressed: (){
-                      newEntry(_scriptTable, tempTextEditController.text);
+                      newEntry(_scriptTable, null, tempTextEditController.text);
                       setState(() {
                         //_dataRows = scriptListToTable(_scriptTable);
                         scriptListToTable(_scriptTable, _dataRows);
@@ -228,6 +239,43 @@ bool _firstInit=true;
                         });
                       },
                       child: const Text("replace!")),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("add new lines:"),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            onChanged: (value) {
+                              shortcutsList[3].characterName = value;
+                            },
+                            decoration: const InputDecoration(
+                              helperText: "character name #1",
+                            ),
+                          ),
+                        ),
+                        generateButtonWithShortcut(shortcutsList[3]),
+                      ],
+                    ),
+                      Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            onChanged: (value) {
+                              shortcutsList[4].characterName = value;
+                            },
+                            decoration: const InputDecoration(
+                              helperText: "character name #2",
+                            ),
+                          ),
+                        ),
+                        generateButtonWithShortcut(shortcutsList[4]),
+                      ],
+                    )
                   ],
                 )
               ],
@@ -383,7 +431,7 @@ bool _firstInit=true;
               jumpToTc(scriptNode.tcIn);
             },
             //child: Text("TC UP")))),
-            child: Icon(Icons.arrow_upward));
+            child: const Icon(Icons.arrow_upward));
           },)),
         
         DataCell(
@@ -415,7 +463,7 @@ bool _firstInit=true;
           //style: TextStyle().apply(backgroundColor: Colors.amber),
           ))),
         
-        DataCell(SizedBox( width: 200, child: TextFormField(
+        DataCell(SizedBox( width: 250, child: TextFormField(
           initialValue: scriptNode.charName,
           key: Key(scriptNode.charName),
           onChanged: (value){
@@ -448,8 +496,38 @@ bool _firstInit=true;
         ]));
         scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
       }
-      
     }
+
+    TextEditingController tecTcEntry = TextEditingController();
+    TextEditingController tecCharNameEntry = TextEditingController();
+    TextEditingController tecDialEntry = TextEditingController();
+    myList.add(DataRow(
+      cells: [
+        const DataCell(Text('')),
+        const DataCell(Text('')),
+        DataCell(TextFormField(
+          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+          controller: tecTcEntry,
+        )),
+        DataCell(TextFormField(
+          controller: tecCharNameEntry,
+        )),
+        DataCell(TextFormField(
+          controller: tecDialEntry,)),
+        DataCell(
+          OutlinedButton(
+            child: Icon(Icons.add),
+            onPressed: (){
+              Timecode? tc = tecTcEntry.text == "" ? null : Timecode(tecTcEntry.text);
+              
+              newEntry(_scriptTable, tc, tecCharNameEntry.text, tecDialEntry.text);
+              setState(() {
+                scriptListToTable(_scriptTable, _dataRows);
+              });
+            },
+            )),
+    ]));
+      
 }
 
 
@@ -481,10 +559,16 @@ bool _firstInit=true;
 }
 
 
-  void newEntry(List<ScriptNode> scriptList, [String charName = "char name"]) {
+  void newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
+    charName = charName=="" ? "char name" : charName;
+    dial = dial=="" ? "char name" : dial;
     Timecode timecode = Timecode();
-    timecode.tcFromDuration(currentPlaybackPosition);
-    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, charName, "dialogue"));
+    if (tcIn == null) {
+      timecode.tcFromDuration(currentPlaybackPosition);
+    } else {
+      timecode = tcIn;
+    }
+    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, charName, dial));
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -565,6 +649,20 @@ bool _firstInit=true;
     shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]));
     shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]));
     shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]));
+    shortcutsList.add(KeyboardShortcutNode((){},"add char #1"));
+    shortcutsList[3].onClick = (){
+      newEntry(_scriptTable, null, shortcutsList[3].characterName!);
+      setState(() {
+        scriptListToTable(_scriptTable, _dataRows);
+      });
+    };
+    shortcutsList.add(KeyboardShortcutNode((){},"add char #2"));
+    shortcutsList[4].onClick = (){
+      newEntry(_scriptTable, null, shortcutsList[4].characterName!);
+      setState(() {
+        scriptListToTable(_scriptTable, _dataRows);
+      });
+    };
   }
 
 

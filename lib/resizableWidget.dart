@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:script_editor/classes.dart';
 
 void main() {
   MediaKit.ensureInitialized();
@@ -32,7 +33,9 @@ class _DemoState extends State<Demo> {
   late final controller = VideoController(player);
   @override
   Widget build(BuildContext context) {
-    return ResizebleWidget(child: Video(controller: controller),);
+    //return ResizebleWidget(child: Video(controller: controller),);
+    return ResizebleWidget(child: Text("test text"));
+    
   }
 }
 
@@ -47,35 +50,35 @@ class ResizebleWidget extends StatefulWidget {
 const resizeCornerDiameter = 30.0;
 
 class _ResizebleWidgetState extends State<ResizebleWidget> {
-  double height = 200;
-  double width = 400;
+  // double height = 200;
+  // double width = 400;
 
   double top = 0;
   double left = 0;
 
   void onDrag(double dx, double dy) {
-    var newHeight = height + dy;
-    var newWidth = width + dx;
+    var newHeight = SettingsClass.videoHeight + dy;
+    var newWidth = SettingsClass.videoWidth + dx;
 
     setState(() {
-      height = newHeight > 0 ? newHeight : 50;
-      width = newWidth > 0 ? newWidth : 50;
+      SettingsClass.videoHeight = newHeight > 0 ? newHeight : 50;
+      SettingsClass.videoWidth = newWidth > 0 ? newWidth : 50;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
-      width: width,
+      height: SettingsClass.videoHeight,
+      width: SettingsClass.videoWidth,
       child: Stack(
         children: <Widget>[
           Positioned(
             top: top,
             left: left,
             child: Container(
-              height: height,
-              width: width,
+              height: SettingsClass.videoHeight,
+              width: SettingsClass.videoWidth,
               color: Colors.red[100],
               child: widget.child,
             ),
@@ -85,16 +88,16 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
           // top right
           // center right
           Positioned(
-            top: top + height - resizeCornerDiameter,
-            left: left + width - resizeCornerDiameter,
+            top: top + SettingsClass.videoHeight - resizeCornerDiameter,
+            left: left + SettingsClass.videoWidth - resizeCornerDiameter,
             child: ManipulatingBall(
               onDrag: (dx, dy) {
-                var newHeight = height + dy;
-                var newWidth = width + dx;
+                var newHeight = SettingsClass.videoHeight + dy;
+                var newWidth = SettingsClass.videoWidth + dx;
       
                 setState(() {
-                  height = newHeight > 0 ? newHeight : 0;
-                  width = newWidth > 0 ? newWidth : 0;
+                  SettingsClass.videoHeight = newHeight > 0 ? newHeight : 0;
+                  SettingsClass.videoWidth = newWidth > 0 ? newWidth : 0;
                 });
               },
             ),
