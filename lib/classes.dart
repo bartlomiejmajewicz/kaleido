@@ -372,16 +372,15 @@ class KeyboardShortcutNode{
 
 class OutlinedButtonWithShortcut extends StatelessWidget{
   final ValueChanged<int>updateUiMethod;
-  String text;
   KeyboardShortcutNode? kns;
-  OutlinedButtonWithShortcut({required this.updateUiMethod, required String this.text, KeyboardShortcutNode? this.kns});
+  OutlinedButtonWithShortcut({required this.updateUiMethod, KeyboardShortcutNode? this.kns});
 
   @override
   Widget build(BuildContext context) {
     if (kns != null) {
       return generateButtonWithShortcut(kns!, context);
     } else {
-      return OutlinedButton(onPressed: (){updateUiMethod(100);}, child: Text(text));
+      return OutlinedButton(onPressed: (){}, child: Text("missing function..."));
     }
   }
 

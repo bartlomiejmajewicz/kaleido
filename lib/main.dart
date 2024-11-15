@@ -69,8 +69,8 @@ late dynamic excel;
 
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
-List<ScriptNode> _scriptTable = List.empty(growable: true);
-List <DataRow> _dataRows = List.empty(growable: true);
+final List<ScriptNode> _scriptTable = List.empty(growable: true);
+final List <DataRow> _dataRows = List.empty(growable: true);
 late String sheetName;
 
 ExcelFile? scriptSourceFile=null;
@@ -83,7 +83,7 @@ TextEditingController tcEntryController = TextEditingController();
 bool tcEntryControllerActive = true;
 
 
-List<KeyboardShortcutNode> shortcutsList = List.empty(growable: true);
+Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
 bool _firstInit=true;
 
@@ -147,8 +147,8 @@ bool _firstInit=true;
                   children: [
                     ResizebleWidget(child: Video(controller: controller)),
                     Row(children: [
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[2]),
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[0]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
                       SizedBox(
                         width: 120,
                         child: TextFormField(
@@ -181,7 +181,7 @@ bool _firstInit=true;
                           }  
                         ),
                       ),
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[1]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"])
                     ]),
                   ],
                 ),
@@ -250,14 +250,14 @@ bool _firstInit=true;
                           width: 200,
                           child: TextFormField(
                             onChanged: (value) {
-                              shortcutsList[3].characterName = value;
+                              shortcutsMap["add char #1"]!.characterName = value;
                             },
                             decoration: const InputDecoration(
                               helperText: "character name #1",
                             ),
                           ),
                         ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[3])
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
                       ],
                     ),
                       Row(
@@ -266,14 +266,14 @@ bool _firstInit=true;
                           width: 200,
                           child: TextFormField(
                             onChanged: (value) {
-                              shortcutsList[4].characterName = value;
+                              shortcutsMap["add char #2"]!.characterName = value;
                             },
                             decoration: const InputDecoration(
                               helperText: "character name #2",
                             ),
                           ),
                         ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, text: "", kns: shortcutsList[4]),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"])
                         //generateButtonWithShortcut(shortcutsList[4]),
                       ],
                     )
@@ -631,23 +631,20 @@ bool _firstInit=true;
     countModifiers = hk.isShiftPressed ? countModifiers+1 : countModifiers;
 
     if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
-      for (KeyboardShortcutNode keyboardShortcutNode in shortcutsList) {
+      shortcutsMap.forEach((key, keyboardShortcutNode){
         if (keyboardShortcutNode.assignedNowNotifier.value) {
           print("assign shortcut");
-          // we need to assign this shortcut
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
           keyboardShortcutNode.assignedNowNotifier.value = false;
           setState(() {
+            
           });
         }
-        if (assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)) {
-          // we need to make and action
-          hk.logicalKeysPressed.forEach(print);
-          print("action shortcut");
+        if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){
           keyboardShortcutNode.onClick();
         }
-      }
+      });
     }
   }
 
@@ -655,23 +652,37 @@ bool _firstInit=true;
     setState(){};
   }
   void initializeShortcutsList(){
-    shortcutsList.add(KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]));
-    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]));
-    shortcutsList.add(KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]));
-    shortcutsList.add(KeyboardShortcutNode((){},"add char #1"));
-    shortcutsList[3].onClick = (){
-      newEntry(_scriptTable, null, shortcutsList[3].characterName!);
-      setState(() {
-        scriptListToTable(_scriptTable, _dataRows);
-      });
-    };
-    shortcutsList.add(KeyboardShortcutNode((){},"add char #2"));
-    shortcutsList[4].onClick = (){
-      newEntry(_scriptTable, null, shortcutsList[4].characterName!);
-      setState(() {
-        scriptListToTable(_scriptTable, _dataRows);
-      });
-    };
+
+
+    shortcutsMap.putIfAbsent("play/pause", (){
+      return KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
+    });
+    shortcutsMap.putIfAbsent("seek >", (){
+      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
+    });
+    shortcutsMap.putIfAbsent("seek <", (){
+      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
+    });
+    shortcutsMap.putIfAbsent("add char #1", (){
+      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
+      ksn.onClick = (){
+        newEntry(_scriptTable, null, ksn.characterName!);
+        setState(() {
+          scriptListToTable(_scriptTable, _dataRows);
+        });
+      };
+      return ksn;
+    });
+    shortcutsMap.putIfAbsent("add char #2", (){
+      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
+      ksn.onClick = (){
+        newEntry(_scriptTable, null, ksn.characterName!);
+        setState(() {
+          scriptListToTable(_scriptTable, _dataRows);
+        });
+      };
+      return ksn;
+    });
   }
 
 
