@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
@@ -135,6 +134,126 @@ class Timecode implements Comparable<Timecode> {
 
 }
 
+void main(List<String> args) {
+  
+}
+
+// UNUSED
+class Timecode2 extends Duration{
+
+  static int framerate = 25;
+  Timecode2([int hours = 0, int minutes = 0, int seconds = 0, int milliseconds= 0]) : super(hours: hours, minutes: minutes, seconds: seconds, milliseconds: milliseconds);
+
+  factory Timecode2.fromText([String timecodeAsText="00:00:00:00"]){
+    if (!tcValidateCheck(timecodeAsText)) {
+      timecodeAsText = "00:00:00:00";
+    }
+    List<String> splittedTc = timecodeAsText.split(':');
+    int h = int.parse(splittedTc[0]);
+    int m = int.parse(splittedTc[1]);
+    int s = int.parse(splittedTc[2]);
+    int f = int.parse(splittedTc[3]);
+    int milliseconds = ((f/framerate)*1000).round();
+
+    return Timecode2(h,m,s,milliseconds);
+  }
+
+  static bool tcValidateCheck(String timecodeAsText) {
+  // check if the TC is a valid value
+    var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    if(tcValidateCheck.hasMatch(timecodeAsText)){
+      return true;
+    } else{
+      return false;
+    }
+  }
+
+
+  @override
+  String toString() {
+    int millis = inMilliseconds;
+    int h = millis ~/ (1000*3600);
+    millis = millis - (h*1000*3600);
+    int m = millis ~/ (1000*60);
+    millis = millis - (m*1000*60);
+    int s = millis ~/ (1000);
+    millis = millis - s*1000;
+    int f = (framerate * millis / 1000).round();
+    String hoursString = h<10 ? "0$h" : h.toString();
+    String minString = m<10 ? "0$m" : m.toString();
+    String secString = s<10 ? "0$s" : s.toString();
+    String framesString = f<10 ? "0$f" : f.toString();
+    return "$hoursString:$minString:$secString:$framesString";
+  }
+
+}
+
+
+// UNUSED
+class Timecode3{
+
+  static int framerate = 25;
+  late Duration _duration;
+  Timecode3([int hours = 0, int minutes = 0, int seconds = 0, int milliseconds = 0])
+  : _duration = Duration(hours: hours, minutes: minutes, seconds:  seconds, milliseconds: milliseconds%100);
+
+  Timecode3.fromDuration(this._duration);
+
+
+
+  @override
+  String toString() {
+    int millis = _duration.inMilliseconds;
+    int h = millis ~/ (1000*3600);
+    millis = millis - (h*1000*3600);
+    int m = millis ~/ (1000*60);
+    millis = millis - (m*1000*60);
+    int s = millis ~/ (1000);
+    millis = millis - s*1000;
+    int f = (framerate * millis / 1000).round();
+    String hoursString = h<10 ? "0$h" : h.toString();
+    String minString = m<10 ? "0$m" : m.toString();
+    String secString = s<10 ? "0$s" : s.toString();
+    String framesString = f<10 ? "0$f" : f.toString();
+    return "$hoursString:$minString:$secString:$framesString";
+  }
+
+  Timecode3.fromText([String timecodeAsText="00:00:00:00"]){
+    if (!tcValidateCheck(timecodeAsText)) {
+      timecodeAsText = "00:00:00:00";
+    }
+    List<String> splittedTc = timecodeAsText.split(':');
+    int h = int.parse(splittedTc[0]);
+    int m = int.parse(splittedTc[1]);
+    int s = int.parse(splittedTc[2]);
+    int f = int.parse(splittedTc[3]);
+    int milliseconds = ((f/framerate)*1000).round();
+
+    _duration=Duration(hours: h,minutes: m, seconds: s,milliseconds: milliseconds);
+  }
+
+  static bool tcValidateCheck(String timecodeAsText) {
+  // check if the TC is a valid value
+    var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    if(tcValidateCheck.hasMatch(timecodeAsText)){
+      return true;
+    } else{
+      return false;
+    }
+  }
+
+
+
+  @override
+  bool operator ==(Object other) {
+    return super == other;
+  }
+
+  @override
+  Duration operator-(Duration other){
+    return _duration-other;
+  }
+} 
 
 
 
