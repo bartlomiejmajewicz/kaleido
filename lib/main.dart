@@ -83,6 +83,10 @@ TextEditingController charNameNewTEC = TextEditingController();
 TextEditingController tcEntryController = TextEditingController();
 bool tcEntryControllerActive = true;
 
+ValueNotifier<bool> scrollFollowsVideo = ValueNotifier(false);
+ItemScrollController scriptListController = ItemScrollController();
+int currentItemScrollIndex = 0;
+
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
@@ -113,6 +117,16 @@ bool _firstInit=true;
         markCurrentLine(_scriptTable);
         if (tcEntryControllerActive) {  
           tcEntryController.text =  Timecode.fromDuration(e+SettingsClass.videoStartTc.tcAsDuration()).toString();
+        }
+        if (scrollFollowsVideo.value) {
+          for (var i = 0; i < _scriptTable.length; i++) {
+            if (_scriptTable[i].isThisCurrentTCValueNotifier.value) {
+              if (currentItemScrollIndex != i) {
+                scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
+                currentItemScrollIndex = i;
+              }
+            }
+          }
         }
       });
       scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
@@ -185,7 +199,15 @@ bool _firstInit=true;
                             }  
                           ),
                         ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"])
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"]),
+                        ValueListenableBuilder(valueListenable: scrollFollowsVideo, builder: (context, value, child) {
+                          return Checkbox(
+                            value: value,
+                            onChanged:(value) {
+                              scrollFollowsVideo.value = value!;
+                            });
+                        },),
+                        const Text("view follows video"),
                       ]),
                     ],
                   ),
@@ -331,6 +353,10 @@ bool _firstInit=true;
         characterNames.add(scriptNode.charName);
       }
     }
+
+    characterNames.sort((a, b) {
+      return a.compareTo(b);
+    },);
 
     return characterNames.map((e){
       return DropdownMenuEntry(
@@ -566,6 +592,7 @@ bool _firstInit=true;
 
     return Flexible(
       child: ScrollablePositionedList.builder(
+        itemScrollController: scriptListController,
         addAutomaticKeepAlives: false,
         shrinkWrap: false,
         itemCount: _scriptTable.length,
@@ -581,45 +608,6 @@ bool _firstInit=true;
             return _buildRow(context, index);
           }
         },
-
-        // children: [
-        //   DataTable(columns: [
-        //     //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
-        //     const DataColumn(
-        //       mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
-        //       label: ResizableGestureWidget(title: "TC from script\nto player")),
-        //     const DataColumn(
-        //       mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
-        //       label: ResizableGestureWidget(title: "TC from player\nto script")),
-        //     DataColumn(label: const Text("TC"),
-        //       onSort:(columnIndex, ascending) {
-        //         //FIXME: sorting values
-        //         setState(() {
-        //         _scriptTable.sort();
-        //         scriptListToTable(_scriptTable, _dataRows);
-        //         //_dataRows = scriptListToTable(_scriptTable);
-        //         });
-        //       },),
-        //     DataColumn(
-        //       //label:Text("character"),
-        //       label: DropdownMenu(
-        //         dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
-        //         initialSelection: "ALL CHARACTERS",
-        //         onSelected: (value) {
-        //           setState(() {
-        //             scriptListToTable(_scriptTable, _dataRows, value!);
-        //           });
-        //         },
-        //         )
-        //       //label: MultiDropdown(items: DropdownItem<dynamic>[DropdownItem(label: "label", value: 4)])
-        //       //label: MultiDropdown(items: items),
-        //     ),
-        //     DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
-        //     const DataColumn(label: Text("Delete\nthe line")),
-        //   ],
-        //     rows: _dataRows,
-        //   )
-        // ],
       ),
     );
   }
