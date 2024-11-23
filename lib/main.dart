@@ -5,13 +5,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/classes.dart';
 import 'package:script_editor/resizableWidget.dart';
 import 'package:script_editor/widgetsMy.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 void main() {
   if (kDebugMode) {
@@ -71,9 +71,10 @@ late dynamic excel;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 final List<ScriptNode> _scriptTable = List.empty(growable: true);
 final List <DataRow> _dataRows = List.empty(growable: true);
+List<Row> _rowsForView = List.empty(growable: true);
 late String sheetName;
 
-ExcelFile? scriptSourceFile=null;
+ExcelFile? scriptSourceFile;
 
 
 TextEditingController tempTextEditController = TextEditingController();
@@ -140,149 +141,153 @@ bool _firstInit=true;
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
-            children: [Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: [
-                    ResizebleWidget(child: Video(controller: controller)),
-                    Row(children: [
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
+            children: [SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      ResizebleWidget(child: Video(controller: controller)),
+                      Row(children: [
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
+                        SizedBox(
+                          width: 120,
+                          child: TextFormField(
+                            textAlign: TextAlign.center,
+                            controller: tcEntryController,
+                            inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                            onTap: (){
+                              
+                              tcEntryControllerActive = false;
+                            },
+                            onChanged: (String string){print("changed");},
+                            onEditingComplete: (){
+                              tcEntryControllerActive = true;
+                              print("edit complete");
+                            },
+                            onTapOutside: (PointerDownEvent pde){
+                              jumpToTc(Timecode(tcEntryController.text));
+                              player.play();
+                              tcEntryControllerActive = true;
+                            },
+                            onSaved: (newValue){
+                              jumpToTc(Timecode(tcEntryController.text));
+                              player.play();
+                              tcEntryControllerActive = true;
+                            },
+                            onFieldSubmitted: (value){
+                              jumpToTc(Timecode(tcEntryController.text));
+                              player.play();
+                              tcEntryControllerActive = true;
+                            }  
+                          ),
+                        ),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"])
+                      ]),
+                    ],
+                  ),
+                  Column(
+                    children: [
                       SizedBox(
-                        width: 120,
+                        width: 200, 
                         child: TextFormField(
-                          textAlign: TextAlign.center,
-                          controller: tcEntryController,
-                          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-                          onTap: (){
-                            
-                            tcEntryControllerActive = false;
-                          },
-                          onChanged: (String string){print("changed");},
-                          onEditingComplete: (){
-                            tcEntryControllerActive = true;
-                            print("edit complete");
-                          },
-                          onTapOutside: (PointerDownEvent pde){
-                            jumpToTc(Timecode(tcEntryController.text));
-                            player.play();
-                            tcEntryControllerActive = true;
-                          },
-                          onSaved: (newValue){
-                            jumpToTc(Timecode(tcEntryController.text));
-                            player.play();
-                            tcEntryControllerActive = true;
-                          },
-                          onFieldSubmitted: (value){
-                            jumpToTc(Timecode(tcEntryController.text));
-                            player.play();
-                            tcEntryControllerActive = true;
-                          }  
-                        ),
-                      ),
-                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"])
-                    ]),
-                  ],
-                ),
-                Column(
-                  children: [
-                    SizedBox(
-                      width: 200, 
-                      child: TextFormField(
-                        controller: tempTextEditController,)),
-                    OutlinedButton(onPressed: (){
-                      newEntry(_scriptTable, null, tempTextEditController.text);
-                      setState(() {
-                        //_dataRows = scriptListToTable(_scriptTable);
-                        scriptListToTable(_scriptTable, _dataRows);
-                      });
-                    }, child: const Text("new entry...")),
-                    OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text("Replace the character name:"),
-                    SizedBox(
-                      width: 200,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          helperText: "old character name"
-                        ),
-                        controller: charNameOldTEC,
-                      )),
-                    SizedBox(
-                      width: 200,
-                      child: TextFormField(
-                          decoration: const InputDecoration(
-                            helperText: "new character name",
-                          ),
-                        controller: charNameNewTEC,
-                      )),
-                    OutlinedButton(
-                      onPressed: (){
-                        int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                          controller: tempTextEditController,)),
+                      OutlinedButton(onPressed: (){
+                        newEntry(_scriptTable, null, tempTextEditController.text);
                         setState(() {
+                          //_dataRows = scriptListToTable(_scriptTable);
                           scriptListToTable(_scriptTable, _dataRows);
-                          charNameOldTEC.text = "";
-                          charNameNewTEC.text = "";
                         });
-                        showDialog(context: context, builder: (BuildContext context){
-                          return SimpleDialog(
-                              children: [
-                                Text(
-                                  'Records affected: ${a.toString()}',
-                                  textAlign: TextAlign.center,),
-                              ],
-                          );
-                        });
-                      },
-                      child: const Text("replace!")),
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text("add new lines:"),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 200,
-                          child: TextFormField(
-                            onChanged: (value) {
-                              shortcutsMap["add char #1"]!.characterName = value;
-                            },
-                            decoration: const InputDecoration(
-                              helperText: "character name #1",
-                            ),
+                      }, child: const Text("new entry...")),
+                      OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      const Text("Replace the character name:"),
+                      SizedBox(
+                        width: 200,
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            helperText: "old character name"
                           ),
-                        ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
-                      ],
-                    ),
+                          controller: charNameOldTEC,
+                        )),
+                      SizedBox(
+                        width: 200,
+                        child: TextFormField(
+                            decoration: const InputDecoration(
+                              helperText: "new character name",
+                            ),
+                          controller: charNameNewTEC,
+                        )),
+                      OutlinedButton(
+                        onPressed: (){
+                          int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                          setState(() {
+                            scriptListToTable(_scriptTable, _dataRows);
+                            charNameOldTEC.text = "";
+                            charNameNewTEC.text = "";
+                          });
+                          showDialog(context: context, builder: (BuildContext context){
+                            return SimpleDialog(
+                                children: [
+                                  Text(
+                                    'Records affected: ${a.toString()}',
+                                    textAlign: TextAlign.center,),
+                                ],
+                            );
+                          });
+                        },
+                        child: const Text("replace!")),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      const Text("add new lines:"),
                       Row(
-                      children: [
-                        SizedBox(
-                          width: 200,
-                          child: TextFormField(
-                            onChanged: (value) {
-                              shortcutsMap["add char #2"]!.characterName = value;
-                            },
-                            decoration: const InputDecoration(
-                              helperText: "character name #2",
+                        children: [
+                          SizedBox(
+                            width: 200,
+                            child: TextFormField(
+                              onChanged: (value) {
+                                shortcutsMap["add char #1"]!.characterName = value;
+                              },
+                              decoration: const InputDecoration(
+                                helperText: "character name #1",
+                              ),
                             ),
                           ),
-                        ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"])
-                        //generateButtonWithShortcut(shortcutsList[4]),
-                      ],
-                    )
-                  ],
-                )
-              ],
+                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
+                        ],
+                      ),
+                        Row(
+                        children: [
+                          SizedBox(
+                            width: 200,
+                            child: TextFormField(
+                              onChanged: (value) {
+                                shortcutsMap["add char #2"]!.characterName = value;
+                              },
+                              decoration: const InputDecoration(
+                                helperText: "character name #2",
+                              ),
+                            ),
+                          ),
+                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"])
+                          //generateButtonWithShortcut(shortcutsList[4]),
+                        ],
+                      )
+                    ],
+                  )
+                ],
+              ),
             ),
             showTableAsListView()
-            //justTable()
+            //showTableAsScrollablePositionListView()
             ]
           ),
         ),
@@ -398,6 +403,59 @@ bool _firstInit=true;
     );
   }
 
+// UNUSED - TODO: change listview to scrollable + add  _rowsForView = scriptListToTableForListView(); to refresh
+  Widget showTableAsScrollablePositionListView(){
+    return Flexible(
+      child: ScrollablePositionedList.builder(
+        addAutomaticKeepAlives: false,
+        shrinkWrap: false,
+        itemCount: _rowsForView.length,
+        itemBuilder: (context, index) {
+          return _rowsForView[index];
+        },
+
+        // children: [
+        //   DataTable(columns: [
+        //     //DataColumn(label: resizableGestureWidget("TC from player\nfrom script")),
+        //     const DataColumn(
+        //       mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+        //       label: ResizableGestureWidget(title: "TC from script\nto player")),
+        //     const DataColumn(
+        //       mouseCursor: WidgetStatePropertyAll(SystemMouseCursors.resizeColumn),
+        //       label: ResizableGestureWidget(title: "TC from player\nto script")),
+        //     DataColumn(label: const Text("TC"),
+        //       onSort:(columnIndex, ascending) {
+        //         //FIXME: sorting values
+        //         setState(() {
+        //         _scriptTable.sort();
+        //         scriptListToTable(_scriptTable, _dataRows);
+        //         //_dataRows = scriptListToTable(_scriptTable);
+        //         });
+        //       },),
+        //     DataColumn(
+        //       //label:Text("character"),
+        //       label: DropdownMenu(
+        //         dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
+        //         initialSelection: "ALL CHARACTERS",
+        //         onSelected: (value) {
+        //           setState(() {
+        //             scriptListToTable(_scriptTable, _dataRows, value!);
+        //           });
+        //         },
+        //         )
+        //       //label: MultiDropdown(items: DropdownItem<dynamic>[DropdownItem(label: "label", value: 4)])
+        //       //label: MultiDropdown(items: items),
+        //     ),
+        //     DataColumn(label: SizedBox(width: (_screenWidth>1200) ? _screenWidth-1000 : 200, child: Text("dialogue"))),
+        //     const DataColumn(label: Text("Delete\nthe line")),
+        //   ],
+        //     rows: _dataRows,
+        //   )
+        // ],
+      ),
+    );
+  }
+
   
 
 
@@ -417,6 +475,20 @@ bool _firstInit=true;
     return tc;
   }
 
+
+  List<Row> scriptListToTableForListView(){
+    List<Row> list = List.empty(growable: true);
+    for (ScriptNode scriptNode in _scriptTable) {
+      list.add(Row(
+        children: [
+          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.tcIn.toString())),
+          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.charName)),
+          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.dial)),
+        ],
+      ));
+    }
+    return list;
+  }
 
   void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList, [String charName = "ALL CHARACTERS"]){
     //myList = List.empty(growable: true);

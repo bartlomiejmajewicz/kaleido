@@ -32,6 +32,13 @@ class Timecode implements Comparable<Timecode> {
     tcFromDuration(duration);
   }
 
+  Timecode.fromIntValues(int hour, int min, int sec, int fr){
+    h = hour;
+    m = min;
+    s = sec;
+    f = fr;
+  }
+
 
   static bool tcValidateCheck(String timecodeAsText) {
   // check if the TC is a valid value
@@ -135,7 +142,7 @@ class Timecode implements Comparable<Timecode> {
 }
 
 void main(List<String> args) {
-  
+
 }
 
 // UNUSED
@@ -187,7 +194,6 @@ class Timecode2 extends Duration{
   }
 
 }
-
 
 // UNUSED
 class Timecode3{
