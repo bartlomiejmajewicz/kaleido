@@ -71,7 +71,7 @@ late dynamic excel;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 final List<ScriptNode> _scriptTable = List.empty(growable: true);
 final List <DataRow> _dataRows = List.empty(growable: true);
-List<Row> _rowsForView = List.empty(growable: true);
+String selectedCharacterName = "ALL CHARACTERS";
 late String sheetName;
 
 ExcelFile? scriptSourceFile;
@@ -286,8 +286,8 @@ bool _firstInit=true;
                 ],
               ),
             ),
-            showTableAsListView()
-            //showTableAsScrollablePositionListView()
+            //showTableAsListView(),
+            showTableAsScrollablePositionListView(),
             ]
           ),
         ),
@@ -403,15 +403,183 @@ bool _firstInit=true;
     );
   }
 
-// UNUSED - TODO: change listview to scrollable + add  _rowsForView = scriptListToTableForListView(); to refresh
   Widget showTableAsScrollablePositionListView(){
+    double widthButtons = 80;
+    double widthColC = 100;
+    double widthColD = 220;
+
+   const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
+
+    Row _headerRow(){
+      return Row(
+        children: [
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(width: widthButtons, child: const Text("TC from script\nto player")),
+          ),
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(width: widthButtons,  child: const Text("TC from player\nto script")),
+          ),
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(width: widthColC,  child: const Text("TC in")),
+          ),
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(
+              width: widthColD,
+              child: DropdownMenu(
+                dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
+                initialSelection: "ALL CHARACTERS",
+                onSelected: (value) {
+                  setState(() {
+                    if (value != null) {
+                      selectedCharacterName = value;
+                    }
+                    scriptListToTable(_scriptTable, _dataRows, value!);
+                  });
+                },
+              ),
+            ),
+          ),
+          const Expanded(
+            child: Text("Dialogue"),
+          ),
+          Padding(padding: paddingSize,
+            child: SizedBox(
+              width: widthButtons,
+              child: const Text(
+                textAlign: TextAlign.center,
+                "Delete\nthe line"),
+            ),
+          ),
+        ],
+      );
+    }
+
+    Row _buildRow(BuildContext context, int index){
+      if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
+        return Row(
+          children: [
+            ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
+              return SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : ButtonStyle(),
+                onPressed: (){
+                  jumpToTc(_scriptTable[index].tcIn);
+                },
+                //child: Text("TC UP")))),
+                child: const Icon(Icons.arrow_upward)),
+              );
+            },),
+        
+        
+            Padding(
+              padding: paddingSize,
+              child: SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                  onPressed: (){
+                    _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                    _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                    setState(() {
+                
+                    });
+                  },
+                  //child: Text("TC DOWN")))),
+                  child: Icon(Icons.arrow_downward)),
+              ),
+            ),
+        
+        
+            Padding(
+              padding: paddingSize,
+              child: SizedBox( width: widthColC, child: TextFormField(
+                // FIXME: popraw to, ze nie aktualizuje się cały czas
+                controller: _scriptTable[index].textControllerTc,
+                onChanged: (value) {
+                  //FIXME:
+                  if(Timecode.tcValidateCheck(value)){
+                    _scriptTable[index].tcIn = Timecode(value);
+                  }
+                  print(_scriptTable[index].tcIn.toString());
+                },
+                inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                )),
+            ),
+        
+        
+            Padding(
+              padding: paddingSize,
+              child: SizedBox( width: widthColD, child: TextFormField(
+                  initialValue: _scriptTable[index].charName,
+                  key: Key(_scriptTable[index].charName),
+                  onChanged: (value){
+                    _scriptTable[index].charName = value;
+                  },
+                  )),
+            ),
+            
+            Flexible(
+              child: Padding(
+                padding: paddingSize,
+                child: SizedBox(
+                  height: 50,
+                  child: TextFormField(
+                    onChanged: (value) => {
+                      _scriptTable[index].dial = value
+                    },
+                    scribbleEnabled: false, 
+                    initialValue: _scriptTable[index].dial, 
+                    maxLines: 10,
+                    key: UniqueKey()),
+                ),
+              ),
+            ),
+              
+            Padding(
+              padding: paddingSize,
+              child: SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                  child: Icon(Icons.delete),
+                  onPressed: () {
+                    _scriptTable.remove(_scriptTable[index]);
+                    scriptListToTable(_scriptTable, _dataRows);
+                    setState(() {
+                      
+                    });
+                  },),
+              ),
+            ),
+              //TODO: NIE WIEM PO CO TO BYLO OGARNIJ
+              //scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+          ],
+        );
+      } else {
+        return Row();
+      }
+    }
+
+
     return Flexible(
       child: ScrollablePositionedList.builder(
         addAutomaticKeepAlives: false,
         shrinkWrap: false,
-        itemCount: _rowsForView.length,
+        itemCount: _scriptTable.length,
         itemBuilder: (context, index) {
-          return _rowsForView[index];
+          if (index == 0) {
+            return Column(
+              children: [
+                _headerRow(),
+                _buildRow(context, index),
+              ],
+            );
+          } else{
+            return _buildRow(context, index);
+          }
         },
 
         // children: [
