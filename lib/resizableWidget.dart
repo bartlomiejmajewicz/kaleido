@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:script_editor/classes.dart';
+import 'package:script_editor/models/classes.dart';
 
 void main() {
   MediaKit.ensureInitialized();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
+      home: const Scaffold(
         body: Demo(),
       ),
     );
@@ -24,6 +26,8 @@ class MyApp extends StatelessWidget {
 }
 
 class Demo extends StatefulWidget {
+  const Demo({super.key});
+
   @override
   _DemoState createState() => _DemoState();
 }
@@ -34,13 +38,13 @@ class _DemoState extends State<Demo> {
   @override
   Widget build(BuildContext context) {
     //return ResizebleWidget(child: Video(controller: controller),);
-    return ResizebleWidget(child: Text("test text"));
+    return const ResizebleWidget(child: Text("test text"));
     
   }
 }
 
 class ResizebleWidget extends StatefulWidget {
-  ResizebleWidget({required this.child});
+  const ResizebleWidget({super.key, required this.child});
 
   final Widget child;
   @override
@@ -109,7 +113,7 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
 }
 
 class ManipulatingBall extends StatefulWidget {
-  ManipulatingBall({Key? key, this.onDrag});
+  const ManipulatingBall({Key? key, this.onDrag});
 
   final Function? onDrag;
 

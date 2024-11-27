@@ -1,19 +1,10 @@
-import 'dart:async';
-import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:excel/excel.dart';
-import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
-import 'package:script_editor/classes.dart';
-import 'package:script_editor/resizableWidget.dart';
+import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/script_page.dart';
 import 'package:script_editor/settings_page.dart';
-import 'package:script_editor/widgetsMy.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 void main() {
   if (kDebugMode) {
@@ -37,7 +28,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
       //home: ScriptPage(title: "script editor"),
       //home: SettingsPage()
     );
@@ -58,6 +49,8 @@ class PaddingTableRow extends TableRow{
 // CLASSES FOR THE NAVIGATION
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -72,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = SettingsPage();
       case 1:
-        page = ScriptPage(title: "script editor");
+        page = const ScriptPage(title: "script editor");
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }

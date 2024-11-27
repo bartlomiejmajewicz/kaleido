@@ -1,12 +1,13 @@
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:script_editor/classes.dart';
+import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/main.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -46,12 +47,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(
                     children: [
                     const Text("select video file:"),
-                    OutlinedButton(onPressed: selectVideoFile, child: Text("select video file...")),
+                    OutlinedButton(onPressed: selectVideoFile, child: const Text("select video file...")),
                     SelectableText("selected file: ${SettingsClass.videoFilePath}"),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select script file:"),
-                    OutlinedButton(onPressed: selectScriptFile, child: Text("select script file...")),
+                    OutlinedButton(onPressed: selectScriptFile, child: const Text("select script file...")),
                     SelectableText("selected file: ${SettingsClass.scriptFilePath}"),
                   ]),
                   PaddingTableRow(children: [
@@ -77,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   tecColl.text = (SettingsClass.collNumber+1).toString();
                                 });
                               }
-                            }, child: Icon(Icons.plus_one)),
+                            }, child: const Icon(Icons.plus_one)),
                             OutlinedButton(onPressed: (){                        
                               if (SettingsClass.collNumber >=1) {
                                 setState(() {
@@ -85,7 +86,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   tecColl.text = (SettingsClass.collNumber+1).toString();
                                 });
                               }
-                            }, child: Icon(Icons.exposure_minus_1)),
+                            }, child: const Icon(Icons.exposure_minus_1)),
                           ],
                         ),
                         Text('selected collumn: ${SettingsClass.collNumber+1}'),
@@ -110,7 +111,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   tecRow.text = (SettingsClass.rowNumber+1).toString();
                                 });
                               }
-                            }, child: Icon(Icons.plus_one)),
+                            }, child: const Icon(Icons.plus_one)),
                             OutlinedButton(onPressed: (){                        
                               if (SettingsClass.rowNumber >=1) {
                                 setState(() {
@@ -118,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   tecRow.text = (SettingsClass.rowNumber+1).toString();
                                 });
                               }
-                            }, child: Icon(Icons.exposure_minus_1)),
+                            }, child: const Icon(Icons.exposure_minus_1)),
                           ],
                         ),
                         Text('selected row: ${SettingsClass.rowNumber+1}'),
@@ -130,7 +131,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Text('selected fps: ${Timecode.framerate}'),
                   ]),
                   PaddingTableRow(children: [
-                    Text("starting TC: "),
+                    const Text("starting TC: "),
                     SizedBox( width: 100, child: TextFormField(
                       initialValue: SettingsClass.videoStartTc.toString(),
                       onChanged: (value) {
@@ -295,9 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
     List<DataRow> datarows = List.empty(growable: true);
     if (SettingsClass.scriptFilePath != "" && SettingsClass.sheetName != "" && excelFile != null) {
       excelFile!.importSheetToList(SettingsClass.sheetName, list);
-      print(list.length);
       for (var i = 0; i < 3 && i < list.length; i++) {
-        print("object");
         datarows.add(
           DataRow(cells:[
             DataCell(Text(list[i].tcIn.toString())),

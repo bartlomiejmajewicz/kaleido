@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:script_editor/classes.dart';
-import 'package:script_editor/main.dart';
+import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/resizableWidget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -32,7 +31,7 @@ late double _screenHeight;
 
 
 late File videoFile;
-Duration currentPlaybackPosition = Duration();
+Duration currentPlaybackPosition = const Duration();
 late dynamic excel;
 
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
@@ -75,7 +74,6 @@ bool _firstInit=true;
     _screenHeight = MediaQuery.sizeOf(context).height;
 
     if(_firstInit){
-      print("1st INIT");
       _firstInit = false;
 
 
@@ -145,10 +143,8 @@ bool _firstInit=true;
                               
                               tcEntryControllerActive = false;
                             },
-                            onChanged: (String string){print("changed");},
                             onEditingComplete: (){
                               tcEntryControllerActive = true;
-                              print("edit complete");
                             },
                             onTapOutside: (PointerDownEvent pde){
                               jumpToTc(Timecode(tcEntryController.text));
@@ -192,7 +188,7 @@ bool _firstInit=true;
                           scriptListToTable(_scriptTable, _dataRows);
                         });
                       }, child: const Text("new entry...")),
-                      OutlinedButton(onPressed: saveFile, child: Text("SAVE FILE")),
+                      OutlinedButton(onPressed: saveFile, child: const Text("SAVE FILE")),
                     ],
                   ),
                   Column(
@@ -376,7 +372,7 @@ bool _firstInit=true;
       );
     }
 
-    Row _buildRow(BuildContext context, int index){
+    Row buildRow(BuildContext context, int index){
       if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
         return Row(
           children: [
@@ -384,7 +380,7 @@ bool _firstInit=true;
               return SizedBox(
                 width: widthButtons,
                 child: ElevatedButton(
-                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : ButtonStyle(),
+                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
                 onPressed: (){
                   jumpToTc(_scriptTable[index].tcIn);
                 },
@@ -407,7 +403,7 @@ bool _firstInit=true;
                     });
                   },
                   //child: Text("TC DOWN")))),
-                  child: Icon(Icons.arrow_downward)),
+                  child: const Icon(Icons.arrow_downward)),
               ),
             ),
         
@@ -422,7 +418,6 @@ bool _firstInit=true;
                   if(Timecode.tcValidateCheck(value)){
                     _scriptTable[index].tcIn = Timecode(value);
                   }
-                  print(_scriptTable[index].tcIn.toString());
                 },
                 inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
                 )),
@@ -462,7 +457,7 @@ bool _firstInit=true;
               child: SizedBox(
                 width: widthButtons,
                 child: ElevatedButton(
-                  child: Icon(Icons.delete),
+                  child: const Icon(Icons.delete),
                   onPressed: () {
                     _scriptTable.remove(_scriptTable[index]);
                     scriptListToTable(_scriptTable, _dataRows);
@@ -477,7 +472,7 @@ bool _firstInit=true;
           ],
         );
       } else {
-        return Row();
+        return const Row();
       }
     }
 
@@ -493,11 +488,11 @@ bool _firstInit=true;
             return Column(
               children: [
                 headerRow(),
-                _buildRow(context, index),
+                buildRow(context, index),
               ],
             );
           } else{
-            return _buildRow(context, index);
+            return buildRow(context, index);
           }
         },
       ),
@@ -550,7 +545,7 @@ bool _firstInit=true;
         DataCell(
           ValueListenableBuilder<bool>(valueListenable: scriptNode.isThisCurrentTCValueNotifier, builder: (context, value, child) {
             return ElevatedButton(
-            style: scriptNode.isThisCurrentTCValueNotifier.value ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : ButtonStyle(),
+            style: scriptNode.isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
             onPressed: (){
               jumpToTc(scriptNode.tcIn);
             },
@@ -568,7 +563,7 @@ bool _firstInit=true;
               });
             },
             //child: Text("TC DOWN")))),
-            child: Icon(Icons.arrow_downward))),
+            child: const Icon(Icons.arrow_downward))),
         
         DataCell(SizedBox( width: 100, child: TextFormField(
           //initialValue: scriptNode.timecode.toString(),
@@ -608,7 +603,7 @@ bool _firstInit=true;
         //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
         DataCell(
           ElevatedButton(
-            child: Icon(Icons.delete),
+            child: const Icon(Icons.delete),
             onPressed: () {
               scriptList.remove(scriptNode);
               scriptListToTable(_scriptTable, _dataRows);
@@ -639,7 +634,7 @@ bool _firstInit=true;
           controller: tecDialEntry,)),
         DataCell(
           OutlinedButton(
-            child: Icon(Icons.add),
+            child: const Icon(Icons.add),
             onPressed: (){
               Timecode? tc = tecTcEntry.text == "" ? null : Timecode(tecTcEntry.text);
               
@@ -654,32 +649,6 @@ bool _firstInit=true;
 }
 
 
-  Future<void> _showPickerDialogCancelled(String whichFile) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Selector canceled'),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text('You have to select a $whichFile to continue'),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Ok'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
 
 
   void newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
@@ -776,10 +745,10 @@ bool _firstInit=true;
       return KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
     });
     shortcutsMap.putIfAbsent("seek >", (){
-      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition+Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
+      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
     });
     shortcutsMap.putIfAbsent("seek <", (){
-      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition-Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
+      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
     });
     shortcutsMap.putIfAbsent("add char #1", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
