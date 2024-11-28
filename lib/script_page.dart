@@ -60,6 +60,8 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
+ValueNotifier<bool> _scriptTableRebuildFlag = ValueNotifier(true);
+
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
@@ -95,6 +97,7 @@ bool _firstInit=true;
             if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
               if (currentItemScrollIndex != i) {
                 scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
+                _scriptTable[i].focusNode.requestFocus();
                 currentItemScrollIndex = i;
               }
             }
@@ -104,11 +107,10 @@ bool _firstInit=true;
       scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
       scriptSourceFile!.loadFile();
       scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
-      setState(() {
-        //_dataRows = scriptListToTable(_scriptTable);
-        scriptListToTable(_scriptTable, _dataRows);
-        sheetName = SettingsClass.sheetName;
-      });
+      //_dataRows = scriptListToTable(_scriptTable);
+      scriptListToTable(_scriptTable, _dataRows);
+      sheetName = SettingsClass.sheetName;
+      _scriptTableRebuildRequest();
 
       initializeShortcutsList();
     }
@@ -188,11 +190,10 @@ bool _firstInit=true;
                         child: TextFormField(
                           controller: tempTextEditController,)),
                       OutlinedButton(onPressed: (){
-                        newEntry(_scriptTable, null, tempTextEditController.text);
-                        setState(() {
-                          //_dataRows = scriptListToTable(_scriptTable);
-                          scriptListToTable(_scriptTable, _dataRows);
-                        });
+                        int newEntryIndex = newEntry(_scriptTable, null, tempTextEditController.text);
+                        scriptListToTable(_scriptTable, _dataRows);
+                        _scriptTableRebuildRequest();
+                        _scriptTable[newEntryIndex].focusNode.requestFocus();
                       }, child: const Text("new entry...")),
                       OutlinedButton(onPressed: saveFile, child: const Text("SAVE FILE")),
                     ],
@@ -219,11 +220,10 @@ bool _firstInit=true;
                       OutlinedButton(
                         onPressed: (){
                           int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
-                          setState(() {
-                            scriptListToTable(_scriptTable, _dataRows);
-                            charNameOldTEC.text = "";
-                            charNameNewTEC.text = "";
-                          });
+                          scriptListToTable(_scriptTable, _dataRows);
+                          charNameOldTEC.text = "";
+                          charNameNewTEC.text = "";
+                          _scriptTableRebuildRequest();
                           showDialog(context: context, builder: (BuildContext context){
                             return SimpleDialog(
                                 children: [
@@ -278,7 +278,9 @@ bool _firstInit=true;
                 ],
               ),
             ),
-            _generateTableAsScrollablePositionListView(),
+            ValueListenableBuilder(valueListenable: _scriptTableRebuildFlag, builder: (context, value, child) {
+              return _generateTableAsScrollablePositionListView();
+            },)
             ]
           ),
         ),
@@ -303,7 +305,6 @@ bool _firstInit=true;
   List<DropdownMenuEntry<String>> getCharactersMenuEntries(List <ScriptNode> scriptList){
     List<String> characterNames = List<String>.empty(growable: true);
 
-    characterNames.add("ALL CHARACTERS");
     for (ScriptNode scriptNode in scriptList) {
       if (!characterNames.contains(scriptNode.charName)) {
         characterNames.add(scriptNode.charName);
@@ -313,6 +314,8 @@ bool _firstInit=true;
     characterNames.sort((a, b) {
       return a.compareTo(b);
     },);
+
+    characterNames.insert(0, "ALL CHARACTERS");
 
     return characterNames.map((e){
       return DropdownMenuEntry(
@@ -348,9 +351,8 @@ bool _firstInit=true;
               child: FilledButton(
                 child: Text("TC in"),
                 onPressed: () {
-                  setState(() {
-                    _scriptTable.sort();
-                  });
+                  _scriptTable.sort();
+                  _scriptTableRebuildRequest();
                 },)),
           ),
           Padding(
@@ -361,12 +363,11 @@ bool _firstInit=true;
                 dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
                 initialSelection: selectedCharacterName,
                 onSelected: (value) {
-                  setState(() {
-                    if (value != null) {
-                      selectedCharacterName = value;
-                    }
-                    scriptListToTable(_scriptTable, _dataRows, value!);
-                  });
+                  if (value != null) {
+                    selectedCharacterName = value;
+                  }
+                  scriptListToTable(_scriptTable, _dataRows, value!);
+                  _scriptTableRebuildRequest();
                 },
               ),
             ),
@@ -433,9 +434,7 @@ bool _firstInit=true;
                   onPressed: (){
                     _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
                     _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
-                    setState(() {
-                
-                    });
+                    _scriptTableRebuildRequest();
                   },
                   //child: Text("TC DOWN")))),
                   child: const Icon(Icons.arrow_downward)),
@@ -498,8 +497,7 @@ bool _firstInit=true;
                     itemIndexFromButton = index;
                     _scriptTable.remove(_scriptTable[index]);
                     scriptListToTable(_scriptTable, _dataRows);
-                    setState(() {
-                    });
+                    _scriptTableRebuildRequest();
                   },),
               ),
             ),
@@ -613,9 +611,7 @@ bool _firstInit=true;
             onPressed: (){
               scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
               scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-              setState(() {
-          
-              });
+              _scriptTableRebuildRequest();
             },
             //child: Text("TC DOWN")))),
             child: const Icon(Icons.arrow_downward))),
@@ -662,9 +658,7 @@ bool _firstInit=true;
             onPressed: () {
               scriptList.remove(scriptNode);
               scriptListToTable(_scriptTable, _dataRows);
-              setState(() {
-                
-              });
+              _scriptTableRebuildRequest();
             },)),
         ]));
         scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
@@ -692,11 +686,10 @@ bool _firstInit=true;
             child: const Icon(Icons.add),
             onPressed: (){
               Timecode? tc = tecTcEntry.text == "" ? null : Timecode(tecTcEntry.text);
-              
-              newEntry(_scriptTable, tc, tecCharNameEntry.text, tecDialEntry.text);
-              setState(() {
-                scriptListToTable(_scriptTable, _dataRows);
-              });
+              int newEntryIndex = newEntry(_scriptTable, tc, tecCharNameEntry.text, tecDialEntry.text);
+              scriptListToTable(_scriptTable, _dataRows);
+              _scriptTableRebuildRequest();
+              _scriptTable[newEntryIndex].focusNode.requestFocus();
             },
             )),
     ]));
@@ -706,7 +699,7 @@ bool _firstInit=true;
 
 
 
-  void newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
+  int newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
     charName = charName=="" ? "char name" : charName;
     dial = dial=="" ? "char name" : dial;
     Timecode timecode = Timecode();
@@ -715,8 +708,10 @@ bool _firstInit=true;
     } else {
       timecode = tcIn;
     }
-    scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, charName, dial));
+    ScriptNode scriptNode = ScriptNode(timecode+SettingsClass.videoStartTc, charName, dial);
+    scriptList.add(scriptNode);
     scriptList.sort();
+    return scriptList.indexOf(scriptNode);
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -779,9 +774,7 @@ bool _firstInit=true;
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
           keyboardShortcutNode.assignedNowNotifier.value = false;
-          setState(() {
-            
-          });
+          _scriptTableRebuildRequest();
         }
         if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){
           keyboardShortcutNode.onClick();
@@ -790,9 +783,13 @@ bool _firstInit=true;
     }
   }
 
+  void _scriptTableRebuildRequest(){
+    _scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
+  }
+
   void updateUi(int a){
     // ignore: unused_element
-    setState(){};
+    _scriptTableRebuildRequest();
   }
   void initializeShortcutsList(){
 
@@ -809,20 +806,21 @@ bool _firstInit=true;
     shortcutsMap.putIfAbsent("add char #1", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
       ksn.onClick = (){
-        newEntry(_scriptTable, null, ksn.characterName!);
-        setState(() {
-          scriptListToTable(_scriptTable, _dataRows);
-        });
+
+        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
+        scriptListToTable(_scriptTable, _dataRows);
+        _scriptTableRebuildRequest();
+        _scriptTable[newEntryIndex].focusNode.requestFocus();
       };
       return ksn;
     });
     shortcutsMap.putIfAbsent("add char #2", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
-        newEntry(_scriptTable, null, ksn.characterName!);
-        setState(() {
-          scriptListToTable(_scriptTable, _dataRows);
-        });
+        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
+        scriptListToTable(_scriptTable, _dataRows);
+        _scriptTableRebuildRequest();
+        _scriptTable[newEntryIndex].focusNode.requestFocus();
       };
       return ksn;
     });
