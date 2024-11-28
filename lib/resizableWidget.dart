@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:script_editor/models/classes.dart';
+import 'package:script_editor/models/settings_class.dart';
 
 void main() {
   MediaKit.ensureInitialized();

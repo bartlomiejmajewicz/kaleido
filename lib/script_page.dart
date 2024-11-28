@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/models/classes.dart';
+import 'package:script_editor/models/keyboard_shortcut_node.dart';
+import 'package:script_editor/models/script_node.dart';
+import 'package:script_editor/models/settings_class.dart';
+import 'package:script_editor/models/timecode.dart';
 import 'package:script_editor/resizableWidget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -86,7 +90,7 @@ bool _firstInit=true;
         }
         if (scrollFollowsVideo.value) {
           for (var i = 0; i < _scriptTable.length; i++) {
-            if (_scriptTable[i].isThisCurrentTCValueNotifier.value) {
+            if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
               if (currentItemScrollIndex != i) {
                 scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
                 currentItemScrollIndex = i;
@@ -272,7 +276,6 @@ bool _firstInit=true;
                 ],
               ),
             ),
-            //showTableAsListView(),
             showTableAsScrollablePositionListView(),
             ]
           ),
@@ -720,7 +723,6 @@ bool _firstInit=true;
     if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
       shortcutsMap.forEach((key, keyboardShortcutNode){
         if (keyboardShortcutNode.assignedNowNotifier.value) {
-          print("assign shortcut");
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
           keyboardShortcutNode.assignedNowNotifier.value = false;
@@ -736,6 +738,7 @@ bool _firstInit=true;
   }
 
   void updateUi(int a){
+    // ignore: unused_element
     setState(){};
   }
   void initializeShortcutsList(){
@@ -772,45 +775,6 @@ bool _firstInit=true;
     });
   }
 
-
-  // Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn){
-  //   Widget label;
-  //   if (ksn.iconsList != null) {
-  //     List<Widget> iconsList = List.empty(growable: true);
-  //     for (var element in ksn.iconsList!) {
-  //       iconsList.add(Icon(element));
-  //     }
-  //     label = Row(children: iconsList);
-  //   } else {
-  //     label = Text(ksn.description);
-  //   }
-  //   return Tooltip(
-  //     key: GlobalKey(),
-  //     message: ksn.showShortcut(),
-  //     child: OutlinedButton(
-  //       onLongPress:(){
-  //         setState(() {
-  //           ksn.assignedNow = true;
-  //         });
-  //       },
-  //       onPressed: (){
-  //         if (ksn.assignedNow) {
-  //           setState(() {
-  //             ksn.assignedNow = false;
-  //           });
-  //         } else {
-  //           ksn.onClick();
-  //         }
-  //       },
-  //       child: ksn.assignedNow ? const Text("assign the shortcut") : label,
-  //       //child: Text(ksn.assignedNow ? "assign the shortcut" : ksn.description!)
-  //       ),
-  //   );
-  // }
-
-// >>> TESTS >>>
-
-// <----- TESTS ------
 
 }
 

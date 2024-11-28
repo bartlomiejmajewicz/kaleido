@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:script_editor/models/classes.dart';
+import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/script_page.dart';
 import 'package:script_editor/settings_page.dart';
 
@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = SettingsPage();
+        page = const SettingsPage();
       case 1:
         page = const ScriptPage(title: "script editor");
       default:
@@ -95,14 +95,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     showDialog(context: context, builder: (BuildContext context){
                         return const SimpleDialog(
                             children: [
-                              Text('You have to select all required options',
+                              Text('You have to select all required options to continue',
                                 textAlign: TextAlign.center,),
                             ],
                         );
                       });
                   } else {
                     setState(() {
-                      //TODO: sprawdź czy wszystkie parametry są wypełnione
                       selectedIndex = value;
                     });
                   }

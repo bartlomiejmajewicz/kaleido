@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/main.dart';
+import 'package:script_editor/models/script_node.dart';
+import 'package:script_editor/models/settings_class.dart';
+import 'package:script_editor/models/timecode.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -168,7 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } else {
     // User canceled the picker
-      _showPickerDialogCancelled('video file');
+      _showPickerDialogCancelled('a video file');
     }
   }
 
@@ -185,7 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } else {
     // User canceled the picker
-      _showPickerDialogCancelled('script file');
+      _showPickerDialogCancelled('a script file');
     }
   }
 
@@ -205,9 +208,14 @@ class _SettingsPageState extends State<SettingsPage> {
     label: const Text("select excel sheet"),
     initialSelection: SettingsClass.sheetName.isNotEmpty ? SettingsClass.sheetName : null,
     onSelected: (value) {
-      setState(() {
-      SettingsClass.sheetName = value!;
-      });
+      try {
+        setState(() {
+        SettingsClass.sheetName = value!;
+        });
+      } catch (e) {
+        _showPickerDialogCancelled("an existing sheet name");
+      }
+
     },
     dropdownMenuEntries: getSheetsDropdownMenuEntries(),
     );
@@ -256,7 +264,7 @@ class _SettingsPageState extends State<SettingsPage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('You have to select a $whichFile to continue'),
+                Text('You have to select $whichFile to continue'),
               ],
             ),
           ),
