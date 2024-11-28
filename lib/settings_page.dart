@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/main.dart';
-import 'package:script_editor/models/script_node.dart';
+import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
 

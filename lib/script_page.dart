@@ -7,7 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/keyboard_shortcut_node.dart';
-import 'package:script_editor/models/script_node.dart';
+import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
 import 'package:script_editor/resizableWidget.dart';
