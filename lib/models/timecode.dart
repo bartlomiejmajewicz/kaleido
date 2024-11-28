@@ -1,7 +1,7 @@
 class Timecode implements Comparable<Timecode> {
 
-  static int framerate = 25; // TODO FRAMERATE SET
-
+  static int framerate = 25; //TODO: FRAMERATE SET
+  
   
 
   int h=0;
