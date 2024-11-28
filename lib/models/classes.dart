@@ -152,7 +152,7 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
     }
     return Tooltip(
       key: GlobalKey(),
-      message: ksn.showShortcut(),
+      message: ksn.toString(),
       child: ValueListenableBuilder(valueListenable: ksn.assignedNowNotifier, builder: (context, value, child){
         return OutlinedButton(
         onLongPress:(){

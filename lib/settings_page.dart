@@ -51,12 +51,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     children: [
                     const Text("select video file:"),
                     OutlinedButton(onPressed: selectVideoFile, child: const Text("select video file...")),
-                    SelectableText("selected file: ${SettingsClass.videoFilePath}"),
+                    SelectableText("selected file: ${SettingsClass.videoFilePath}", maxLines: 2, style: const TextStyle(overflow: TextOverflow.clip),),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select script file:"),
                     OutlinedButton(onPressed: selectScriptFile, child: const Text("select script file...")),
-                    SelectableText("selected file: ${SettingsClass.scriptFilePath}"),
+                    SelectableText("selected file: ${SettingsClass.scriptFilePath}", maxLines: 2, style: const TextStyle(overflow: TextOverflow.clip),),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select sheet:"),
@@ -92,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             }, child: const Icon(Icons.exposure_minus_1)),
                           ],
                         ),
-                        Text('selected collumn: ${SettingsClass.collNumber+1}'),
+                        Flexible(child: Text('selected collumn: ${SettingsClass.collNumber+1}')),
                       ],
                     ),
                   ]),
@@ -125,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             }, child: const Icon(Icons.exposure_minus_1)),
                           ],
                         ),
-                        Text('selected row: ${SettingsClass.rowNumber+1}'),
+                        Flexible(child: Text('selected row: ${SettingsClass.rowNumber+1}', overflow: TextOverflow.clip,)),
                       ],),
                   ]),
                   PaddingTableRow(children: [

@@ -13,7 +13,7 @@ class KeyboardShortcutNode{
   KeyboardShortcutNode(this.onClick, this.description, {this.characterName, this.logicalKeySet, this.iconsList});
 
 
-  String showShortcut(){
+  String _showShortcut(){
     String result = "";
     if (logicalKeySet != null) {
       for (LogicalKeyboardKey lkk in logicalKeySet!) {
@@ -26,5 +26,10 @@ class KeyboardShortcutNode{
     result = Platform.isMacOS ? result.replaceAll('Meta', 'Cmd') : result;
     result = Platform.isWindows ? result.replaceAll('Meta', 'Win') : result;
     return result;
+  }
+
+  @override
+  String toString() {
+    return _showShortcut();
   }
 }

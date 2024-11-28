@@ -58,6 +58,8 @@ ValueNotifier<bool> scrollFollowsVideo = ValueNotifier(false);
 ItemScrollController scriptListController = ItemScrollController();
 int currentItemScrollIndex = 0;
 
+int itemIndexFromButton = 0;
+
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
@@ -276,7 +278,7 @@ bool _firstInit=true;
                 ],
               ),
             ),
-            showTableAsScrollablePositionListView(),
+            _generateTableAsScrollablePositionListView(),
             ]
           ),
         ),
@@ -321,11 +323,12 @@ bool _firstInit=true;
 
 
 
-  Widget showTableAsScrollablePositionListView(){
+  Widget _generateTableAsScrollablePositionListView() {
     const double widthButtons = 80;
     const double widthColC = 100;
     const double widthColD = 220;
     const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
+    HardwareKeyboard hk = HardwareKeyboard.instance;
 
     Row headerRow(){
       return Row(
@@ -338,9 +341,17 @@ bool _firstInit=true;
             padding: paddingSize,
             child: SizedBox(width: widthButtons,  child: Text("TC from player\nto script")),
           ),
-          const Padding(
+          Padding(
             padding: paddingSize,
-            child: SizedBox(width: widthColC,  child: Text("TC in")),
+            child: SizedBox(
+              width: widthColC,
+              child: FilledButton(
+                child: Text("TC in"),
+                onPressed: () {
+                  setState(() {
+                    _scriptTable.sort();
+                  });
+                },)),
           ),
           Padding(
             padding: paddingSize,
@@ -348,7 +359,7 @@ bool _firstInit=true;
               width: widthColD,
               child: DropdownMenu(
                 dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
-                initialSelection: "ALL CHARACTERS",
+                initialSelection: selectedCharacterName,
                 onSelected: (value) {
                   setState(() {
                     if (value != null) {
@@ -376,7 +387,28 @@ bool _firstInit=true;
     }
 
     Row buildRow(BuildContext context, int index){
+      if (index == itemIndexFromButton) {
+        _scriptTable[index].focusNode.requestFocus();
+      }
       if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
+        _scriptTable[index].focusNode.onKeyEvent = (focus, event){
+          if (event.runtimeType == KeyDownEvent && hk.isControlPressed) {
+            int offset = 0;
+            switch (event.logicalKey) {
+              case LogicalKeyboardKey.arrowUp:
+                offset = -1;
+                break;
+              case LogicalKeyboardKey.arrowDown:
+                offset = 1;
+                break;
+            }
+            try {
+              _scriptTable[index+offset].focusNode.requestFocus();
+            } catch (e) {
+            }
+          }
+          return KeyEventResult.ignored;
+        };
         return Row(
           children: [
             ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
@@ -444,6 +476,7 @@ bool _firstInit=true;
                 child: SizedBox(
                   height: 50,
                   child: TextFormField(
+                    focusNode: _scriptTable[index].focusNode,
                     onChanged: (value) => {
                       _scriptTable[index].dial = value
                     },
@@ -462,10 +495,10 @@ bool _firstInit=true;
                 child: ElevatedButton(
                   child: const Icon(Icons.delete),
                   onPressed: () {
+                    itemIndexFromButton = index;
                     _scriptTable.remove(_scriptTable[index]);
                     scriptListToTable(_scriptTable, _dataRows);
                     setState(() {
-                      
                     });
                   },),
               ),
@@ -478,7 +511,6 @@ bool _firstInit=true;
         return const Row();
       }
     }
-
 
     return Flexible(
       child: ScrollablePositionedList.builder(
@@ -501,6 +533,26 @@ bool _firstInit=true;
       ),
     );
   }
+
+  // optional - previous function as future and build as futureBuilder
+  // Widget showTableAsScrollablePositionListView(){
+  //   return FutureBuilder(
+  //     future: _generateTableAsScrollablePositionListView(),
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
+  //         // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+  //         //   scriptListController.jumpTo(index: itemIndexFromButton);
+  //         //   FocusScope.of(context).requestFocus(_scriptTable[itemIndexFromButton].focusNode);
+  //         // },);
+  //         return snapshot.data!;
+  //       }
+  //       else {
+  //         return SizedBox(
+  //           width: _screenWidth,
+  //           child: const Center(child: CircularProgressIndicator()));
+  //       }
+  //     },);
+  // }
 
   
 
@@ -664,6 +716,7 @@ bool _firstInit=true;
       timecode = tcIn;
     }
     scriptList.add(ScriptNode(timecode+SettingsClass.videoStartTc, charName, dial));
+    scriptList.sort();
   }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {

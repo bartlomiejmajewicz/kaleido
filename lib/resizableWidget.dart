@@ -1,47 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:script_editor/models/settings_class.dart';
 
-void main() {
-  MediaKit.ensureInitialized();
-  runApp(const MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Text Overflow Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const Scaffold(
-        body: Demo(),
-      ),
-    );
-  }
-}
-
-class Demo extends StatefulWidget {
-  const Demo({super.key});
-
-  @override
-  _DemoState createState() => _DemoState();
-}
-
-class _DemoState extends State<Demo> {
-  late final player = Player();
-  late final controller = VideoController(player);
-  @override
-  Widget build(BuildContext context) {
-    //return ResizebleWidget(child: Video(controller: controller),);
-    return const ResizebleWidget(child: Text("test text"));
-    
-  }
-}
 
 class ResizebleWidget extends StatefulWidget {
   const ResizebleWidget({super.key, required this.child});
@@ -87,14 +47,10 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
               child: widget.child,
             ),
           ),
-          // top left
-          // top middle
-          // top right
-          // center right
           Positioned(
             top: top + SettingsClass.videoHeight - resizeCornerDiameter,
             left: left + SettingsClass.videoWidth - resizeCornerDiameter,
-            child: ManipulatingBall(
+            child: ManipulatingCornerSquare(
               onDrag: (dx, dy) {
                 var newHeight = SettingsClass.videoHeight + dy;
                 var newWidth = SettingsClass.videoWidth + dx;
@@ -112,16 +68,16 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
   }
 }
 
-class ManipulatingBall extends StatefulWidget {
-  const ManipulatingBall({Key? key, this.onDrag});
+class ManipulatingCornerSquare extends StatefulWidget {
+  const ManipulatingCornerSquare({super.key, this.onDrag});
 
   final Function? onDrag;
 
   @override
-  _ManipulatingBallState createState() => _ManipulatingBallState();
+  _ManipulatingCornerSquareState createState() => _ManipulatingCornerSquareState();
 }
 
-class _ManipulatingBallState extends State<ManipulatingBall> {
+class _ManipulatingCornerSquareState extends State<ManipulatingCornerSquare> {
   late double initX;
   late double initY;
 
