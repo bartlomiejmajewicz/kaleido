@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/timecode.dart';
 
 void main(){

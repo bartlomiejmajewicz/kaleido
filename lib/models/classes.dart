@@ -41,7 +41,6 @@ class ExcelFile extends SourceFile{
     var bytes = _file.readAsBytesSync();
     _excel = Excel.decodeBytes(bytes);
     for (var table in _excel.tables.keys) {
-      print('from ExcelFile $table'); //sheet Name
       sheetsList.add(table);
     }
   }
@@ -128,7 +127,7 @@ class ExcelFile extends SourceFile{
 class OutlinedButtonWithShortcut extends StatelessWidget{
   final ValueChanged<int>updateUiMethod;
   KeyboardShortcutNode? kns;
-  OutlinedButtonWithShortcut({super.key, required this.updateUiMethod, KeyboardShortcutNode? this.kns});
+  OutlinedButtonWithShortcut({super.key, required this.updateUiMethod, this.kns});
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +138,7 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
     }
   }
 
-  Tooltip generateButtonWithShortcut(KeyboardShortcutNode ksn, BuildContext context){
+  Widget generateButtonWithShortcut(KeyboardShortcutNode ksn, BuildContext context){
     Widget label;
     if (ksn.iconsList != null) {
       List<Widget> iconsList = List.empty(growable: true);
@@ -150,11 +149,11 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
     } else {
       label = Text(ksn.description);
     }
-    return Tooltip(
-      key: GlobalKey(),
-      message: ksn.toString(),
-      child: ValueListenableBuilder(valueListenable: ksn.assignedNowNotifier, builder: (context, value, child){
-        return OutlinedButton(
+    return ValueListenableBuilder(valueListenable: ksn.assignedNowNotifier, builder: (context, value, child){
+      return Tooltip(
+        key: GlobalKey(),
+        message: ksn.toString(),
+        child: OutlinedButton(
         onLongPress:(){
           updateUiMethod(0);
           ksn.assignedNowNotifier.value = true;
@@ -169,10 +168,9 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
           }
         },
         child: ksn.assignedNowNotifier.value ? const Text("assign the shortcut") : label,
-        );
-      }),
-      
-    );
+        ),
+      );
+    });
   }
 
 }

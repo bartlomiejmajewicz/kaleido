@@ -10,7 +10,7 @@ import 'package:script_editor/models/keyboard_shortcut_node.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
-import 'package:script_editor/resizableWidget.dart';
+import 'package:script_editor/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class ScriptPage extends StatefulWidget {
@@ -60,7 +60,9 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
-ValueNotifier<bool> _scriptTableRebuildFlag = ValueNotifier(true);
+final ValueNotifier<bool> _scriptTableRebuildFlag = ValueNotifier(true);
+
+Widget _listView = const Flexible(child: Text(""));
 
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
@@ -111,6 +113,7 @@ bool _firstInit=true;
       //_dataRows = scriptListToTable(_scriptTable);
       scriptListToTable(_scriptTable, _dataRows);
       sheetName = SettingsClass.sheetName;
+      _updateTableListViewFromScriptList();
       _scriptTableRebuildRequest();
 
       initializeShortcutsList();
@@ -193,6 +196,7 @@ bool _firstInit=true;
                       OutlinedButton(onPressed: (){
                         int newEntryIndex = newEntry(_scriptTable, null, tempTextEditController.text);
                         scriptListToTable(_scriptTable, _dataRows);
+                        _updateTableListViewFromScriptList();
                         _scriptTableRebuildRequest();
                         _scriptTable[newEntryIndex].focusNode.requestFocus();
                       }, child: const Text("new entry...")),
@@ -224,6 +228,7 @@ bool _firstInit=true;
                           scriptListToTable(_scriptTable, _dataRows);
                           charNameOldTEC.text = "";
                           charNameNewTEC.text = "";
+                          _updateTableListViewFromScriptList();
                           _scriptTableRebuildRequest();
                           showDialog(context: context, builder: (BuildContext context){
                             return SimpleDialog(
@@ -280,7 +285,8 @@ bool _firstInit=true;
               ),
             ),
             ValueListenableBuilder(valueListenable: _scriptTableRebuildFlag, builder: (context, value, child) {
-              return _generateTableAsScrollablePositionListView();
+              //return _generateTableAsScrollablePositionListView();
+              return _listView;
             },)
             ]
           ),
@@ -346,6 +352,9 @@ bool _firstInit=true;
   //   );
   // }
 
+  void _updateTableListViewFromScriptList(){
+    _listView = _generateTableAsScrollablePositionListView();
+  }
 
 
   Widget _generateTableAsScrollablePositionListView() {
@@ -371,9 +380,10 @@ bool _firstInit=true;
             child: SizedBox(
               width: widthColC,
               child: FilledButton(
-                child: Text("TC in"),
+                child: const Text("TC in"),
                 onPressed: () {
                   _scriptTable.sort();
+                  _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },)),
           ),
@@ -389,6 +399,7 @@ bool _firstInit=true;
                     selectedCharacterName = value;
                   }
                   scriptListToTable(_scriptTable, _dataRows, value!);
+                  _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },
               ),
@@ -410,7 +421,7 @@ bool _firstInit=true;
     }
 
     Row buildRow(BuildContext context, int index){
-      if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
+      if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows) && false) {
         _scriptTable[index].focusNode.requestFocus();
       }
       if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
@@ -457,6 +468,7 @@ bool _firstInit=true;
                   onPressed: (){
                     _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
                     _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                    _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
                   },
                   //child: Text("TC DOWN")))),
@@ -523,6 +535,7 @@ bool _firstInit=true;
                     itemIndexFromButton = index;
                     _scriptTable.remove(_scriptTable[index]);
                     scriptListToTable(_scriptTable, _dataRows);
+                    _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
                   },),
               ),
@@ -537,23 +550,21 @@ bool _firstInit=true;
     }
 
     return Flexible(
-      child: ScrollablePositionedList.builder(
-        itemScrollController: scriptListController,
-        addAutomaticKeepAlives: false,
-        shrinkWrap: false,
-        itemCount: _scriptTable.length,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Column(
-              children: [
-                headerRow(),
-                buildRow(context, index),
-              ],
-            );
-          } else{
-            return buildRow(context, index);
-          }
-        },
+      child: Column(
+        children: [
+          headerRow(),
+          Expanded(
+            child: ScrollablePositionedList.builder(
+              itemScrollController: scriptListController,
+              addAutomaticKeepAlives: false,
+              shrinkWrap: false,
+              itemCount: _scriptTable.length,
+              itemBuilder: (context, index) {
+                return buildRow(context, index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -637,6 +648,7 @@ bool _firstInit=true;
             onPressed: (){
               scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
               scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+              _updateTableListViewFromScriptList();
               _scriptTableRebuildRequest();
             },
             //child: Text("TC DOWN")))),
@@ -684,6 +696,7 @@ bool _firstInit=true;
             onPressed: () {
               scriptList.remove(scriptNode);
               scriptListToTable(_scriptTable, _dataRows);
+              _updateTableListViewFromScriptList();
               _scriptTableRebuildRequest();
             },)),
         ]));
@@ -714,6 +727,7 @@ bool _firstInit=true;
               Timecode? tc = tecTcEntry.text == "" ? null : Timecode(tecTcEntry.text);
               int newEntryIndex = newEntry(_scriptTable, tc, tecCharNameEntry.text, tecDialEntry.text);
               scriptListToTable(_scriptTable, _dataRows);
+              _updateTableListViewFromScriptList();
               _scriptTableRebuildRequest();
               _scriptTable[newEntryIndex].focusNode.requestFocus();
             },
@@ -800,6 +814,7 @@ bool _firstInit=true;
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
           keyboardShortcutNode.assignedNowNotifier.value = false;
+          _updateTableListViewFromScriptList();
           _scriptTableRebuildRequest();
         }
         if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){
@@ -818,7 +833,8 @@ bool _firstInit=true;
 
   void updateUi(int a){
     // ignore: unused_element
-    _scriptTableRebuildRequest();
+    setState(() {
+    });
   }
   void initializeShortcutsList(){
 
@@ -838,6 +854,7 @@ bool _firstInit=true;
 
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
         scriptListToTable(_scriptTable, _dataRows);
+        _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].focusNode.requestFocus();
       };
@@ -848,6 +865,7 @@ bool _firstInit=true;
       ksn.onClick = (){
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
         scriptListToTable(_scriptTable, _dataRows);
+        _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].focusNode.requestFocus();
       };

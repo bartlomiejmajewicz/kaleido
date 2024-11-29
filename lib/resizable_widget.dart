@@ -11,7 +11,7 @@ class ResizebleWidget extends StatefulWidget {
   _ResizebleWidgetState createState() => _ResizebleWidgetState();
 }
 
-const resizeCornerDiameter = 30.0;
+const resizeCornerDiameter = 40.0;
 
 class _ResizebleWidgetState extends State<ResizebleWidget> {
   // double height = 200;
