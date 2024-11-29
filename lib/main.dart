@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
@@ -7,7 +9,7 @@ import 'package:script_editor/script_page.dart';
 import 'package:script_editor/settings_page.dart';
 
 void main() {
-  if (kDebugMode) {
+  if (kDebugMode && Platform.isMacOS) {
     SettingsClass.sheetName = "Arkusz1";
     SettingsClass.videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
     SettingsClass.scriptFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Zeszyt1.xlsx";

@@ -34,8 +34,12 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     if(SettingsClass.scriptFilePath.isNotEmpty){
-      excelFile=ExcelFile(SettingsClass.scriptFilePath);
-      excelFile!.loadFile();
+      try {
+        excelFile=ExcelFile(SettingsClass.scriptFilePath);
+        excelFile!.loadFile();
+      // ignore: empty_catches
+      } catch (e) {
+      }
     }
     return Scaffold(
       body: SizedBox(

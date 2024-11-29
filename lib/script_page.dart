@@ -83,6 +83,7 @@ bool _firstInit=true;
 
     if(_firstInit){
       _firstInit = false;
+      WidgetsFlutterBinding.ensureInitialized();
 
 
       player.open(Media(SettingsClass.videoFilePath));
@@ -269,7 +270,7 @@ bool _firstInit=true;
                               ),
                             ),
                           ),
-                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"])
+                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"]),
                           //generateButtonWithShortcut(shortcutsList[4]),
                         ],
                       )
@@ -323,6 +324,27 @@ bool _firstInit=true;
         label: e);
     }).toList();
   }
+
+  // _updateListViewAsync() async {
+  //   WidgetsFlutterBinding.ensureInitialized();
+  //   _listView = await compute<int, Widget>(_generateRandomList, 0).then((value) {
+  //     _listViewTestRebuildFlag.value = !_listViewTestRebuildFlag.value;
+  //     return value;
+  //   },);
+  // }
+
+  // static Widget _generateRandomList(int value){
+  //   return SizedBox(
+  //     width: 500,
+  //     height: 500,
+  //     child: ListView.builder(
+  //       itemCount: 10000,
+  //       itemBuilder: (context, index) {
+  //         int currentDur = DateTime.now().millisecondsSinceEpoch;
+  //         return OutlinedButton(onPressed: (){}, child: Text("$currentDur data nr $index"));
+  //     },),
+  //   );
+  // }
 
 
 
@@ -388,7 +410,7 @@ bool _firstInit=true;
     }
 
     Row buildRow(BuildContext context, int index){
-      if (index == itemIndexFromButton) {
+      if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
         _scriptTable[index].focusNode.requestFocus();
       }
       if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
@@ -405,6 +427,7 @@ bool _firstInit=true;
             }
             try {
               _scriptTable[index+offset].focusNode.requestFocus();
+            // ignore: empty_catches
             } catch (e) {
             }
           }
@@ -475,9 +498,12 @@ bool _firstInit=true;
                 child: SizedBox(
                   height: 50,
                   child: TextFormField(
+                    autofocus: true,
                     focusNode: _scriptTable[index].focusNode,
-                    onChanged: (value) => {
-                      _scriptTable[index].dial = value
+                    onChanged: (value) {
+                      { 
+                        _scriptTable[index].dial = value;
+                    }
                     },
                     scribbleEnabled: false, 
                     initialValue: _scriptTable[index].dial, 
@@ -784,6 +810,9 @@ bool _firstInit=true;
   }
 
   void _scriptTableRebuildRequest(){
+    if(kDebugMode){
+      print("_scriptTableRebuildRequest");
+    }
     _scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
   }
 
