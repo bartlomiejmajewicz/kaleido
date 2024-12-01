@@ -42,7 +42,6 @@ late dynamic excel;
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 final List<ScriptNode> _scriptTable = List.empty(growable: true);
-final List <DataRow> _dataRows = List.empty(growable: true);
 String selectedCharacterName = "ALL CHARACTERS";
 late String sheetName;
 
@@ -84,9 +83,14 @@ bool _firstInit=true;
     _screenWidth = MediaQuery.sizeOf(context).width;
     _screenHeight = MediaQuery.sizeOf(context).height;
 
+
+
+
     if(_firstInit){
       _firstInit = false;
       WidgetsFlutterBinding.ensureInitialized();
+      SettingsClass.videoHeight = _screenHeight/3;
+      SettingsClass.videoWidth = _screenWidth/2;
 
 
       player.open(Media(SettingsClass.videoFilePath));
@@ -100,7 +104,8 @@ bool _firstInit=true;
           for (var i = 0; i < _scriptTable.length; i++) {
             if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
               if (currentItemScrollIndex != i) {
-                scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
+                //scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
+                //scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
                 _scriptTable[i].focusNode.requestFocus();
                 currentItemScrollIndex = i;
               }
@@ -112,7 +117,6 @@ bool _firstInit=true;
       scriptSourceFile!.loadFile();
       scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
       //_dataRows = scriptListToTable(_scriptTable);
-      scriptListToTable(_scriptTable, _dataRows);
       sheetName = SettingsClass.sheetName;
       _updateTableListViewFromScriptList();
       _scriptTableRebuildRequest();
@@ -204,7 +208,6 @@ bool _firstInit=true;
                           controller: tempTextEditController,)),
                       OutlinedButton(onPressed: (){
                         int newEntryIndex = newEntry(_scriptTable, null, tempTextEditController.text);
-                        scriptListToTable(_scriptTable, _dataRows);
                         _updateTableListViewFromScriptList();
                         _scriptTableRebuildRequest();
                         _scriptTable[newEntryIndex].focusNode.requestFocus();
@@ -234,7 +237,6 @@ bool _firstInit=true;
                       OutlinedButton(
                         onPressed: (){
                           int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
-                          scriptListToTable(_scriptTable, _dataRows);
                           charNameOldTEC.text = "";
                           charNameNewTEC.text = "";
                           _updateTableListViewFromScriptList();
@@ -422,7 +424,6 @@ bool _firstInit=true;
                   if (value != null) {
                     selectedCharacterName = value;
                   }
-                  scriptListToTable(_scriptTable, _dataRows, value!);
                   _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },
@@ -527,6 +528,7 @@ bool _firstInit=true;
                   charactersNamesList: getCharactersList(_scriptTable),
                   initialValue: _scriptTable[index].charName,
                   updateFunction: (value) => _scriptTable[index].charName=value,
+                  maxOptionsWidth: widthColD,
                   ),
                 ),
             ),
@@ -561,7 +563,6 @@ bool _firstInit=true;
                   onPressed: () {
                     itemIndexFromButton = index;
                     _scriptTable.remove(_scriptTable[index]);
-                    scriptListToTable(_scriptTable, _dataRows);
                     _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
                     _scriptTable[index].focusNode.requestFocus();
@@ -597,25 +598,6 @@ bool _firstInit=true;
     );
   }
 
-  // optional - previous function as future and build as futureBuilder
-  // Widget showTableAsScrollablePositionListView(){
-  //   return FutureBuilder(
-  //     future: _generateTableAsScrollablePositionListView(),
-  //     builder: (context, snapshot) {
-  //       if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
-  //         // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-  //         //   scriptListController.jumpTo(index: itemIndexFromButton);
-  //         //   FocusScope.of(context).requestFocus(_scriptTable[itemIndexFromButton].focusNode);
-  //         // },);
-  //         return snapshot.data!;
-  //       }
-  //       else {
-  //         return SizedBox(
-  //           width: _screenWidth,
-  //           child: const Center(child: CircularProgressIndicator()));
-  //       }
-  //     },);
-  // }
 
   
 
@@ -650,119 +632,7 @@ bool _firstInit=true;
     return list;
   }
 
-  void scriptListToTable(List<ScriptNode> scriptList, List<DataRow> myList, [String charName = "ALL CHARACTERS"]){
-    //myList = List.empty(growable: true);
-    myList.clear();
-    for (var scriptNode in scriptList) {
-      if (scriptNode.charName == charName || charName == "ALL CHARACTERS") {
-        myList.add(DataRow(
-          // color: WidgetStateColor.resolveWith((states){
-          //   return scriptNode.isThisCurrentTCValueNotifier.value ? Colors.lightGreen : Colors.white;
-          // }),
-          cells: [
-        DataCell(
-          ValueListenableBuilder<bool>(valueListenable: scriptNode.isThisCurrentTCValueNotifier, builder: (context, value, child) {
-            return ElevatedButton(
-            style: scriptNode.isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-            onPressed: (){
-              jumpToTc(scriptNode.tcIn);
-            },
-            //child: Text("TC UP")))),
-            child: const Icon(Icons.arrow_upward));
-          },)),
-        
-        DataCell(
-          ElevatedButton(
-            onPressed: (){
-              scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
-              scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-              _updateTableListViewFromScriptList();
-              _scriptTableRebuildRequest();
-            },
-            //child: Text("TC DOWN")))),
-            child: const Icon(Icons.arrow_downward))),
-        
-        DataCell(SizedBox( width: 100, child: TextFormField(
-          //initialValue: scriptNode.timecode.toString(),
-          //key: Key(scriptNode.timecode.toString()),
-          // FIXME: popraw to, ze nie aktualizuje się cały czas
-          controller: scriptNode.textControllerTc,
-          onChanged: (value) {
-            //FIXME:
-            if(Timecode.tcValidateCheck(value)){
-              scriptNode.tcIn = Timecode(value);
-            }
-          },
-          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-          //style: TextStyle(backgroundColor: Colors.green),
-          //style: TextStyle().apply(backgroundColor: Colors.amber),
-          ))),
-        
-        DataCell(SizedBox( width: 250, child: TextFormField(
-          initialValue: scriptNode.charName,
-          key: Key(scriptNode.charName),
-          onChanged: (value){
-            scriptNode.charName = value;
-          },
-          ))),
-       
-        DataCell(
-          TextFormField(
-            onChanged: (value) => {
-              scriptNode.dial = value
-              // zobaczymy czy będzie to wystarczająco efficient ?
-            },
-            scribbleEnabled: false, 
-            initialValue: scriptNode.dial, 
-            maxLines: 10,
-            key: Key(scriptNode.dial),)),
-        //DataCell(SizedBox( width: 150, child: TextFormField(initialValue: scriptNode.charName))),
-        //DataCell(TextFormField(initialValue: scriptNode.dial, maxLines: 10,)),
-        DataCell(
-          ElevatedButton(
-            child: const Icon(Icons.delete),
-            onPressed: () {
-              scriptList.remove(scriptNode);
-              scriptListToTable(_scriptTable, _dataRows);
-              _updateTableListViewFromScriptList();
-              _scriptTableRebuildRequest();
-            },)),
-        ]));
-        scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-      }
-    }
-
-    TextEditingController tecTcEntry = TextEditingController();
-    TextEditingController tecCharNameEntry = TextEditingController();
-    TextEditingController tecDialEntry = TextEditingController();
-    myList.add(DataRow(
-      cells: [
-        const DataCell(Text('')),
-        const DataCell(Text('')),
-        DataCell(TextFormField(
-          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-          controller: tecTcEntry,
-        )),
-        DataCell(TextFormField(
-          controller: tecCharNameEntry,
-        )),
-        DataCell(TextFormField(
-          controller: tecDialEntry,)),
-        DataCell(
-          OutlinedButton(
-            child: const Icon(Icons.add),
-            onPressed: (){
-              Timecode? tc = tecTcEntry.text == "" ? null : Timecode(tecTcEntry.text);
-              int newEntryIndex = newEntry(_scriptTable, tc, tecCharNameEntry.text, tecDialEntry.text);
-              scriptListToTable(_scriptTable, _dataRows);
-              _updateTableListViewFromScriptList();
-              _scriptTableRebuildRequest();
-              _scriptTable[newEntryIndex].focusNode.requestFocus();
-            },
-            )),
-    ]));
-      
-}
+  
 
 
 
@@ -881,7 +751,6 @@ bool _firstInit=true;
       ksn.onClick = (){
 
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
-        scriptListToTable(_scriptTable, _dataRows);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].focusNode.requestFocus();
@@ -892,7 +761,6 @@ bool _firstInit=true;
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
-        scriptListToTable(_scriptTable, _dataRows);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].focusNode.requestFocus();
