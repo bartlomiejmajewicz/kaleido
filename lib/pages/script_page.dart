@@ -468,6 +468,8 @@ bool _firstInit=true;
           }
           return KeyEventResult.ignored;
         };
+
+        _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
         return Row(
           children: [
             ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
