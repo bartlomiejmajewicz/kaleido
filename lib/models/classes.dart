@@ -93,7 +93,7 @@ class ExcelFile extends SourceFile{
       }
       rowNr++;
     }
-    sctiptList.sort();
+    //sctiptList.sort();
   }
 
   void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc){

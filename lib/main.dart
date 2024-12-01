@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:script_editor/models/settings_class.dart';
-import 'package:script_editor/script_page.dart';
-import 'package:script_editor/settings_page.dart';
+import 'package:script_editor/pages/script_page.dart';
+import 'package:script_editor/pages/settings_page.dart';
 
 void main() {
   if (kDebugMode && Platform.isMacOS) {

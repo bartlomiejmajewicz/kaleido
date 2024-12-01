@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/keyboard_shortcut_node.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
-import 'package:script_editor/resizable_widget.dart';
+import 'package:script_editor/widgets/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class ScriptPage extends StatefulWidget {
@@ -139,6 +140,14 @@ bool _firstInit=true;
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(
+                      children: [
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["save"]),
+                      ]
+                    ),
+                  ),
                   Column(
                     children: [
                       ResizebleWidget(child: Video(controller: controller)),
@@ -200,7 +209,7 @@ bool _firstInit=true;
                         _scriptTableRebuildRequest();
                         _scriptTable[newEntryIndex].focusNode.requestFocus();
                       }, child: const Text("new entry...")),
-                      OutlinedButton(onPressed: saveFile, child: const Text("SAVE FILE")),
+                      OutlinedButton(onPressed: _saveFile, child: const Text("SAVE FILE")),
                     ],
                   ),
                   Column(
@@ -331,6 +340,22 @@ bool _firstInit=true;
     }).toList();
   }
 
+  List<String> getCharactersList(List <ScriptNode> scriptList){
+    List<String> characterNames = List<String>.empty(growable: true);
+
+    for (ScriptNode scriptNode in scriptList) {
+      if (!characterNames.contains(scriptNode.charName)) {
+        characterNames.add(scriptNode.charName);
+      }
+    }
+
+    characterNames.sort((a, b) {
+      return a.compareTo(b);
+    },);
+
+    return characterNames;
+  }
+
   // _updateListViewAsync() async {
   //   WidgetsFlutterBinding.ensureInitialized();
   //   _listView = await compute<int, Widget>(_generateRandomList, 0).then((value) {
@@ -363,7 +388,6 @@ bool _firstInit=true;
     const double widthColD = 220;
     const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
     HardwareKeyboard hk = HardwareKeyboard.instance;
-
     Row headerRow(){
       return Row(
         children: [
@@ -468,8 +492,8 @@ bool _firstInit=true;
                   onPressed: (){
                     _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
                     _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
-                    _updateTableListViewFromScriptList();
-                    _scriptTableRebuildRequest();
+                    // _updateTableListViewFromScriptList();
+                    // _scriptTableRebuildRequest();
                   },
                   //child: Text("TC DOWN")))),
                   child: const Icon(Icons.arrow_downward)),
@@ -479,7 +503,7 @@ bool _firstInit=true;
         
             Padding(
               padding: paddingSize,
-              child: SizedBox( width: widthColC, child: TextFormField(
+              child: SizedBox(width: widthColC, child: TextFormField(
                 // FIXME: popraw to, ze nie aktualizuje się cały czas
                 controller: _scriptTable[index].textControllerTc,
                 onChanged: (value) {
@@ -495,13 +519,14 @@ bool _firstInit=true;
         
             Padding(
               padding: paddingSize,
-              child: SizedBox( width: widthColD, child: TextFormField(
+              child: SizedBox(
+                width: widthColD,
+                child: CharNameWidgetWithAutocomplete(
+                  charactersNamesList: getCharactersList(_scriptTable),
                   initialValue: _scriptTable[index].charName,
-                  key: Key(_scriptTable[index].charName),
-                  onChanged: (value){
-                    _scriptTable[index].charName = value;
-                  },
-                  )),
+                  updateFunction: (value) => _scriptTable[index].charName=value,
+                  ),
+                ),
             ),
             
             Flexible(
@@ -537,6 +562,7 @@ bool _firstInit=true;
                     scriptListToTable(_scriptTable, _dataRows);
                     _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
+                    _scriptTable[index].focusNode.requestFocus();
                   },),
               ),
             ),
@@ -592,7 +618,7 @@ bool _firstInit=true;
   
 
 
-  void saveFile(){
+  void _saveFile(){
     scriptSourceFile!.exportListToSheet(_scriptTable, sheetName);
     scriptSourceFile!.saveFile();
   }
@@ -797,7 +823,7 @@ bool _firstInit=true;
     if ((hk.isMetaPressed || hk.isControlPressed)
     && keyEvent.logicalKey == LogicalKeyboardKey.keyS
     && keyEvent.runtimeType == KeyDownEvent) {
-      saveFile();
+      _saveFile();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
     }
 
@@ -871,10 +897,14 @@ bool _firstInit=true;
       };
       return ksn;
     });
+    shortcutsMap.putIfAbsent("save", (){
+      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "save ", iconsList: [Icons.save]);
+      ksn.onClick = (){
+        _saveFile();
+      };
+      return ksn;
+    });
   }
 
 
 }
-
-
-

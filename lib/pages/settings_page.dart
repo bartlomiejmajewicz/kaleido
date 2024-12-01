@@ -24,6 +24,9 @@ class _SettingsPageState extends State<SettingsPage> {
   TextEditingController tecColl = TextEditingController();
   TextEditingController tecRow = TextEditingController();
 
+  ValueNotifier<bool> _videoFileSelectorActive = ValueNotifier(true);
+  ValueNotifier<bool> _scriptFileSelectorActive = ValueNotifier(true);
+
   @override
   void initState() {
     super.initState();
@@ -54,12 +57,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(
                     children: [
                     const Text("select video file:"),
-                    OutlinedButton(onPressed: selectVideoFile, child: const Text("select video file...")),
+                    ValueListenableBuilder(valueListenable: _videoFileSelectorActive, builder: (context, value, child) {
+                      return OutlinedButton(
+                        onPressed: value ? selectVideoFile : null,
+                        child: const Text("select video file..."),
+                        );
+                    },),
+                    
                     SelectableText("selected file: ${SettingsClass.videoFilePath}", maxLines: 2, style: const TextStyle(overflow: TextOverflow.clip),),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select script file:"),
-                    OutlinedButton(onPressed: selectScriptFile, child: const Text("select script file...")),
+                    ValueListenableBuilder(valueListenable: _scriptFileSelectorActive, builder: (context, value, child) {
+                      return OutlinedButton(
+                        onPressed: value ? selectScriptFile : null,
+                        child: const Text("select script file..."));
+                    },
+                    ),
                     SelectableText("selected file: ${SettingsClass.scriptFilePath}", maxLines: 2, style: const TextStyle(overflow: TextOverflow.clip),),
                   ]),
                   PaddingTableRow(children: [
@@ -167,6 +181,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
   Future<void> selectVideoFile() async {
+    _videoFileSelectorActive.value = false;
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
       SettingsClass.videoFilePath = result.files.single.path!;
@@ -177,10 +192,12 @@ class _SettingsPageState extends State<SettingsPage> {
     // User canceled the picker
       _showPickerDialogCancelled('a video file');
     }
+    _videoFileSelectorActive.value = true;
   }
 
 
   Future<void> selectScriptFile() async {
+    _scriptFileSelectorActive.value = false;
     // select the excel file, list the sheets and save the excel file to the var
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
@@ -194,6 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
     // User canceled the picker
       _showPickerDialogCancelled('a script file');
     }
+    _scriptFileSelectorActive.value = true;
   }
 
   TextEditingValue numberValidityCheck(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -202,7 +220,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return newValue;
     } else {
       return oldValue;
-    }  
+    }
   }
 
   DropdownMenu<String> sheetSelector(){
