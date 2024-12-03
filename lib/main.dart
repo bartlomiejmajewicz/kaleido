@@ -14,6 +14,11 @@ void main() {
     SettingsClass.videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
     SettingsClass.scriptFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Zeszyt1.xlsx";
   }
+  if (kDebugMode && Platform.isAndroid) {
+    SettingsClass.sheetName = "Script";
+    SettingsClass.videoFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260531214/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.mp4";
+    SettingsClass.scriptFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260552163/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.xlsx";
+  }
   MediaKit.ensureInitialized();
   runApp(const MyApp());
 }

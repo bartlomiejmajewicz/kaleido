@@ -107,8 +107,8 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
   Widget build(BuildContext context) {
 
 
-    _screenWidth = MediaQuery.sizeOf(context).width;
-    _screenHeight = MediaQuery.sizeOf(context).height;
+      _screenWidth = MediaQuery.sizeOf(context).width;
+      _screenHeight = MediaQuery.sizeOf(context).height;
 
     SettingsClass.videoHeight = _screenHeight/3;
     SettingsClass.videoWidth = _screenWidth/2;
@@ -208,7 +208,11 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
                         _scriptTableRebuildRequest();
                         _scriptTable[newEntryIndex].focusNode.requestFocus();
                       }, child: const Text("new entry...")),
-                      OutlinedButton(onPressed: _saveFile, child: const Text("SAVE FILE")),
+                      OutlinedButton(
+                        onPressed: () {
+                          _saveFileWithSnackbar(context);
+                        }, 
+                        child: const Text("SAVE FILE")),
                     ],
                   ),
                   Column(
@@ -525,7 +529,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
                     scribbleEnabled: false, 
                     initialValue: _scriptTable[index].dial, 
                     maxLines: 10,
-                    key: UniqueKey()),
+                    ),
                 ),
               ),
             ),
@@ -585,6 +589,19 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
       return 0;
     } catch (e) {
       return 100;
+    }
+  }
+
+  void _saveFileWithSnackbar(BuildContext context){
+    if (_saveFile() == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("file saved!"),));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("file could NOT be saved"),
+            backgroundColor: Colors.red,));
     }
   }
 
@@ -676,16 +693,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     if ((hk.isMetaPressed || hk.isControlPressed)
     && keyEvent.logicalKey == LogicalKeyboardKey.keyS
     && keyEvent.runtimeType == KeyDownEvent) {
-      if (_saveFile() == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("file saved!"),));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("file could NOT be saved"),
-            backgroundColor: Colors.red,));
-      }
+      _saveFileWithSnackbar(context);
       
     }
 
@@ -760,7 +768,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     shortcutsMap.putIfAbsent("save", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "save ", iconsList: [Icons.save]);
       ksn.onClick = (){
-        _saveFile();
+        _saveFileWithSnackbar(context);
       };
       return ksn;
     });
