@@ -115,6 +115,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
 
 
     return KeyboardListener(
+      autofocus: true,
       focusNode: FocusNode(),
       onKeyEvent: keyEventShortcutProcess,
       child: Scaffold(
@@ -577,9 +578,14 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
   
 
 
-  void _saveFile(){
-    scriptSourceFile!.exportListToSheet(_scriptTable, sheetName);
-    scriptSourceFile!.saveFile();
+  int _saveFile(){
+    try {
+      scriptSourceFile!.exportListToSheet(_scriptTable, sheetName);
+      scriptSourceFile!.saveFile();
+      return 0;
+    } catch (e) {
+      return 100;
+    }
   }
 
   void jumpToTc(Timecode tc){
@@ -670,8 +676,17 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     if ((hk.isMetaPressed || hk.isControlPressed)
     && keyEvent.logicalKey == LogicalKeyboardKey.keyS
     && keyEvent.runtimeType == KeyDownEvent) {
-      _saveFile();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("file saved!")));
+      if (_saveFile() == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("file saved!"),));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("file could NOT be saved"),
+            backgroundColor: Colors.red,));
+      }
+      
     }
 
     int countModifiers = 0;

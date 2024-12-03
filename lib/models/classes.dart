@@ -46,10 +46,15 @@ class ExcelFile extends SourceFile{
 
   @override
   void saveFile() {
-    var fileBytes = _excel.save();
-    _file
-    ..createSync(recursive: true)
-    ..writeAsBytesSync(fileBytes);
+    try {
+      var fileBytes = _excel.save();
+      _file
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(fileBytes);
+    } catch (e) {
+      throw e;
+    }
+
   }
   
   @override
