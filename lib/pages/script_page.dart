@@ -75,6 +75,13 @@ bool _firstInit=true;
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    print("init");
+  }
+
 
   @override
   Widget build(BuildContext context) {

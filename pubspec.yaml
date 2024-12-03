@@ -33,7 +33,6 @@ dependencies:
   media_kit: ^1.1.11 # Primary package.
   media_kit_video: ^1.2.5 # For video rendering.
   media_kit_libs_video: ^1.0.5 # Native video dependencies.
-  flutter_midi_command: ^0.5.2
   scrollable_positioned_list: ^0.3.8
   flutter:
     sdk: flutter
