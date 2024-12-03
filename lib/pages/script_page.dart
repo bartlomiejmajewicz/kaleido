@@ -35,8 +35,9 @@ late double _screenWidth;
 late double _screenHeight;
 
 
+
 late File videoFile;
-Duration currentPlaybackPosition = const Duration();
+Duration _currentPlaybackPosition = const Duration();
 late dynamic excel;
 
 //List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
@@ -55,6 +56,7 @@ TextEditingController tcEntryController = TextEditingController();
 bool tcEntryControllerActive = true;
 
 ValueNotifier<bool> scrollFollowsVideo = ValueNotifier(false);
+ValueNotifier<bool> focusNodeFollowsVideo = ValueNotifier(false);
 ItemScrollController scriptListController = ItemScrollController();
 int currentItemScrollIndex = 0;
 
@@ -67,7 +69,6 @@ Widget _listView = const Flexible(child: Text(""));
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
-bool _firstInit=true;
 
   @override
   void dispose(){
@@ -79,7 +80,28 @@ bool _firstInit=true;
   void initState() {
     super.initState();
 
-    print("init");
+    
+    WidgetsFlutterBinding.ensureInitialized();
+
+
+    player.open(Media(SettingsClass.videoFilePath));
+    player.stream.position.listen((e) {
+      _currentPlaybackPosition = e;
+      markCurrentLine(_scriptTable);
+      if (tcEntryControllerActive) {  
+        tcEntryController.text =  Timecode.fromDuration(e+SettingsClass.videoStartTc.tcAsDuration()).toString();
+      }
+      focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
+    });
+    scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
+    scriptSourceFile!.loadFile();
+    scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
+    //_dataRows = scriptListToTable(_scriptTable);
+    sheetName = SettingsClass.sheetName;
+    _updateTableListViewFromScriptList();
+    _scriptTableRebuildRequest();
+
+    initializeShortcutsList();
   }
 
 
@@ -90,48 +112,8 @@ bool _firstInit=true;
     _screenWidth = MediaQuery.sizeOf(context).width;
     _screenHeight = MediaQuery.sizeOf(context).height;
 
-
-
-
-    if(_firstInit){
-      _firstInit = false;
-      WidgetsFlutterBinding.ensureInitialized();
-      SettingsClass.videoHeight = _screenHeight/3;
-      SettingsClass.videoWidth = _screenWidth/2;
-
-
-      player.open(Media(SettingsClass.videoFilePath));
-      player.stream.position.listen((e) {
-        currentPlaybackPosition = e;
-        markCurrentLine(_scriptTable);
-        if (tcEntryControllerActive) {  
-          tcEntryController.text =  Timecode.fromDuration(e+SettingsClass.videoStartTc.tcAsDuration()).toString();
-        }
-        if (scrollFollowsVideo.value) {
-          for (var i = 0; i < _scriptTable.length; i++) {
-            if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
-              if (currentItemScrollIndex != i) {
-                //scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
-                //scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
-                _scriptTable[i].focusNode.requestFocus();
-                currentItemScrollIndex = i;
-              }
-            }
-          }
-        }
-      });
-      scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
-      scriptSourceFile!.loadFile();
-      scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
-      //_dataRows = scriptListToTable(_scriptTable);
-      sheetName = SettingsClass.sheetName;
-      _updateTableListViewFromScriptList();
-      _scriptTableRebuildRequest();
-
-      initializeShortcutsList();
-    }
-
-
+    SettingsClass.videoHeight = _screenHeight/3;
+    SettingsClass.videoWidth = _screenWidth/2;
 
 
     return KeyboardListener(
@@ -204,6 +186,14 @@ bool _firstInit=true;
                             });
                         },),
                         const Text("view follows video"),
+                          ValueListenableBuilder(valueListenable: focusNodeFollowsVideo, builder: (context, value, child) {
+                          return Checkbox(
+                            value: value,
+                            onChanged:(value) {
+                              focusNodeFollowsVideo.value = value!;
+                            });
+                        },),
+                        const Text("focus follows video"),
                       ]),
                     ],
                   ),
@@ -318,7 +308,7 @@ bool _firstInit=true;
   void markCurrentLine(List<ScriptNode> scriptList){
     bool isThereAChange = false;
     for (var i = 0; i < scriptList.length; i++) {
-      if (currentPlaybackPosition+SettingsClass.videoStartTc.tcAsDuration() < scriptList[i].tcIn.tcAsDuration() && !isThereAChange && i>0) {
+      if (_currentPlaybackPosition+SettingsClass.videoStartTc.tcAsDuration() < scriptList[i].tcIn.tcAsDuration() && !isThereAChange && i>0) {
         scriptList[i-1].isThisCurrentTCValueNotifier.value = true;
         isThereAChange = true;
       } else {
@@ -620,7 +610,7 @@ bool _firstInit=true;
 
   Timecode tcFromVideo(){
     Timecode tc = Timecode();
-    tc.tcFromDuration(currentPlaybackPosition);
+    tc.tcFromDuration(_currentPlaybackPosition);
     return tc;
   }
 
@@ -649,7 +639,7 @@ bool _firstInit=true;
     dial = dial=="" ? "char name" : dial;
     Timecode timecode = Timecode();
     if (tcIn == null) {
-      timecode.tcFromDuration(currentPlaybackPosition);
+      timecode.tcFromDuration(_currentPlaybackPosition);
     } else {
       timecode = tcIn;
     }
@@ -748,10 +738,10 @@ bool _firstInit=true;
       return KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
     });
     shortcutsMap.putIfAbsent("seek >", (){
-      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
+      return KeyboardShortcutNode((){player.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
     });
     shortcutsMap.putIfAbsent("seek <", (){
-      return KeyboardShortcutNode((){player.seek((currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
+      return KeyboardShortcutNode((){player.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
     });
     shortcutsMap.putIfAbsent("add char #1", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
@@ -783,5 +773,30 @@ bool _firstInit=true;
     });
   }
 
+
+  void focusNodeOrViewFollowsVideo(bool scrollFollowsVideo, bool focusNodeFollowsVideo){
+    if (scrollFollowsVideo == false && focusNodeFollowsVideo == false){
+      return;
+    }
+
+    for (var i = 0; i < _scriptTable.length; i++) {
+      if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
+        if (currentItemScrollIndex != i) {
+          if (scrollFollowsVideo) {
+            scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
+          }
+          if (focusNodeFollowsVideo) {
+            try {
+              _scriptTable[i].focusNode.requestFocus();
+            // ignore: empty_catches
+            } catch (e) {
+            }
+          }
+          currentItemScrollIndex = i;
+        }
+      }
+    }
+
+  }
 
 }

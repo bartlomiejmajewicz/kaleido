@@ -24,8 +24,8 @@ class _SettingsPageState extends State<SettingsPage> {
   TextEditingController tecColl = TextEditingController();
   TextEditingController tecRow = TextEditingController();
 
-  ValueNotifier<bool> _videoFileSelectorActive = ValueNotifier(true);
-  ValueNotifier<bool> _scriptFileSelectorActive = ValueNotifier(true);
+  final ValueNotifier<bool> _videoFileSelectorActive = ValueNotifier(true);
+  final ValueNotifier<bool> _scriptFileSelectorActive = ValueNotifier(true);
 
   @override
   void initState() {
