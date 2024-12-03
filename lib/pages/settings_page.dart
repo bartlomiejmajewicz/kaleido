@@ -40,6 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
       try {
         excelFile=ExcelFile(SettingsClass.scriptFilePath);
         excelFile!.loadFile();
+        SettingsClass.scriptFile = excelFile;
       // ignore: empty_catches
       } catch (e) {
       }
@@ -202,6 +203,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (result != null) {
       SettingsClass.scriptFilePath = result.files.single.path!;
       excelFile = ExcelFile(result.files.single.path!);
+      SettingsClass.scriptFile = excelFile;
       excelFile!.loadFile();
       setState(() {
         

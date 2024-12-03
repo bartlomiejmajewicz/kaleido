@@ -86,8 +86,14 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
     });
-    scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
-    scriptSourceFile!.loadFile();
+
+    if (SettingsClass.scriptFile == null) {
+      scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
+      scriptSourceFile!.loadFile();
+    }
+    else {
+      scriptSourceFile = SettingsClass.scriptFile;
+    }
     scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
     sheetName = SettingsClass.sheetName;
     _updateTableListViewFromScriptList();
