@@ -616,20 +616,6 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
   }
 
 
-  List<Row> scriptListToTableForListView(){
-    List<Row> list = List.empty(growable: true);
-    for (ScriptNode scriptNode in _scriptTable) {
-      list.add(Row(
-        children: [
-          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.tcIn.toString())),
-          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.charName)),
-          SizedBox(width: 100, child: TextFormField(initialValue: scriptNode.dial)),
-        ],
-      ));
-    }
-    return list;
-  }
-
   
 
 
@@ -652,7 +638,6 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
     String returnedValue="";
-    //var tcPattern = RegExp(buildTimecodePattern(Timecode.framerate));
     var tcInProgressPattern = RegExp(r'^\d{0,2}:?\d{0,2}:?\d{0,2}:?\d{0,2}$');
     if (tcInProgressPattern.hasMatch(newValue.text)){
       returnedValue = newValue.text;
@@ -689,12 +674,11 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     bool assignShortcutOperation = false; // operation type is assigning the shortcut
     HardwareKeyboard hk = HardwareKeyboard.instance;
 
-    // SAVE THE FILE
+    // SAVE THE FILE - hardcoded shortcut
     if ((hk.isMetaPressed || hk.isControlPressed)
     && keyEvent.logicalKey == LogicalKeyboardKey.keyS
     && keyEvent.runtimeType == KeyDownEvent) {
       _saveFileWithSnackbar(context);
-      
     }
 
     int countModifiers = 0;
