@@ -11,6 +11,7 @@ import 'package:script_editor/models/keyboard_shortcut_node.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
+import 'package:script_editor/widgets/outlined_button_with_shortcut.dart';
 import 'package:script_editor/widgets/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -28,20 +29,12 @@ class _ScriptPageState extends State<ScriptPage> {
 
 late final player = Player();
 late final controller = VideoController(player);
-// int videoWidth = 500;
-// int videoHeight = 500;
 
 late double _screenWidth;
 late double _screenHeight;
 
-
-
-late File videoFile;
 Duration _currentPlaybackPosition = const Duration();
-late dynamic excel;
 
-//List<DropdownMenuEntry<String>> sheetsMenuEntry = List.empty(growable: true);
-//List<DropdownMenuEntry<String>> sheetsMenuEntry = [];
 final List<ScriptNode> _scriptTable = List.empty(growable: true);
 String selectedCharacterName = "ALL CHARACTERS";
 late String sheetName;
@@ -96,7 +89,6 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
     scriptSourceFile!.loadFile();
     scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
-    //_dataRows = scriptListToTable(_scriptTable);
     sheetName = SettingsClass.sheetName;
     _updateTableListViewFromScriptList();
     _scriptTableRebuildRequest();
@@ -355,26 +347,6 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     return characterNames;
   }
 
-  // _updateListViewAsync() async {
-  //   WidgetsFlutterBinding.ensureInitialized();
-  //   _listView = await compute<int, Widget>(_generateRandomList, 0).then((value) {
-  //     _listViewTestRebuildFlag.value = !_listViewTestRebuildFlag.value;
-  //     return value;
-  //   },);
-  // }
-
-  // static Widget _generateRandomList(int value){
-  //   return SizedBox(
-  //     width: 500,
-  //     height: 500,
-  //     child: ListView.builder(
-  //       itemCount: 10000,
-  //       itemBuilder: (context, index) {
-  //         int currentDur = DateTime.now().millisecondsSinceEpoch;
-  //         return OutlinedButton(onPressed: (){}, child: Text("$currentDur data nr $index"));
-  //     },),
-  //   );
-  // }
 
   void _updateTableListViewFromScriptList(){
     _listView = _generateTableAsScrollablePositionListView();

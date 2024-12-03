@@ -46,7 +46,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     return Scaffold(
       body: SizedBox(
-        //width: MediaQuery.sizeOf(context).width,
         child: Padding(
           padding: const EdgeInsets.all(28.0),
           child: ListView(
@@ -59,7 +58,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const Text("select video file:"),
                     ValueListenableBuilder(valueListenable: _videoFileSelectorActive, builder: (context, value, child) {
                       return OutlinedButton(
-                        onPressed: value ? selectVideoFile : null,
+                        onPressed: value ? _selectVideoFile : null,
                         child: const Text("select video file..."),
                         );
                     },),
@@ -70,7 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const Text("select script file:"),
                     ValueListenableBuilder(valueListenable: _scriptFileSelectorActive, builder: (context, value, child) {
                       return OutlinedButton(
-                        onPressed: value ? selectScriptFile : null,
+                        onPressed: value ? _selectScriptFile : null,
                         child: const Text("select script file..."));
                     },
                     ),
@@ -78,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ]),
                   PaddingTableRow(children: [
                     const Text("select sheet:"),
-                    sheetSelector(),
+                    _sheetSelectorWidget(),
                     Text('selected sheet name: ${SettingsClass.sheetName}'),
                   ]),
                   PaddingTableRow(children: [
@@ -86,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     TextFormField(
                       controller: tecColl,
                       onChanged: (value) => setState((){SettingsClass.collNumber = (value!="") ? int.parse(value)-1 : 0;}),
-                      inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
+                      inputFormatters: [TextInputFormatter.withFunction(_columnOrRowNumberValidityCheck)]
                     ),
                     Row(
                       children: [
@@ -119,7 +118,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     TextFormField(
                       controller: tecRow,
                       onChanged: (value) => setState((){SettingsClass.rowNumber = (value!="") ? int.parse(value)-1 : 0;}),
-                      inputFormatters: [TextInputFormatter.withFunction(numberValidityCheck)]
+                      inputFormatters: [TextInputFormatter.withFunction(_columnOrRowNumberValidityCheck)]
                     ),
                     Row(
                       children: [
@@ -148,7 +147,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ]),
                   PaddingTableRow(children: [
                     const Text("select project framerate: "),
-                    fpsSelector(),
+                    _fpsSelectorWidget(),
                     Text('selected fps: ${Timecode.framerate}'),
                   ]),
                   PaddingTableRow(children: [
@@ -163,15 +162,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           });
                         }
                       },
-                      inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                      inputFormatters: [TextInputFormatter.withFunction(_tcValidityInputCheck)],
                       //style: TextStyle(backgroundColor: Colors.green),
                       //style: TextStyle().apply(backgroundColor: Colors.amber),
                     )),
                     Text(SettingsClass.videoStartTc.showTimecode())
-                  ])
+                  ]),
                 ],
               ),
-              showSheetPreview(),
+              _sheetPreviewWidget(),
             ],
           ),
         ),
@@ -180,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-  Future<void> selectVideoFile() async {
+  Future<void> _selectVideoFile() async {
     _videoFileSelectorActive.value = false;
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
@@ -196,7 +195,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-  Future<void> selectScriptFile() async {
+  Future<void> _selectScriptFile() async {
     _scriptFileSelectorActive.value = false;
     // select the excel file, list the sheets and save the excel file to the var
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
@@ -214,7 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _scriptFileSelectorActive.value = true;
   }
 
-  TextEditingValue numberValidityCheck(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue _columnOrRowNumberValidityCheck(TextEditingValue oldValue, TextEditingValue newValue) {
     RegExp numberPattern = RegExp(r'^\d{0,2}$');
     if (numberPattern.hasMatch(newValue.text) && newValue.text!="0"){
       return newValue;
@@ -223,7 +222,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  DropdownMenu<String> sheetSelector(){
+  DropdownMenu<String> _sheetSelectorWidget(){
     return DropdownMenu<String>(
     enabled: SettingsClass.scriptFilePath.isNotEmpty,
     width: 200, // TODO: szerokość zalezna
@@ -239,11 +238,11 @@ class _SettingsPageState extends State<SettingsPage> {
       }
 
     },
-    dropdownMenuEntries: getSheetsDropdownMenuEntries(),
+    dropdownMenuEntries: _getSheetsDropdownMenuEntries(),
     );
   }
 
-  DropdownMenu fpsSelector(){
+  DropdownMenu _fpsSelectorWidget(){
     return DropdownMenu(
       width: 200, // TODO: szerokość zale
       label: const Text("set video framerate"),
@@ -261,7 +260,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
   }
 
-  List<DropdownMenuEntry<String>> getSheetsDropdownMenuEntries() {
+  List<DropdownMenuEntry<String>> _getSheetsDropdownMenuEntries() {
     if(excelFile == null){
       return [];
     }
@@ -303,7 +302,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue _tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
     String returnedValue="";
     //var tcPattern = RegExp(buildTimecodePattern(Timecode.framerate));
     var tcInProgressPattern = RegExp(r'^\d{0,2}:?\d{0,2}:?\d{0,2}:?\d{0,2}$');
@@ -321,7 +320,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-  DataTable showSheetPreview(){
+  DataTable _sheetPreviewWidget(){
     List<ScriptNode> list = List.empty(growable: true);
     List<DataRow> datarows = List.empty(growable: true);
     if (SettingsClass.scriptFilePath != "" && SettingsClass.sheetName != "" && excelFile != null) {

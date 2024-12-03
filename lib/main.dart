@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
       //home: SettingsPage()
     );
   }
+
 }
 
 
@@ -91,9 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
-
-                  if(SettingsClass.scriptFilePath.isEmpty
-                  || SettingsClass.sheetName.isEmpty){
+                  if(!SettingsClass.isDataComplete()){
                     showDialog(context: context, builder: (BuildContext context){
                         return const SimpleDialog(
                             children: [
@@ -107,8 +107,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       selectedIndex = value;
                     });
                   }
-
-
                 },
               ),
             ),
