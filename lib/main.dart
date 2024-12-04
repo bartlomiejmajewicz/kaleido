@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:provider/provider.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
@@ -20,7 +22,23 @@ void main() {
     SettingsClass.scriptFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260552163/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.xlsx";
   }
   MediaKit.ensureInitialized();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create:(_) => KeyNotifier(),
+      child: const MyApp()),
+      );
+    
+}
+
+// class used to pass the keys pressed down the widget tree
+class KeyNotifier extends ChangeNotifier {
+  KeyEvent? _currentKeyEvent;
+  KeyEvent? get currentKeyEvent => _currentKeyEvent;
+
+  void updateKey(KeyEvent keyEvent){
+    _currentKeyEvent = keyEvent;
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -30,15 +48,21 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Script Editor',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: (KeyEvent keyEvent) {
+        context.read<KeyNotifier>().updateKey(keyEvent);
+      },
+      child: MaterialApp(
+        title: 'Script Editor',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage(),
+        //home: ScriptPage(title: "script editor"),
+        //home: SettingsPage()
       ),
-      home: const MyHomePage(),
-      //home: ScriptPage(title: "script editor"),
-      //home: SettingsPage()
     );
   }
 

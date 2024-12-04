@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:provider/provider.dart';
+import 'package:script_editor/main.dart';
 import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/keyboard_shortcut_node.dart';
@@ -63,9 +65,22 @@ Widget _listView = const Flexible(child: Text(""));
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
+KeyNotifier? kn;
+
+void _printMe(){
+  print("text");
+}
+
+@override
+  void deactivate() {
+    print("deac");
+    kn!.removeListener(keyEventShortcutProcessFromProvider);
+    super.deactivate();
+  }
 
   @override
   void dispose(){
+    kn!.removeListener(keyEventShortcutProcessFromProvider);
     player.dispose();
     super.dispose();
   }
@@ -76,6 +91,9 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
 
     
     WidgetsFlutterBinding.ensureInitialized();
+
+    kn = context.read<KeyNotifier>();
+    kn!.addListener(keyEventShortcutProcessFromProvider);
 
 
     player.open(Media(SettingsClass.videoFilePath));
@@ -115,193 +133,188 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     SettingsClass.videoWidth = _screenWidth/2;
 
 
-    return KeyboardListener(
-      autofocus: true,
-      focusNode: FocusNode(),
-      onKeyEvent: keyEventShortcutProcess,
-      child: Scaffold(
-        // appBar: AppBar(
-        //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        //   title: Text(widget.title),
-        // ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Column(
-                      children: [
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["save"]),
-                      ]
-                    ),
-                  ),
-                  Column(
+    return Scaffold(
+      // appBar: AppBar(
+      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      //   title: Text(widget.title),
+      // ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
                     children: [
-                      ResizebleWidget(child: Video(controller: controller)),
-                      Row(children: [
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
-                        SizedBox(
-                          width: 120,
-                          child: TextFormField(
-                            textAlign: TextAlign.center,
-                            controller: tcEntryController,
-                            inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-                            onTap: (){
-                              
-                              tcEntryControllerActive = false;
-                            },
-                            onEditingComplete: (){
-                              tcEntryControllerActive = true;
-                            },
-                            onTapOutside: (PointerDownEvent pde){
-                              jumpToTc(Timecode(tcEntryController.text));
-                              player.play();
-                              tcEntryControllerActive = true;
-                            },
-                            onSaved: (newValue){
-                              jumpToTc(Timecode(tcEntryController.text));
-                              player.play();
-                              tcEntryControllerActive = true;
-                            },
-                            onFieldSubmitted: (value){
-                              jumpToTc(Timecode(tcEntryController.text));
-                              player.play();
-                              tcEntryControllerActive = true;
-                            }  
-                          ),
-                        ),
-                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"]),
-                        ValueListenableBuilder(valueListenable: scrollFollowsVideo, builder: (context, value, child) {
-                          return Checkbox(
-                            value: value,
-                            onChanged:(value) {
-                              scrollFollowsVideo.value = value!;
-                            });
-                        },),
-                        const Text("view follows video"),
-                          ValueListenableBuilder(valueListenable: focusNodeFollowsVideo, builder: (context, value, child) {
-                          return Checkbox(
-                            value: value,
-                            onChanged:(value) {
-                              focusNodeFollowsVideo.value = value!;
-                            });
-                        },),
-                        const Text("focus follows video"),
-                      ]),
-                    ],
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["save"]),
+                    ]
                   ),
-                  Column(
-                    children: [
+                ),
+                Column(
+                  children: [
+                    ResizebleWidget(child: Video(controller: controller)),
+                    Row(children: [
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
                       SizedBox(
-                        width: 200, 
+                        width: 120,
                         child: TextFormField(
-                          controller: tempTextEditController,)),
-                      OutlinedButton(onPressed: (){
-                        int newEntryIndex = newEntry(_scriptTable, null, tempTextEditController.text);
+                          textAlign: TextAlign.center,
+                          controller: tcEntryController,
+                          inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                          onTap: (){
+                            
+                            tcEntryControllerActive = false;
+                          },
+                          onEditingComplete: (){
+                            tcEntryControllerActive = true;
+                          },
+                          onTapOutside: (PointerDownEvent pde){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
+                            tcEntryControllerActive = true;
+                          },
+                          onSaved: (newValue){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
+                            tcEntryControllerActive = true;
+                          },
+                          onFieldSubmitted: (value){
+                            jumpToTc(Timecode(tcEntryController.text));
+                            player.play();
+                            tcEntryControllerActive = true;
+                          }  
+                        ),
+                      ),
+                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"]),
+                      ValueListenableBuilder(valueListenable: scrollFollowsVideo, builder: (context, value, child) {
+                        return Checkbox(
+                          value: value,
+                          onChanged:(value) {
+                            scrollFollowsVideo.value = value!;
+                          });
+                      },),
+                      const Text("view follows video"),
+                        ValueListenableBuilder(valueListenable: focusNodeFollowsVideo, builder: (context, value, child) {
+                        return Checkbox(
+                          value: value,
+                          onChanged:(value) {
+                            focusNodeFollowsVideo.value = value!;
+                          });
+                      },),
+                      const Text("focus follows video"),
+                    ]),
+                  ],
+                ),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 200, 
+                      child: TextFormField(
+                        controller: tempTextEditController,)),
+                    OutlinedButton(onPressed: (){
+                      int newEntryIndex = newEntry(_scriptTable, null, tempTextEditController.text);
+                      _updateTableListViewFromScriptList();
+                      _scriptTableRebuildRequest();
+                      _scriptTable[newEntryIndex].focusNode.requestFocus();
+                    }, child: const Text("new entry...")),
+                    OutlinedButton(
+                      onPressed: () {
+                        _saveFileWithSnackbar(context);
+                      }, 
+                      child: const Text("SAVE FILE")),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("Replace the character name:"),
+                    SizedBox(
+                      width: 200,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          helperText: "old character name"
+                        ),
+                        controller: charNameOldTEC,
+                      )),
+                    SizedBox(
+                      width: 200,
+                      child: TextFormField(
+                          decoration: const InputDecoration(
+                            helperText: "new character name",
+                          ),
+                        controller: charNameNewTEC,
+                      )),
+                    OutlinedButton(
+                      onPressed: (){
+                        int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                        charNameOldTEC.text = "";
+                        charNameNewTEC.text = "";
                         _updateTableListViewFromScriptList();
                         _scriptTableRebuildRequest();
-                        _scriptTable[newEntryIndex].focusNode.requestFocus();
-                      }, child: const Text("new entry...")),
-                      OutlinedButton(
-                        onPressed: () {
-                          _saveFileWithSnackbar(context);
-                        }, 
-                        child: const Text("SAVE FILE")),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const Text("Replace the character name:"),
-                      SizedBox(
-                        width: 200,
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            helperText: "old character name"
-                          ),
-                          controller: charNameOldTEC,
-                        )),
-                      SizedBox(
-                        width: 200,
-                        child: TextFormField(
+                        showDialog(context: context, builder: (BuildContext context){
+                          return SimpleDialog(
+                              children: [
+                                Text(
+                                  'Records affected: ${a.toString()}',
+                                  textAlign: TextAlign.center,),
+                              ],
+                          );
+                        });
+                      },
+                      child: const Text("replace!")),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("add new lines:"),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            onChanged: (value) {
+                              shortcutsMap["add char #1"]!.characterName = value;
+                            },
                             decoration: const InputDecoration(
-                              helperText: "new character name",
+                              helperText: "character name #1",
                             ),
-                          controller: charNameNewTEC,
-                        )),
-                      OutlinedButton(
-                        onPressed: (){
-                          int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
-                          charNameOldTEC.text = "";
-                          charNameNewTEC.text = "";
-                          _updateTableListViewFromScriptList();
-                          _scriptTableRebuildRequest();
-                          showDialog(context: context, builder: (BuildContext context){
-                            return SimpleDialog(
-                                children: [
-                                  Text(
-                                    'Records affected: ${a.toString()}',
-                                    textAlign: TextAlign.center,),
-                                ],
-                            );
-                          });
-                        },
-                        child: const Text("replace!")),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const Text("add new lines:"),
+                          ),
+                        ),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
+                      ],
+                    ),
                       Row(
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              onChanged: (value) {
-                                shortcutsMap["add char #1"]!.characterName = value;
-                              },
-                              decoration: const InputDecoration(
-                                helperText: "character name #1",
-                              ),
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            onChanged: (value) {
+                              shortcutsMap["add char #2"]!.characterName = value;
+                            },
+                            decoration: const InputDecoration(
+                              helperText: "character name #2",
                             ),
                           ),
-                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
-                        ],
-                      ),
-                        Row(
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              onChanged: (value) {
-                                shortcutsMap["add char #2"]!.characterName = value;
-                              },
-                              decoration: const InputDecoration(
-                                helperText: "character name #2",
-                              ),
-                            ),
-                          ),
-                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"]),
-                          //generateButtonWithShortcut(shortcutsList[4]),
-                        ],
-                      )
-                    ],
-                  )
-                ],
-              ),
+                        ),
+                        OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"]),
+                        //generateButtonWithShortcut(shortcutsList[4]),
+                      ],
+                    )
+                  ],
+                )
+              ],
             ),
-            ValueListenableBuilder(valueListenable: _scriptTableRebuildFlag, builder: (context, value, child) {
-              //return _generateTableAsScrollablePositionListView();
-              return _listView;
-            },)
-            ]
           ),
+          ValueListenableBuilder(valueListenable: _scriptTableRebuildFlag, builder: (context, value, child) {
+            //return _generateTableAsScrollablePositionListView();
+            return _listView;
+          },)
+          ]
         ),
       ),
     );
@@ -669,9 +682,18 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
 
 
 
+  void keyEventShortcutProcessFromProvider(){
+    if (kn == null) {
+      return;
+    }
+    if (kn!.currentKeyEvent == null) {
+      return;
+    }
+    _keyEventShortcutProcess(kn!.currentKeyEvent!);
+  }
 
 
-  void keyEventShortcutProcess(KeyEvent keyEvent){
+  void _keyEventShortcutProcess(KeyEvent keyEvent){
     bool assignShortcutOperation = false; // operation type is assigning the shortcut
     HardwareKeyboard hk = HardwareKeyboard.instance;
 
