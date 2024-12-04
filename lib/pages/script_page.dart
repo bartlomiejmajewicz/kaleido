@@ -36,7 +36,8 @@ late double _screenHeight;
 Duration _currentPlaybackPosition = const Duration();
 
 final List<ScriptNode> _scriptTable = List.empty(growable: true);
-String selectedCharacterName = "ALL CHARACTERS";
+static const String allCharactersConst = "ALL CHARACTERS";
+String selectedCharacterName = allCharactersConst;
 late String sheetName;
 
 ExcelFile? scriptSourceFile;
@@ -333,7 +334,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
       return a.compareTo(b);
     },);
 
-    characterNames.insert(0, "ALL CHARACTERS");
+    characterNames.insert(0, allCharactersConst);
 
     return characterNames.map((e){
       return DropdownMenuEntry(
@@ -426,136 +427,136 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     }
 
     Row buildRow(BuildContext context, int index){
-      if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows) && false) {
-        _scriptTable[index].focusNode.requestFocus();
-      }
-      if (_scriptTable[index].charName == selectedCharacterName || selectedCharacterName == "ALL CHARACTERS") {
-        _scriptTable[index].focusNode.onKeyEvent = (focus, event){
-          if (event.runtimeType == KeyDownEvent && hk.isControlPressed) {
-            int offset = 0;
-            switch (event.logicalKey) {
-              case LogicalKeyboardKey.arrowUp:
-                offset = -1;
-                break;
-              case LogicalKeyboardKey.arrowDown:
-                offset = 1;
-                break;
-            }
-            try {
-              _scriptTable[index+offset].focusNode.requestFocus();
-            // ignore: empty_catches
-            } catch (e) {
-            }
-          }
-          return KeyEventResult.ignored;
-        };
+      // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
+      //   _scriptTable[index].focusNode.requestFocus();
+      // }
 
-        _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
-        return Row(
-          children: [
-            ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
-              return SizedBox(
-                width: widthButtons,
-                child: ElevatedButton(
-                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-                onPressed: (){
-                  jumpToTc(_scriptTable[index].tcIn);
-                },
-                //child: Text("TC UP")))),
-                child: const Icon(Icons.arrow_upward)),
-              );
-            },),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(
-                width: widthButtons,
-                child: ElevatedButton(
-                  onPressed: (){
-                    _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
-                    _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
-                    // _updateTableListViewFromScriptList();
-                    // _scriptTableRebuildRequest();
-                  },
-                  //child: Text("TC DOWN")))),
-                  child: const Icon(Icons.arrow_downward)),
-              ),
-            ),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(width: widthColC, child: TextFormField(
-                // FIXME: popraw to, ze nie aktualizuje się cały czas
-                controller: _scriptTable[index].textControllerTc,
-                onChanged: (value) {
-                  //FIXME:
-                  if(Timecode.tcValidateCheck(value)){
-                    _scriptTable[index].tcIn = Timecode(value);
-                  }
-                },
-                inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-                )),
-            ),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(
-                width: widthColD,
-                child: CharNameWidgetWithAutocomplete(
-                  charactersNamesList: getCharactersList(_scriptTable),
-                  initialValue: _scriptTable[index].charName,
-                  updateFunction: (value) => _scriptTable[index].charName=value,
-                  maxOptionsWidth: widthColD,
-                  ),
-                ),
-            ),
-            
-            Flexible(
-              child: Padding(
-                padding: paddingSize,
-                child: SizedBox(
-                  height: 50,
-                  child: TextFormField(
-                    autofocus: true,
-                    focusNode: _scriptTable[index].focusNode,
-                    onChanged: (value) {
-                      { 
-                        _scriptTable[index].dial = value;
-                    }
-                    },
-                    scribbleEnabled: false, 
-                    initialValue: _scriptTable[index].dial, 
-                    maxLines: 10,
-                    ),
-                ),
-              ),
-            ),
-              
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(
-                width: widthButtons,
-                child: ElevatedButton(
-                  child: const Icon(Icons.delete),
-                  onPressed: () {
-                    itemIndexFromButton = index;
-                    _scriptTable.remove(_scriptTable[index]);
-                    _updateTableListViewFromScriptList();
-                    _scriptTableRebuildRequest();
-                    _scriptTable[index].focusNode.requestFocus();
-                  },),
-              ),
-            ),
-              //TODO: NIE WIEM PO CO TO BYLO OGARNIJ
-              //scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-          ],
-        );
-      } else {
+      if (_scriptTable[index].charName != selectedCharacterName && selectedCharacterName != allCharactersConst) {
         return const Row();
       }
+      _scriptTable[index].focusNode.onKeyEvent = (focus, event){
+        if (event.runtimeType == KeyDownEvent && hk.isControlPressed) {
+          int offset = 0;
+          switch (event.logicalKey) {
+            case LogicalKeyboardKey.arrowUp:
+              offset = -1;
+              break;
+            case LogicalKeyboardKey.arrowDown:
+              offset = 1;
+              break;
+          }
+          try {
+            _scriptTable[index+offset].focusNode.requestFocus();
+          // ignore: empty_catches
+          } catch (e) {
+          }
+        }
+        return KeyEventResult.ignored;
+      };
+
+      _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
+      return Row(
+        children: [
+          ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
+            return SizedBox(
+              width: widthButtons,
+              child: ElevatedButton(
+              style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
+              onPressed: (){
+                jumpToTc(_scriptTable[index].tcIn);
+              },
+              //child: Text("TC UP")))),
+              child: const Icon(Icons.arrow_upward)),
+            );
+          },),
+      
+      
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(
+              width: widthButtons,
+              child: ElevatedButton(
+                onPressed: (){
+                  _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                  _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                  // _updateTableListViewFromScriptList();
+                  // _scriptTableRebuildRequest();
+                },
+                //child: Text("TC DOWN")))),
+                child: const Icon(Icons.arrow_downward)),
+            ),
+          ),
+      
+      
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(width: widthColC, child: TextFormField(
+              // FIXME: popraw to, ze nie aktualizuje się cały czas
+              controller: _scriptTable[index].textControllerTc,
+              onChanged: (value) {
+                //FIXME:
+                if(Timecode.tcValidateCheck(value)){
+                  _scriptTable[index].tcIn = Timecode(value);
+                }
+              },
+              inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+              )),
+          ),
+      
+      
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(
+              width: widthColD,
+              child: CharNameWidgetWithAutocomplete(
+                charactersNamesList: getCharactersList(_scriptTable),
+                initialValue: _scriptTable[index].charName,
+                updateFunction: (value) => _scriptTable[index].charName=value,
+                maxOptionsWidth: widthColD,
+                ),
+              ),
+          ),
+          
+          Flexible(
+            child: Padding(
+              padding: paddingSize,
+              child: SizedBox(
+                height: 50,
+                child: TextFormField(
+                  autofocus: true,
+                  focusNode: _scriptTable[index].focusNode,
+                  onChanged: (value) {
+                    { 
+                      _scriptTable[index].dial = value;
+                  }
+                  },
+                  scribbleEnabled: false, 
+                  initialValue: _scriptTable[index].dial, 
+                  maxLines: 10,
+                  ),
+              ),
+            ),
+          ),
+            
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(
+              width: widthButtons,
+              child: ElevatedButton(
+                child: const Icon(Icons.delete),
+                onPressed: () {
+                  itemIndexFromButton = index;
+                  _scriptTable.remove(_scriptTable[index]);
+                  _updateTableListViewFromScriptList();
+                  _scriptTableRebuildRequest();
+                  _scriptTable[index].focusNode.requestFocus();
+                },),
+            ),
+          ),
+            //TODO: NIE WIEM PO CO TO BYLO OGARNIJ
+            //scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+        ],
+      );
     }
 
     return Flexible(
@@ -765,7 +766,7 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
     }
 
     for (var i = 0; i < _scriptTable.length; i++) {
-      if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == "ALL CHARACTERS" || selectedCharacterName == _scriptTable[i].charName)) {
+      if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == allCharactersConst || selectedCharacterName == _scriptTable[i].charName)) {
         if (currentItemScrollIndex != i) {
           if (scrollFollowsVideo) {
             scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
