@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,22 +63,18 @@ Widget _listView = const Flexible(child: Text(""));
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
-KeyNotifier? kn;
+KeyNotifier? keyEventNotifier;
 
-void _printMe(){
-  print("text");
-}
 
 @override
   void deactivate() {
-    print("deac");
-    kn!.removeListener(keyEventShortcutProcessFromProvider);
+    keyEventNotifier!.removeListener(keyEventShortcutProcessFromProvider);
     super.deactivate();
   }
 
   @override
   void dispose(){
-    kn!.removeListener(keyEventShortcutProcessFromProvider);
+    keyEventNotifier!.removeListener(keyEventShortcutProcessFromProvider);
     player.dispose();
     super.dispose();
   }
@@ -92,8 +86,8 @@ void _printMe(){
     
     WidgetsFlutterBinding.ensureInitialized();
 
-    kn = context.read<KeyNotifier>();
-    kn!.addListener(keyEventShortcutProcessFromProvider);
+    keyEventNotifier = context.read<KeyNotifier>();
+    keyEventNotifier!.addListener(keyEventShortcutProcessFromProvider);
 
 
     player.open(Media(SettingsClass.videoFilePath));
@@ -134,10 +128,6 @@ void _printMe(){
 
 
     return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      //   title: Text(widget.title),
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -384,6 +374,8 @@ void _printMe(){
     const double widthColD = 220;
     const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
     HardwareKeyboard hk = HardwareKeyboard.instance;
+
+    
     Row headerRow(){
       return Row(
         children: [
@@ -478,7 +470,6 @@ void _printMe(){
               onPressed: (){
                 jumpToTc(_scriptTable[index].tcIn);
               },
-              //child: Text("TC UP")))),
               child: const Icon(Icons.arrow_upward)),
             );
           },),
@@ -492,10 +483,7 @@ void _printMe(){
                 onPressed: (){
                   _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
                   _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
-                  // _updateTableListViewFromScriptList();
-                  // _scriptTableRebuildRequest();
                 },
-                //child: Text("TC DOWN")))),
                 child: const Icon(Icons.arrow_downward)),
             ),
           ),
@@ -566,8 +554,6 @@ void _printMe(){
                 },),
             ),
           ),
-            //TODO: NIE WIEM PO CO TO BYLO OGARNIJ
-            //scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
         ],
       );
     }
@@ -630,11 +616,6 @@ void _printMe(){
   }
 
 
-  
-
-
-
-
   int newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
     charName = charName=="" ? "char name" : charName;
     dial = dial=="" ? "char name" : dial;
@@ -683,13 +664,13 @@ void _printMe(){
 
 
   void keyEventShortcutProcessFromProvider(){
-    if (kn == null) {
+    if (keyEventNotifier == null) {
       return;
     }
-    if (kn!.currentKeyEvent == null) {
+    if (keyEventNotifier!.currentKeyEvent == null) {
       return;
     }
-    _keyEventShortcutProcess(kn!.currentKeyEvent!);
+    _keyEventShortcutProcess(keyEventNotifier!.currentKeyEvent!);
   }
 
 
