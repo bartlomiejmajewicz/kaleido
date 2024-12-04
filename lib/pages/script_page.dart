@@ -65,6 +65,10 @@ Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{
 
 KeyNotifier? keyEventNotifier;
 
+final ValueNotifier<bool> _isTcFromScriptToPlayerVisible = ValueNotifier(true);
+final ValueNotifier<bool> _isTcPlayerToScriptVisible = ValueNotifier(true);
+final ValueNotifier<bool> _isTcInVisible = ValueNotifier(true);
+final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
 
 @override
   void deactivate() {
@@ -120,8 +124,8 @@ KeyNotifier? keyEventNotifier;
   Widget build(BuildContext context) {
 
 
-      _screenWidth = MediaQuery.sizeOf(context).width;
-      _screenHeight = MediaQuery.sizeOf(context).height;
+    _screenWidth = MediaQuery.sizeOf(context).width;
+    _screenHeight = MediaQuery.sizeOf(context).height;
 
     SettingsClass.videoHeight = _screenHeight/3;
     SettingsClass.videoWidth = _screenWidth/2;
@@ -138,11 +142,22 @@ KeyNotifier? keyEventNotifier;
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Column(
                     children: [
                       OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["save"]),
                     ]
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Column(
+                    children: [
+                      _createVisibilityOptionButtonWithNotifier(_isTcFromScriptToPlayerVisible, "TC from script: "),
+                      _createVisibilityOptionButtonWithNotifier(_isTcPlayerToScriptVisible, "TC from script: "),
+                      _createVisibilityOptionButtonWithNotifier(_isTcInVisible, "TC in: "),
+                      _createVisibilityOptionButtonWithNotifier(_isCharacterVisible, "char name visible: "),
+                    ],
                   ),
                 ),
                 Column(
@@ -310,6 +325,26 @@ KeyNotifier? keyEventNotifier;
     );
   }
 
+  OutlinedButton _createVisibilityOptionButtonWithNotifier(ValueNotifier<bool> valueListenable, String text) {
+    return OutlinedButton(
+      child: ValueListenableBuilder(valueListenable: valueListenable, builder: (context, value, child) {
+        Icon icon = Icon( value ? Icons.check_box_outlined : Icons.check_box_outline_blank);
+        return Row(
+          children: [
+            Text(text),
+            icon,
+          ],
+        );
+      },),
+      onPressed: () {
+        valueListenable.value = !valueListenable.value;
+        _updateTableListViewFromScriptList();
+        _scriptTableRebuildRequest();
+    },);
+  }
+
+
+
 
 
   void markCurrentLine(List<ScriptNode> scriptList){
@@ -379,17 +414,23 @@ KeyNotifier? keyEventNotifier;
     Row headerRow(){
       return Row(
         children: [
-          const Padding(
+          Padding(
             padding: paddingSize,
-            child: SizedBox(width: widthButtons, child: Text("TC from script\nto player")),
-          ),
-          const Padding(
-            padding: paddingSize,
-            child: SizedBox(width: widthButtons,  child: Text("TC from player\nto script")),
+            child: _isTcFromScriptToPlayerVisible.value ? const SizedBox(
+              width: widthButtons,
+              child: Text("TC from script\nto player"),
+            ) : null
           ),
           Padding(
             padding: paddingSize,
-            child: SizedBox(
+            child: _isTcPlayerToScriptVisible.value ? const SizedBox(
+              width: widthButtons,
+              child: Text("TC from player\nto script")
+            ) : null,
+          ),
+          Padding(
+            padding: paddingSize,
+            child: _isTcInVisible.value ? SizedBox(
               width: widthColC,
               child: FilledButton(
                 child: const Text("TC in"),
@@ -397,12 +438,12 @@ KeyNotifier? keyEventNotifier;
                   _scriptTable.sort();
                   _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
-                },)),
+                },)) : null,
           ),
           Padding(
             padding: paddingSize,
-            child: SizedBox(
-              width: widthColD,
+            child: _isCharacterVisible.value ? SizedBox(
+              width:  widthColD,
               child: DropdownMenu(
                 dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
                 initialSelection: selectedCharacterName,
@@ -414,7 +455,7 @@ KeyNotifier? keyEventNotifier;
                   _scriptTableRebuildRequest();
                 },
               ),
-            ),
+            ) : null,
           ),
           const Expanded(
             child: Text("Dialogue"),
@@ -464,50 +505,52 @@ KeyNotifier? keyEventNotifier;
         children: [
           ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
             return SizedBox(
-              width: widthButtons,
+              width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
               child: ElevatedButton(
               style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
               onPressed: (){
                 jumpToTc(_scriptTable[index].tcIn);
               },
-              child: const Icon(Icons.arrow_upward)),
+              child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
+              ),
             );
           },),
       
       
           Padding(
             padding: paddingSize,
-            child: SizedBox(
+            child: _isTcPlayerToScriptVisible.value ? SizedBox(
               width: widthButtons,
               child: ElevatedButton(
                 onPressed: (){
                   _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
                   _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
                 },
-                child: const Icon(Icons.arrow_downward)),
-            ),
+                child: const Icon(Icons.arrow_downward),
+              ),
+            ) : null,
           ),
       
       
           Padding(
             padding: paddingSize,
-            child: SizedBox(width: widthColC, child: TextFormField(
-              // FIXME: popraw to, ze nie aktualizuje się cały czas
-              controller: _scriptTable[index].textControllerTc,
-              onChanged: (value) {
-                //FIXME:
-                if(Timecode.tcValidateCheck(value)){
-                  _scriptTable[index].tcIn = Timecode(value);
-                }
-              },
+            child: _isTcInVisible.value ? SizedBox(
+              width: widthColC,
+              child: TextFormField(
+                controller: _scriptTable[index].textControllerTc,
+                onChanged: (value) {
+                  if(Timecode.tcValidateCheck(value)){
+                    _scriptTable[index].tcIn = Timecode(value);
+                  }
+                },
               inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-              )),
+              )) : null,
           ),
       
       
           Padding(
             padding: paddingSize,
-            child: SizedBox(
+            child: _isCharacterVisible.value ? SizedBox(
               width: widthColD,
               child: CharNameWidgetWithAutocomplete(
                 charactersNamesList: getCharactersList(_scriptTable),
@@ -515,7 +558,7 @@ KeyNotifier? keyEventNotifier;
                 updateFunction: (value) => _scriptTable[index].charName=value,
                 maxOptionsWidth: widthColD,
                 ),
-              ),
+              ) : null,
           ),
           
           Flexible(
