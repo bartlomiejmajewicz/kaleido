@@ -22,6 +22,10 @@ On the settings page you have to pick:
 
 ## Example files
 
+Example files (video file, script file and macos build) can be found here: 
+
+[https://drive.google.com/drive/folders/1o3OXs_AyEsjlbLZ4DcMU0QXR8uZblV_Q?usp=sharing] (https://drive.google.com/drive/folders/1o3OXs_AyEsjlbLZ4DcMU0QXR8uZblV_Q?usp=sharing)
+
 If you want to run example files please select the following options:
 - video file - Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.mp4
 - script file - Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.xlsx
