@@ -45,6 +45,7 @@ class MyApp extends StatelessWidget {
 
   // This widget is the root of your application.
   
+  
   @override
   Widget build(BuildContext context) {
     return KeyboardListener(
@@ -89,6 +90,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
+  bool isNavigationRailExtended = false;
 
   @override
   Widget build(BuildContext context) {
@@ -107,35 +109,47 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Row(
           children: [
             SafeArea(
-              child: NavigationRail(
-                extended: false,
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.settings),
-                    label: Text('Home'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.playlist_play_rounded),
-                    label: Text('Favorites'),
-                  ),
-                ],
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (value) {
-                  if(!SettingsClass.isDataComplete()){
-                    showDialog(context: context, builder: (BuildContext context){
-                        return const SimpleDialog(
-                            children: [
-                              Text('You have to select all required options to continue',
-                                textAlign: TextAlign.center,),
-                            ],
-                        );
-                      });
-                  } else {
-                    setState(() {
-                      selectedIndex = value;
+              child: MouseRegion(
+                onEnter: (event) {
+                  setState(() {
+                    isNavigationRailExtended = true;
                     });
-                  }
-                },
+                  },
+                onExit: (event) {
+                  setState(() {
+                    isNavigationRailExtended = false;
+                    });
+                  },
+                child: NavigationRail(
+                  extended: isNavigationRailExtended,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.settings),
+                      label: Text('Settings'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.playlist_play_rounded),
+                      label: Text('Script editor'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    if(!SettingsClass.isDataComplete()){
+                      showDialog(context: context, builder: (BuildContext context){
+                          return const SimpleDialog(
+                              children: [
+                                Text('You have to select all required options to continue',
+                                  textAlign: TextAlign.center,),
+                              ],
+                          );
+                        });
+                    } else {
+                      setState(() {
+                        selectedIndex = value;
+                      });
+                    }
+                  },
+                ),
               ),
             ),
             Expanded(
