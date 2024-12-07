@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -90,6 +91,8 @@ class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
   bool isNavigationRailExtended = false;
 
+  Timer? navigationRailExtendedTimer;
+
   @override
   Widget build(BuildContext context) {
     Widget page;
@@ -109,11 +112,16 @@ class _MyHomePageState extends State<MyHomePage> {
             SafeArea(
               child: MouseRegion(
                 onEnter: (event) {
-                  setState(() {
-                    isNavigationRailExtended = true;
+                    navigationRailExtendedTimer = Timer(const Duration(milliseconds: 500), () {
+                      setState(() {
+                        isNavigationRailExtended = true;
+                      });
                     });
                   },
                 onExit: (event) {
+                  if (navigationRailExtendedTimer != null) {
+                    navigationRailExtendedTimer!.cancel();
+                  }
                   setState(() {
                     isNavigationRailExtended = false;
                     });
