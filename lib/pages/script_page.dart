@@ -69,6 +69,7 @@ final ValueNotifier<bool> _isTcFromScriptToPlayerVisible = ValueNotifier(true);
 final ValueNotifier<bool> _isTcPlayerToScriptVisible = ValueNotifier(true);
 final ValueNotifier<bool> _isTcInVisible = ValueNotifier(true);
 final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
+final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
 
 @override
   void deactivate() {
@@ -170,6 +171,37 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
                 _createVisibilityOptionButtonWithNotifier(_isTcPlayerToScriptVisible, "TC from script: "),
                 _createVisibilityOptionButtonWithNotifier(_isTcInVisible, "TC in: "),
                 _createVisibilityOptionButtonWithNotifier(_isCharacterVisible, "char name visible: "),
+                Row(
+                  children: [
+                    Text("Line height:"),
+                    Column(
+                      children: [
+                        IconButton(
+                          onPressed: (){
+                            _listViewElementHeight.value+=5;
+                            _updateTableListViewFromScriptList();
+                            _scriptTableRebuildRequest();
+                          },
+                          icon: Icon(Icons.arrow_drop_up_outlined)
+                          ),
+                        IconButton(
+                          onPressed: (){
+                            _listViewElementHeight.value-=5;
+                            _updateTableListViewFromScriptList();
+                            _scriptTableRebuildRequest();
+                          },
+                          icon: Icon(Icons.arrow_drop_down_outlined)
+                          ),
+                      ],
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: _listViewElementHeight,
+                      builder: (context, value, child) {
+                        return Text(_listViewElementHeight.value.toString());
+                        },
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -507,6 +539,7 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
 
       _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
             return SizedBox(
@@ -570,8 +603,10 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
             child: Padding(
               padding: paddingSize,
               child: SizedBox(
-                height: 50,
+                //height: _listViewElementHeight.value,
                 child: TextFormField(
+                  minLines: null,
+                  maxLines: null,
                   autofocus: true,
                   focusNode: _scriptTable[index].focusNode,
                   onChanged: (value) {
@@ -581,7 +616,6 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
                   },
                   scribbleEnabled: false, 
                   initialValue: _scriptTable[index].dial, 
-                  maxLines: 10,
                   ),
               ),
             ),
@@ -617,7 +651,9 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
               shrinkWrap: false,
               itemCount: _scriptTable.length,
               itemBuilder: (context, index) {
-                return buildRow(context, index);
+                return SizedBox(
+                  height: _listViewElementHeight.value,
+                  child: buildRow(context, index));
               },
             ),
           ),
