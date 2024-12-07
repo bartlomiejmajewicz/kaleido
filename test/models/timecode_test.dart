@@ -33,8 +33,9 @@ void main() {
     });
 
     test('showTimecode returns correctly formatted timecode string', () {
-      Timecode tc = Timecode('01:02:03:04');
-      expect(tc.showTimecode(), '01:02:03:04');
+      String tcAsText = '01:02:03:04';
+      Timecode tc = Timecode(tcAsText);
+      expect(tc.showTimecode(), tcAsText);
     });
 
     test('framesCount calculates total frames correctly', () {
@@ -85,7 +86,6 @@ void main() {
     });
 
     test('Comparison operators work as expected', () {
-      //TODO: FIX THESE
       Timecode.framerate = 25;
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
@@ -96,8 +96,9 @@ void main() {
     });
 
     test('toString returns correctly formatted timecode string', () {
-      Timecode tc = Timecode('01:02:03:04');
-      expect(tc.toString(), '01:02:03:04');
+      String timecodeAsText = '01:02:03:04';
+      Timecode tc = Timecode(timecodeAsText);
+      expect(tc.toString(), timecodeAsText);
     });
   });
 }
