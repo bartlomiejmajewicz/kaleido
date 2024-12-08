@@ -509,7 +509,7 @@ final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
       );
     }
 
-    Row buildRow(BuildContext context, int index){
+    Widget buildRow(BuildContext context, int index){
       // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
       //   _scriptTable[index].focusNode.requestFocus();
       // }
@@ -538,105 +538,108 @@ final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
       };
 
       _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
-            return SizedBox(
-              width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
-              child: ElevatedButton(
-              style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-              onPressed: (){
-                jumpToTc(_scriptTable[index].tcIn);
-              },
-              child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
-              ),
-            );
-          },),
-      
-      
-          Padding(
-            padding: paddingSize,
-            child: _isTcPlayerToScriptVisible.value ? SizedBox(
-              width: widthButtons,
-              child: ElevatedButton(
+      return SizedBox(
+        height: _listViewElementHeight.value,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
+              return SizedBox(
+                width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
+                child: ElevatedButton(
+                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
                 onPressed: (){
-                  _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
-                  _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                  jumpToTc(_scriptTable[index].tcIn);
                 },
-                child: const Icon(Icons.arrow_downward),
-              ),
-            ) : null,
-          ),
-      
-      
-          Padding(
-            padding: paddingSize,
-            child: _isTcInVisible.value ? SizedBox(
-              width: widthColC,
-              child: TextFormField(
-                controller: _scriptTable[index].textControllerTc,
-                onChanged: (value) {
-                  if(Timecode.tcValidateCheck(value)){
-                    _scriptTable[index].tcIn = Timecode(value);
-                  }
-                },
-              inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-              )) : null,
-          ),
-      
-      
-          Padding(
-            padding: paddingSize,
-            child: _isCharacterVisible.value ? SizedBox(
-              width: widthColD,
-              child: CharNameWidgetWithAutocomplete(
-                charactersNamesList: getCharactersList(_scriptTable),
-                initialValue: _scriptTable[index].charName,
-                updateFunction: (value) => _scriptTable[index].charName=value,
-                maxOptionsWidth: widthColD,
+                child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
+                ),
+              );
+            },),
+        
+        
+            Padding(
+              padding: paddingSize,
+              child: _isTcPlayerToScriptVisible.value ? SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                  onPressed: (){
+                    _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                    _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                  },
+                  child: const Icon(Icons.arrow_downward),
                 ),
               ) : null,
-          ),
-          
-          Flexible(
-            child: Padding(
+            ),
+        
+        
+            Padding(
               padding: paddingSize,
-              child: SizedBox(
-                //height: _listViewElementHeight.value,
+              child: _isTcInVisible.value ? SizedBox(
+                width: widthColC,
                 child: TextFormField(
-                  minLines: null,
-                  maxLines: null,
-                  autofocus: true,
-                  focusNode: _scriptTable[index].focusNode,
+                  controller: _scriptTable[index].textControllerTc,
                   onChanged: (value) {
-                    { 
-                      _scriptTable[index].dial = value;
-                  }
+                    if(Timecode.tcValidateCheck(value)){
+                      _scriptTable[index].tcIn = Timecode(value);
+                    }
                   },
-                  scribbleEnabled: false, 
-                  initialValue: _scriptTable[index].dial, 
+                inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                )) : null,
+            ),
+        
+        
+            Padding(
+              padding: paddingSize,
+              child: _isCharacterVisible.value ? SizedBox(
+                width: widthColD,
+                child: CharNameWidgetWithAutocomplete(
+                  charactersNamesList: getCharactersList(_scriptTable),
+                  initialValue: _scriptTable[index].charName,
+                  updateFunction: (value) => _scriptTable[index].charName=value,
+                  maxOptionsWidth: widthColD,
                   ),
+                ) : null,
+            ),
+            
+            Flexible(
+              child: Padding(
+                padding: paddingSize,
+                child: SizedBox(
+                  //height: _listViewElementHeight.value,
+                  child: TextFormField(
+                    minLines: null,
+                    maxLines: null,
+                    autofocus: true,
+                    focusNode: _scriptTable[index].focusNode,
+                    onChanged: (value) {
+                      { 
+                        _scriptTable[index].dial = value;
+                    }
+                    },
+                    scribbleEnabled: false, 
+                    initialValue: _scriptTable[index].dial, 
+                    ),
+                ),
               ),
             ),
-          ),
-            
-          Padding(
-            padding: paddingSize,
-            child: SizedBox(
-              width: widthButtons,
-              child: ElevatedButton(
-                child: const Icon(Icons.delete),
-                onPressed: () {
-                  itemIndexFromButton = index;
-                  _scriptTable.remove(_scriptTable[index]);
-                  _updateTableListViewFromScriptList();
-                  _scriptTableRebuildRequest();
-                  _scriptTable[index].focusNode.requestFocus();
-                },),
+              
+            Padding(
+              padding: paddingSize,
+              child: SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                  child: const Icon(Icons.delete),
+                  onPressed: () {
+                    itemIndexFromButton = index;
+                    _scriptTable.remove(_scriptTable[index]);
+                    _updateTableListViewFromScriptList();
+                    _scriptTableRebuildRequest();
+                    _scriptTable[index].focusNode.requestFocus();
+                  },),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
@@ -651,9 +654,7 @@ final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
               shrinkWrap: false,
               itemCount: _scriptTable.length,
               itemBuilder: (context, index) {
-                return SizedBox(
-                  height: _listViewElementHeight.value,
-                  child: buildRow(context, index));
+                return buildRow(context, index);
               },
             ),
           ),
