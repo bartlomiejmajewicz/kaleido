@@ -69,6 +69,9 @@ class ExcelFile extends SourceFile{
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
     sctiptList.clear();
     int rowNr = 0;
+    if (_excel.tables[sheetName] == null) {
+      return;
+    }
     for (var row in _excel.tables[sheetName]!.rows) {
       if (rowNr >= SettingsClass.rowNumber) {
         
