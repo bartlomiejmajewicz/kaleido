@@ -71,10 +71,7 @@ class MyApp extends StatelessWidget {
 
 
 
-class PaddingTableRow extends TableRow{
-  PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => Padding(padding: const EdgeInsets.all(10.0), child: child)).toList());
 
-}
 
 
 

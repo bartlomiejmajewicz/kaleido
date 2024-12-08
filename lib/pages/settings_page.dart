@@ -3,7 +3,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:script_editor/models/classes.dart';
-import 'package:script_editor/main.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
@@ -355,5 +354,12 @@ class _SettingsPageState extends State<SettingsPage> {
     rows: datarows,
     );
   }
+
+}
+
+
+
+class PaddingTableRow extends TableRow{
+  PaddingTableRow({List<Widget> children = const <Widget>[]}) : super(children: children.map((child) => Padding(padding: const EdgeInsets.all(10.0), child: child)).toList());
 
 }
