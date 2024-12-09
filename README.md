@@ -50,3 +50,4 @@ This project status is: **in progress** which means it could have some issues.
 * additional page to run script without editing (AKA watch mode)
 * Run an editor without video file
 * authorization mechanism to manage licensing
+* persistence - saving last opened file and options
