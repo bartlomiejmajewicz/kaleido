@@ -6,6 +6,7 @@ import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -179,11 +180,17 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
+  Future<void> _saveSharedPreference(String key, String value) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString(key, value);
+  }
+
   Future<void> _selectVideoFile() async {
     _videoFileSelectorActive.value = false;
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
       SettingsClass.videoFilePath = result.files.single.path!;
+      _saveSharedPreference('videoPath', result.files.single.path!);
       setState(() {
         
       });
@@ -204,6 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
       excelFile = ExcelFile(result.files.single.path!);
       SettingsClass.scriptFile = excelFile;
       excelFile!.loadFile();
+      _saveSharedPreference('scriptPath', result.files.single.path!);
       setState(() {
         
       });
@@ -226,13 +234,14 @@ class _SettingsPageState extends State<SettingsPage> {
   DropdownMenu<String> _sheetSelectorWidget(){
     return DropdownMenu<String>(
     enabled: SettingsClass.scriptFilePath.isNotEmpty,
-    width: 200, // TODO: szerokość zalezna
+    width: 200,
     label: const Text("select excel sheet"),
     initialSelection: SettingsClass.sheetName.isNotEmpty ? SettingsClass.sheetName : null,
     onSelected: (value) {
       try {
         setState(() {
         SettingsClass.sheetName = value!;
+        _saveSharedPreference('sheetName', value);
         });
       } catch (e) {
         _showPickerDialogCancelled("an existing sheet name");

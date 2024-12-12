@@ -9,8 +9,29 @@ import 'package:provider/provider.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final sharedPreferences = await SharedPreferences.getInstance();
+
+  String? sharedPreferencesVideoPath = sharedPreferences.getString("videoPath");
+  if (sharedPreferencesVideoPath != null) {
+    SettingsClass.videoFilePath = sharedPreferencesVideoPath;
+  }
+
+  String? sharedPreferencesSheetName = sharedPreferences.getString("sheetName");
+  if (sharedPreferencesSheetName != null) {
+    SettingsClass.sheetName = sharedPreferencesSheetName;
+  }
+  String? sharedPreferencesExcelPath = sharedPreferences.getString("scriptPath");
+  if (sharedPreferencesExcelPath != null) {
+    SettingsClass.scriptFilePath = sharedPreferencesExcelPath;
+  }
+
+
   if (kDebugMode && Platform.isMacOS) {
     SettingsClass.sheetName = "Arkusz1";
     SettingsClass.videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
