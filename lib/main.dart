@@ -130,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SafeArea(
               child: MouseRegion(
                 onEnter: (event) {
-                    navigationRailExtendedTimer = Timer(const Duration(milliseconds: 500), () {
+                    navigationRailExtendedTimer = Timer(const Duration(milliseconds: 800), () {
                       setState(() {
                         isNavigationRailExtended = true;
                       });

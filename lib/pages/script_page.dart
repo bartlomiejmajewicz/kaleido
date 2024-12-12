@@ -468,7 +468,6 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     const double widthColC = 100;
     const double widthColD = 220;
     const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
-    HardwareKeyboard hk = HardwareKeyboard.instance;
 
     
     Row headerRow(){
@@ -540,25 +539,6 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       if (_scriptTable[index].charName != selectedCharacterName && selectedCharacterName != allCharactersConst) {
         return const Row();
       }
-      _scriptTable[index].focusNode.onKeyEvent = (focus, event){
-        if (event.runtimeType == KeyDownEvent && hk.isControlPressed) {
-          int offset = 0;
-          switch (event.logicalKey) {
-            case LogicalKeyboardKey.arrowUp:
-              offset = -1;
-              break;
-            case LogicalKeyboardKey.arrowDown:
-              offset = 1;
-              break;
-          }
-          try {
-            _scriptTable[index+offset].focusNode.requestFocus();
-          // ignore: empty_catches
-          } catch (e) {
-          }
-        }
-        return KeyEventResult.ignored;
-      };
 
       _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
       return SizedBox(
@@ -633,7 +613,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                     minLines: null,
                     maxLines: null,
                     autofocus: true,
-                    focusNode: _scriptTable[index].focusNode,
+                    focusNode: _scriptTable[index].dialFocusNode,
                     onChanged: (value) {
                       { 
                         _scriptTable[index].dial = value;
@@ -657,7 +637,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                     _scriptTable.remove(_scriptTable[index]);
                     _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
-                    _scriptTable[index].focusNode.requestFocus();
+                    _scriptTable[index].dialFocusNode.requestFocus();
                   },),
               ),
             ),
@@ -671,14 +651,22 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
         children: [
           headerRow(),
           Expanded(
-            child: ScrollablePositionedList.builder(
-              itemScrollController: scriptListController,
-              addAutomaticKeepAlives: false,
-              shrinkWrap: false,
-              itemCount: _scriptTable.length,
-              itemBuilder: (context, index) {
-                return buildRow(context, index);
+            child: Shortcuts(
+              shortcuts: const {
+                SingleActivator(LogicalKeyboardKey.arrowRight, control: true) : DirectionalFocusIntent(TraversalDirection.right, ignoreTextFields: false),
+                SingleActivator(LogicalKeyboardKey.arrowLeft, control: true) : DirectionalFocusIntent(TraversalDirection.left, ignoreTextFields: false),
+                SingleActivator(LogicalKeyboardKey.arrowDown, control: true) : DirectionalFocusIntent(TraversalDirection.down, ignoreTextFields: false),
+                SingleActivator(LogicalKeyboardKey.arrowUp, control: true) : DirectionalFocusIntent(TraversalDirection.up, ignoreTextFields: false)
               },
+              child: ScrollablePositionedList.builder(
+                itemScrollController: scriptListController,
+                addAutomaticKeepAlives: false,
+                shrinkWrap: false,
+                itemCount: _scriptTable.length,
+                itemBuilder: (context, index) {
+                  return buildRow(context, index);
+                },
+              ),
             ),
           ),
         ],
@@ -847,7 +835,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
-        _scriptTable[newEntryIndex].focusNode.requestFocus();
+        _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
       };
       return ksn;
     });
@@ -857,7 +845,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
         int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
-        _scriptTable[newEntryIndex].focusNode.requestFocus();
+        _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
       };
       return ksn;
     });
@@ -894,7 +882,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
           }
           if (focusNodeFollowsVideo) {
             try {
-              _scriptTable[i].focusNode.requestFocus();
+              _scriptTable[i].dialFocusNode.requestFocus();
             // ignore: empty_catches
             } catch (e) {
             }

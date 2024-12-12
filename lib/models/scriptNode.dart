@@ -8,7 +8,7 @@ class ScriptNode implements Comparable<ScriptNode>{
   late String dial="";
   late Widget widget;
   ValueNotifier<bool> isThisCurrentTCValueNotifier = ValueNotifier(false);
-  FocusNode focusNode = FocusNode();
+  FocusNode dialFocusNode = FocusNode();
 
   TextEditingController textControllerTc=TextEditingController();
 
