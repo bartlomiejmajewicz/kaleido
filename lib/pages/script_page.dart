@@ -119,7 +119,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     _updateTableListViewFromScriptList();
     _scriptTableRebuildRequest();
 
-    initializeShortcutsList();
+    _initializeShortcutsList();
   }
 
 
@@ -161,17 +161,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
         children: [
           Padding(
             padding: paddingEdgeInsets,
-            child: IconButton.outlined(
-              onPressed: () {
-                if (_isUpperMenuVisible.value) {
-                  _isUpperMenuVisible.value = false;
-                } else {
-                  _isUpperMenuVisible.value = true;
-                }
-                
-              },
-              icon: const Icon(Icons.swap_vert)
-              ),
+            child: OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap['upperPanelVisibility'],),
           ),
           ValueListenableBuilder(
             valueListenable: _isUpperMenuVisible,
@@ -838,7 +828,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     setState(() {
     });
   }
-  void initializeShortcutsList(){
+  void _initializeShortcutsList(){
 
 
     shortcutsMap.putIfAbsent("play/pause", (){
@@ -876,6 +866,16 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       ksn.onClick = (){
         _saveFileWithSnackbar(context);
       };
+      return ksn;
+    });
+    shortcutsMap.putIfAbsent("upperPanelVisibility", (){
+      KeyboardShortcutNode ksn = KeyboardShortcutNode((){
+        if (_isUpperMenuVisible.value) {
+            _isUpperMenuVisible.value = false;
+          } else {
+            _isUpperMenuVisible.value = true;
+          }
+      }, "upperPanelVisibility", iconsList: [Icons.swap_vert]);
       return ksn;
     });
   }
