@@ -28,7 +28,6 @@ class Timecode implements Comparable<Timecode> {
       return;
     }
 
-    print("c$timecodeAsText");
     timecodeAsText="00:00:00:00";
     List<String> splittedTc = timecodeAsText.split(':');
     h = int.parse(splittedTc[0]);

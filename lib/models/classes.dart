@@ -9,7 +9,6 @@ import 'package:script_editor/models/timecode.dart';
 
 
 
-
 abstract class SourceFile{
   late File _file;
 
@@ -93,6 +92,15 @@ class ExcelFile extends SourceFile{
 
           if (collNr == tcInColl) {
             scriptNode.tcIn = Timecode(cell.value.value.toString());
+            if (sctiptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString())) {
+              if (sctiptList.last.tcIn.m <= scriptNode.tcIn.m) {
+                // previous TC is most probably in the same hour
+                scriptNode.tcIn.h = sctiptList.last.tcIn.h;
+              } else {
+                // previous TC m is later than new TC == new hour
+                scriptNode.tcIn.h = sctiptList.last.tcIn.h+1;
+              }
+            }
           }
           if (collNr == charNameColl) {
             scriptNode.charName = cell.value.value.toString();

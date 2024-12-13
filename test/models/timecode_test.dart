@@ -19,6 +19,30 @@ void main() {
       expect(tc.f, 20);
     });
 
+    test('Default constructor parses format MM:SS', (){
+      Timecode tc = Timecode('02:15');
+      expect(tc.h, 0);
+      expect(tc.m, 2);
+      expect(tc.s, 15);
+      expect(tc.f, 0);
+
+      Timecode tc2 = Timecode('25:36');
+      expect(tc2.h, 0);
+      expect(tc2.m, 25);
+      expect(tc2.s, 36);
+      expect(tc2.f, 0);
+    });
+
+    test('tcAsMmSsValidateCheck correctly validates valid timecode strings', () {
+      expect(Timecode.tcAsMmSsValidateCheck('12:22'), true);
+      expect(Timecode.tcAsMmSsValidateCheck('03:16'), true);
+    });
+    test('tcAsMmSsValidateCheck correctly invalidates invalid timecode strings', () {
+      expect(Timecode.tcAsMmSsValidateCheck('72:22'), false);
+      expect(Timecode.tcAsMmSsValidateCheck('03:16:12'), false);
+    });
+
+
     test('tcValidateCheck correctly validates valid timecode strings', () {
       expect(Timecode.tcValidateCheck('12:34:56:20'), true);
       expect(Timecode.tcValidateCheck('23:59:59:24'), true);
