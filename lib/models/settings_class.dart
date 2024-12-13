@@ -3,7 +3,7 @@ import 'package:script_editor/models/timecode.dart';
 
 import 'classes.dart';
 
-class SettingsClass{
+abstract class SettingsClass{
   static int rowNumber = 0;
   static int collNumber = 0;
   static String sheetName = "";
@@ -13,6 +13,7 @@ class SettingsClass{
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();
   static ExcelFile? scriptFile;
+  static TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf; 
 
   static bool isDataComplete(){
     if (sheetName != ""

@@ -6,7 +6,10 @@ import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
 
 
-
+enum TimecodeFormatting{
+  formatHhMmSsFf,
+  formatMmSs
+}
 
 
 abstract class SourceFile{
@@ -117,11 +120,18 @@ class ExcelFile extends SourceFile{
     //sctiptList.sort();
   }
 
-  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc){
+  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc, TimecodeFormatting tcFormatting){
     Sheet sheetObject = _excel[sheetNameLoc];
     int a=0;
     for (var scriptNode in myList) {
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.toString()));
+      switch (tcFormatting) {
+        case TimecodeFormatting.formatMmSs:
+          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.asStringFormattedMmSs()));
+          break;
+        default:
+          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.toString()));
+          break;
+      }
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+1, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.charName));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+2, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.dial));
       a++;

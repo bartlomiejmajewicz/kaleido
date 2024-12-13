@@ -56,18 +56,24 @@ void main() {
       expect(Timecode.tcValidateCheck('not-a-timecode'), false);
     });
 
-    test('showTimecode returns correctly formatted timecode string', () {
-      String tcAsText = '01:02:03:04';
-      Timecode tc = Timecode(tcAsText);
-      expect(tc.showTimecode(), tcAsText);
-    });
-
     test('framesCount calculates total frames correctly', () {
       Timecode.framerate = 25;
       Timecode tc = Timecode.fromIntValues(1, 2, 3, 4);
       int expectedFrames = 1 * 60 * 60 * 25 + 2 * 60 * 25 + 3 * 25 + 4;
       expect(tc.framesCount(), expectedFrames);
     });
+
+    test('asStringFormattedMmSs correctly formats timecode', () {
+      Timecode tc = Timecode("10:00:12:22");
+      expect(tc.asStringFormattedMmSs(), "00:12");
+      tc = Timecode("08:02:26:13");
+      expect(tc.asStringFormattedMmSs(), "02:26");
+      tc = Timecode("05:01:32:12");
+      expect(tc.asStringFormattedMmSs(), "01:32");
+      tc = Timecode("00:00:01:22");
+      expect(tc.asStringFormattedMmSs(), "00:01");
+    });
+    
 
     test('tcFromDuration initializes timecode correctly from duration', () {
       Timecode.framerate = 25;
@@ -98,7 +104,7 @@ void main() {
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
       Timecode result = tc1 + tc2;
-      expect(result.showTimecode(), '01:30:00:00');
+      expect(result.toString(), '01:30:00:00');
     });
 
     test('Subtraction operator subtracts timecodes correctly', () {
@@ -106,7 +112,7 @@ void main() {
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
       Timecode result = tc1 - tc2;
-      expect(result.showTimecode(), '00:30:00:00');
+      expect(result.toString(), '00:30:00:00');
     });
 
     test('Comparison operators work as expected', () {

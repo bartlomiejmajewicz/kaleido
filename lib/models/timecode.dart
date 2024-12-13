@@ -68,7 +68,7 @@ class Timecode implements Comparable<Timecode> {
     }
   }
 
-  String showTimecode(){
+  String _asString(){
     String output="";
     if(h<10){
       output = "0";
@@ -99,6 +99,10 @@ class Timecode implements Comparable<Timecode> {
 
     return output;
 
+  }
+
+  String asStringFormattedMmSs(){
+    return "${_asString().split(':')[1]}:${_asString().split(':')[2]}";
   }
 
   int framesCount(){
@@ -153,7 +157,7 @@ class Timecode implements Comparable<Timecode> {
   
   @override
   String toString() {
-    return showTimecode();
+    return _asString();
   }
 
 

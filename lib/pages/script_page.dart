@@ -685,7 +685,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
 
   int _saveFile(){
     try {
-      scriptSourceFile!.exportListToSheet(_scriptTable, sheetName);
+      scriptSourceFile!.exportListToSheet(_scriptTable, sheetName, SettingsClass.timecodeFormatting);
       scriptSourceFile!.saveFile();
       return 0;
     } catch (e) {

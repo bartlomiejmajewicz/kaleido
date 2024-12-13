@@ -152,6 +152,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     Text('selected fps: ${Timecode.framerate}'),
                   ]),
                   PaddingTableRow(children: [
+                    const Text("select timecode output formatting: "),
+                    _formattingSelector(),
+                    Text('selected format: ${_formattingOutput(SettingsClass.timecodeFormatting)}'),
+                  ]),
+                  PaddingTableRow(children: [
                     const Text("starting TC: "),
                     SizedBox( width: 100, child: TextFormField(
                       initialValue: SettingsClass.videoStartTc.toString(),
@@ -167,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       //style: TextStyle(backgroundColor: Colors.green),
                       //style: TextStyle().apply(backgroundColor: Colors.amber),
                     )),
-                    Text(SettingsClass.videoStartTc.showTimecode())
+                    Text(SettingsClass.videoStartTc.toString())
                   ]),
                 ],
               ),
@@ -275,10 +280,40 @@ class _SettingsPageState extends State<SettingsPage> {
         dropdownMenuEntries: const <DropdownMenuEntry>[
           DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
           DropdownMenuEntry(value: 25, label: "25 fps"),
-          DropdownMenuEntry(value: 30, label: "29,97 / 30 fps NDF"),
+          DropdownMenuEntry(value: 30, label: "29,97 DF / 30 fps"),
         ],
         ),
     );
+  }
+
+  Widget _formattingSelector(){
+    return IntrinsicWidth(
+      child: DropdownMenu(
+        width: 200,
+        label: const Text("set output formatting"),
+        onSelected: (value) {
+          setState(() {
+            SettingsClass.timecodeFormatting = value;
+          });
+        },
+        initialSelection: SettingsClass.timecodeFormatting,
+        dropdownMenuEntries: const <DropdownMenuEntry>[
+          DropdownMenuEntry(value: TimecodeFormatting.formatHhMmSsFf, label: "HH:MM:SS:FF"),
+          DropdownMenuEntry(value: TimecodeFormatting.formatMmSs, label: "MM:SS"),
+        ],
+        ),
+    );
+  }
+
+  String _formattingOutput(TimecodeFormatting tcFormat) {
+    switch (tcFormat) {
+      case TimecodeFormatting.formatHhMmSsFf:
+        return "HH:MM:SS:FF";
+      case TimecodeFormatting.formatMmSs:
+        return "MM:SS";
+      default:
+        return "HH:MM:SS:FF";
+    }
   }
 
   List<DropdownMenuEntry<String>> _getSheetsDropdownMenuEntries() {
