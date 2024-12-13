@@ -544,6 +544,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       return SizedBox(
         height: _listViewElementHeight.value,
         child: Row(
+          key: UniqueKey(),
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
@@ -637,7 +638,11 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                     _scriptTable.remove(_scriptTable[index]);
                     _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
-                    _scriptTable[index].dialFocusNode.requestFocus();
+                    try {
+                      _scriptTable[index].dialFocusNode.requestFocus();
+                    // ignore: empty_catches
+                    } catch (e) {
+                    }
                   },),
               ),
             ),

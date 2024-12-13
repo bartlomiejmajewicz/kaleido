@@ -196,7 +196,9 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } else {
     // User canceled the picker
-      _showPickerDialogCancelled('a video file');
+      if (SettingsClass.videoFilePath.isEmpty) {
+        _showPickerDialogCancelled('You have to select a video file to continue');
+      }
     }
     _videoFileSelectorActive.value = true;
   }
@@ -208,16 +210,23 @@ class _SettingsPageState extends State<SettingsPage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
       SettingsClass.scriptFilePath = result.files.single.path!;
-      excelFile = ExcelFile(result.files.single.path!);
-      SettingsClass.scriptFile = excelFile;
-      excelFile!.loadFile();
-      _saveSharedPreference('scriptPath', result.files.single.path!);
+      try {
+        excelFile = ExcelFile(result.files.single.path!);
+        SettingsClass.scriptFile = excelFile;
+        excelFile!.loadFile();
+        _saveSharedPreference('scriptPath', result.files.single.path!);
+        
+      } catch (e) {
+        _showPickerDialogCancelled("error while opening the file: $e");
+      }
       setState(() {
         
       });
     } else {
     // User canceled the picker
-      _showPickerDialogCancelled('a script file');
+      if (SettingsClass.videoFilePath.isEmpty) {
+          _showPickerDialogCancelled('You have to select a script file to continue');
+        }
     }
     _scriptFileSelectorActive.value = true;
   }
@@ -244,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage> {
         _saveSharedPreference('sheetName', value);
         });
       } catch (e) {
-        _showPickerDialogCancelled("an existing sheet name");
+        _showPickerDialogCancelled("You have to select an existing sheet name to continue");
       }
 
     },
@@ -252,22 +261,24 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  DropdownMenu _fpsSelectorWidget(){
-    return DropdownMenu(
-      width: 200, // TODO: szerokość zale
-      label: const Text("set video framerate"),
-      onSelected: (value) {
-        setState(() {
-          Timecode.framerate = value;
-        });
-      },
-      initialSelection: Timecode.framerate,
-      dropdownMenuEntries: const <DropdownMenuEntry>[
-        DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
-        DropdownMenuEntry(value: 25, label: "25 fps"),
-        DropdownMenuEntry(value: 30, label: "29,97 / 30 fps"),
-      ],
-      );
+  Widget _fpsSelectorWidget(){
+    return IntrinsicWidth(
+      child: DropdownMenu(
+        width: 200,
+        label: const Text("set video framerate"),
+        onSelected: (value) {
+          setState(() {
+            Timecode.framerate = value;
+          });
+        },
+        initialSelection: Timecode.framerate,
+        dropdownMenuEntries: const <DropdownMenuEntry>[
+          DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
+          DropdownMenuEntry(value: 25, label: "25 fps"),
+          DropdownMenuEntry(value: 30, label: "29,97 / 30 fps NDF"),
+        ],
+        ),
+    );
   }
 
   List<DropdownMenuEntry<String>> _getSheetsDropdownMenuEntries() {
@@ -285,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }).toList();
   }
 
-  Future<void> _showPickerDialogCancelled(String whichFile) async {
+  Future<void> _showPickerDialogCancelled(String description) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -295,7 +306,7 @@ class _SettingsPageState extends State<SettingsPage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('You have to select $whichFile to continue'),
+                Text(description),
               ],
             ),
           ),

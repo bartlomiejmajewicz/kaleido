@@ -11,14 +11,31 @@ class Timecode implements Comparable<Timecode> {
 
 
   Timecode([String timecodeAsText="00:00:00:00"]) {
-    if (!tcValidateCheck(timecodeAsText)) {
-      timecodeAsText = "00:00:00:00";
+    if (tcValidateCheck(timecodeAsText)) {
+      List<String> splittedTc = timecodeAsText.split(':');
+      h = int.parse(splittedTc[0]);
+      m = int.parse(splittedTc[1]);
+      s = int.parse(splittedTc[2]);
+      f = int.parse(splittedTc[3]);
+      return;
     }
+    if (tcAsMmSsValidateCheck(timecodeAsText)) {
+      List<String> splittedTc = timecodeAsText.split(':');
+      h = 0;
+      m = int.parse(splittedTc[0]);
+      s = int.parse(splittedTc[1]);
+      f = 0;
+      return;
+    }
+
+    print("c$timecodeAsText");
+    timecodeAsText="00:00:00:00";
     List<String> splittedTc = timecodeAsText.split(':');
     h = int.parse(splittedTc[0]);
     m = int.parse(splittedTc[1]);
     s = int.parse(splittedTc[2]);
     f = int.parse(splittedTc[3]);
+    
   }
 
   Timecode.fromDuration(Duration duration){
@@ -35,7 +52,16 @@ class Timecode implements Comparable<Timecode> {
 
   static bool tcValidateCheck(String timecodeAsText) {
   // check if the TC is a valid value
-  var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
+    if(tcValidateCheck.hasMatch(timecodeAsText)){
+      return true;
+    } else{
+      return false;
+    }
+  }
+
+  static bool tcAsMmSsValidateCheck(String timecodeAsText){
+    var tcValidateCheck = RegExp(r'^([0-5]?[0-9]):[0-5][0-9]$');
     if(tcValidateCheck.hasMatch(timecodeAsText)){
       return true;
     } else{

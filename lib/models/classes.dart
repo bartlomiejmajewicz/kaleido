@@ -81,17 +81,24 @@ class ExcelFile extends SourceFile{
         int dialColl = SettingsClass.collNumber+2;
         ScriptNode scriptNode = ScriptNode.empty();
         for (var cell in row) {
-          //FIXME: popraw te warunki, bo wiocha
-          if(cell != null && cell.value != null && cell.value.value != null){
-            if (collNr == tcInColl) {
-              scriptNode.tcIn = Timecode(cell.value.value.toString());
-            }
-            if (collNr == charNameColl) {
-              scriptNode.charName = cell.value.value.toString();
-            }
-            if (collNr == dialColl) {
-              scriptNode.dial = cell.value.value.toString();
-            }
+          if (cell == null) {
+            break;
+          }
+          if (cell.value == null) {
+            break;
+          }
+          if (cell.value.value == null) {
+            break;
+          }
+
+          if (collNr == tcInColl) {
+            scriptNode.tcIn = Timecode(cell.value.value.toString());
+          }
+          if (collNr == charNameColl) {
+            scriptNode.charName = cell.value.value.toString();
+          }
+          if (collNr == dialColl) {
+            scriptNode.dial = cell.value.value.toString();
           }
           collNr++;
         }
@@ -111,7 +118,7 @@ class ExcelFile extends SourceFile{
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+2, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.dial));
       a++;
     }
-    while(a<sheetObject.maxRows){
+    while(a<sheetObject.rows.length){
       sheetObject.removeRow(a);
       a++;
     }
