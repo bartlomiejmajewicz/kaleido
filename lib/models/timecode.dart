@@ -1,3 +1,5 @@
+
+
 class Timecode implements Comparable<Timecode> {
 
   static int framerate = 25; //TODO: FRAMERATE SET
@@ -52,11 +54,18 @@ class Timecode implements Comparable<Timecode> {
   static bool tcValidateCheck(String timecodeAsText) {
   // check if the TC is a valid value
     var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
-    if(tcValidateCheck.hasMatch(timecodeAsText)){
-      return true;
-    } else{
+    if (!tcValidateCheck.hasMatch(timecodeAsText)) {
       return false;
     }
+    try {
+      if (int.parse(timecodeAsText.split(':')[3]) >= framerate) {
+      return false;
+    }
+    // ignore: empty_catches
+    } catch (e) {
+    }
+    
+    return true;
   }
 
   static bool tcAsMmSsValidateCheck(String timecodeAsText){
@@ -114,6 +123,44 @@ class Timecode implements Comparable<Timecode> {
 
     return frCount;
 
+  }
+
+  void addFrame(){
+    f++;
+    if (f == framerate) {
+      f=0;
+      s++;
+      if (s==60) {
+        s=0;
+        m++;
+        if (m==60) {
+          m=0;
+          h++;
+          if (h==24) {
+            h=0;
+          }
+        }
+      }
+    }
+  }
+
+  void substractFrame(){
+    f--;
+    if (f == -1) {
+      f=framerate-1;
+      s--;
+      if (s==-1) {
+        s=59;
+        m--;
+        if (m==-1) {
+          m=59;
+          h--;
+          if (h==-1) {
+            h=23;
+          }
+        }
+      }
+    }
   }
 
   tcFromDuration(Duration duration){

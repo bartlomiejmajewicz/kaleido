@@ -44,8 +44,10 @@ void main() {
 
 
     test('tcValidateCheck correctly validates valid timecode strings', () {
+      Timecode.framerate = 25;
       expect(Timecode.tcValidateCheck('12:34:56:20'), true);
       expect(Timecode.tcValidateCheck('23:59:59:24'), true);
+      expect(Timecode.tcValidateCheck('12:34:56:28'), false);
     });
 
     test('tcValidateCheck correctly invalidates invalid timecode strings', () {
@@ -73,6 +75,44 @@ void main() {
       tc = Timecode("00:00:01:22");
       expect(tc.asStringFormattedMmSs(), "00:01");
     });
+
+    test('addFrame works correctly', () {
+      Timecode.framerate = 25;
+      Timecode tc = Timecode("10:00:15:22");
+      tc.addFrame();
+      expect(tc.toString(), Timecode("10:00:15:23").toString());
+
+      tc = Timecode("09:11:05:24");
+      tc.addFrame();
+      expect(tc.toString(), Timecode("09:11:06:00").toString());
+
+      tc = Timecode("09:15:59:24");
+      tc.addFrame();
+      expect(tc.toString(), Timecode("09:16:00:00").toString());
+
+      tc = Timecode("23:59:59:24");
+      tc.addFrame();
+      expect(tc.toString(), Timecode("00:00:00:00").toString());
+    },);
+
+    test('substractFrame works correctly', () {
+      Timecode.framerate = 25;
+      Timecode tc = Timecode("10:00:15:23");
+      tc.substractFrame();
+      expect(tc.toString(), Timecode("10:00:15:22").toString());
+
+      tc = Timecode("09:11:06:00");
+      tc.substractFrame();
+      expect(tc.toString(), Timecode("09:11:05:24").toString());
+
+      tc = Timecode("09:16:00:00");
+      tc.substractFrame();
+      expect(tc.toString(), Timecode("09:15:59:24").toString());
+
+      tc = Timecode("00:00:00:00");
+      tc.substractFrame();
+      expect(tc.toString(), Timecode("23:59:59:24").toString());
+    },);
     
 
     test('tcFromDuration initializes timecode correctly from duration', () {
