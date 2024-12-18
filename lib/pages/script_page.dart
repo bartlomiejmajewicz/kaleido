@@ -15,6 +15,13 @@ import 'package:script_editor/widgets/outlined_button_with_shortcut.dart';
 import 'package:script_editor/widgets/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+
+class UpperPanelReload extends ChangeNotifier{
+  void upperPanelReload(){
+    notifyListeners();
+  }
+}
+
 class ScriptPage extends StatefulWidget {
   const ScriptPage({super.key, required this.title});
 
@@ -56,7 +63,7 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
-final ValueNotifier<bool> _scriptTableRebuildFlag = ValueNotifier(true);
+UpperPanelReload upperPanelReload = UpperPanelReload();
 
 Widget _lowerPanel = const Flexible(child: Text(""));
 
@@ -141,10 +148,11 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _upperPanelWidget(context),
-          ValueListenableBuilder(valueListenable: _scriptTableRebuildFlag, builder: (context, value, child) {
-            //return _generateTableAsScrollablePositionListView();
-            return _lowerPanel;
-          },)
+          ListenableBuilder(
+            listenable: upperPanelReload,
+            builder: (context, child) {
+              return _lowerPanel;
+            },),
           ]
         ),
       ),
@@ -813,7 +821,9 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     if(kDebugMode){
       print("_scriptTableRebuildRequest");
     }
-    _scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
+    upperPanelReload.upperPanelReload();
+    //_scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
+
   }
 
   void updateUi(int a){
