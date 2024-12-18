@@ -5,7 +5,7 @@ import 'package:script_editor/main.dart';
 main(){
   testWidgets('MyApp widget test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget( MyApp());
+    await tester.pumpWidget( const MyApp());
 
 
     expect(find.byType(NavigationRail), findsOneWidget);
