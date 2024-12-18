@@ -101,7 +101,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     player.stream.position.listen((e) {
       _currentPlaybackPosition = e;
       markCurrentLine(_scriptTable);
-      if (tcEntryControllerActive) {  
+      if (tcEntryControllerActive) {
         tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e))+SettingsClass.videoStartTc).toString();
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
@@ -410,7 +410,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   void markCurrentLine(List<ScriptNode> scriptList){
     bool isThereAChange = false;
     for (var i = 0; i < scriptList.length; i++) {
-      if (_currentPlaybackPosition+SettingsClass.videoStartTc.tcAsDuration() < scriptList[i].tcIn.tcAsDuration() && !isThereAChange && i>0) {
+      if ((Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition))+SettingsClass.videoStartTc).framesCount() < scriptList[i].tcIn.framesCount() && !isThereAChange && i>0) {
         scriptList[i-1].isThisCurrentTCValueNotifier.value = true;
         isThereAChange = true;
       } else {
@@ -711,8 +711,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   }
 
   Timecode tcFromVideo(){
-    Timecode tc = Timecode();
-    tc.tcFromDuration(_currentPlaybackPosition);
+    Timecode tc = Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition))+SettingsClass.videoStartTc;
     return tc;
   }
 

@@ -2,7 +2,7 @@
 
 class Timecode implements Comparable<Timecode> {
 
-  static double framerate = 25; //TODO: FRAMERATE SET
+  static double framerate = 25;
   
   
 
@@ -83,35 +83,15 @@ class Timecode implements Comparable<Timecode> {
 
   String _asString(){
     String output="";
-    if(h<10){
-      output = "0";
-    }
-    output += h.toString();
-
+    output += h.toString().padLeft(2, '0');
     output += ":";
-
-    if (m<10) {
-      output += "0";
-    }
-    output += m.toString();
-
+    output += m.toString().padLeft(2, '0');
     output += ":";
-
-    if (s<10) {
-      output += "0";
-    }
-    output += s.toString();
-    
+    output += s.toString().padLeft(2, '0');
     output += ":";
-
-    if (f<10) {
-      output += "0";
-    }
-    output += f.toString();
-
+    output += f.toString().padLeft(2,'0');
 
     return output;
-
   }
 
   String asStringFormattedMmSs(){
