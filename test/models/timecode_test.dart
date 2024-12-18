@@ -65,6 +65,25 @@ void main() {
       expect(tc.framesCount(), expectedFrames);
     });
 
+    test('countFrames calculates total frames count from Duraction correctly', () {
+      Timecode.framerate = 25;
+      Duration duration = const Duration(hours: 5, minutes: 12, seconds: 2);
+      int framesCount = Timecode.countFrames(duration);
+      int expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      expect(framesCount, expectedFramesCount);
+
+      duration = const Duration(hours: 2, minutes: 29, seconds: 33);
+      framesCount = Timecode.countFrames(duration);
+      expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      expect(framesCount, expectedFramesCount);
+
+
+      duration = const Duration(minutes: 12, seconds: 38);
+      framesCount = Timecode.countFrames(duration);
+      expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      expect(framesCount, expectedFramesCount);
+    });
+
     test('asStringFormattedMmSs correctly formats timecode', () {
       Timecode tc = Timecode("10:00:12:22");
       expect(tc.asStringFormattedMmSs(), "00:12");

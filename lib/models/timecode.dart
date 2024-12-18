@@ -2,7 +2,7 @@
 
 class Timecode implements Comparable<Timecode> {
 
-  static int framerate = 25; //TODO: FRAMERATE SET
+  static double framerate = 25; //TODO: FRAMERATE SET
   
   
 
@@ -48,6 +48,10 @@ class Timecode implements Comparable<Timecode> {
     m = min;
     s = sec;
     f = fr;
+  }
+
+  Timecode.fromFramesCount(int framesCount){
+    _tcFromFramesCount(framesCount);
   }
 
 
@@ -117,9 +121,9 @@ class Timecode implements Comparable<Timecode> {
   int framesCount(){
     int frCount=0;
     frCount += f;
-    frCount += s*framerate;
-    frCount += m*60*framerate;
-    frCount += h*60*60*framerate;
+    frCount += (s*framerate).toInt();
+    frCount += (m*60*framerate).toInt();
+    frCount += (h*60*60*framerate).toInt();
 
     return frCount;
 
@@ -127,7 +131,7 @@ class Timecode implements Comparable<Timecode> {
 
   void addFrame(){
     f++;
-    if (f == framerate) {
+    if (f >= framerate) {
       f=0;
       s++;
       if (s==60) {
@@ -147,7 +151,7 @@ class Timecode implements Comparable<Timecode> {
   void substractFrame(){
     f--;
     if (f == -1) {
-      f=framerate-1;
+      f=framerate.toInt()-1;
       s--;
       if (s==-1) {
         s=59;
@@ -163,7 +167,7 @@ class Timecode implements Comparable<Timecode> {
     }
   }
 
-  tcFromDuration(Duration duration){
+  void tcFromDuration(Duration duration){
     int millis = duration.inMilliseconds;
     h = millis ~/ (1000*3600);
     millis = millis - (h*1000*3600);
@@ -171,8 +175,20 @@ class Timecode implements Comparable<Timecode> {
     millis = millis - (m*1000*60);
     s = millis ~/ (1000);
     millis = millis - s*1000;
-    f = (framerate * millis / 1000).round();
+    f = ((framerate * millis) / 1000).round();
   }
+
+  static int countFrames(Duration duration){
+    return (duration.inMilliseconds ~/ (1000 / framerate));
+  }
+
+  void _tcFromFramesCount(int framesCount){
+    for (var i = 0; i < framesCount; i++) {
+      addFrame();
+    }
+  }
+
+
 
   Duration tcAsDuration(){
     return Duration(

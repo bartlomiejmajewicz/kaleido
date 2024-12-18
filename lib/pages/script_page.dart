@@ -102,7 +102,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       _currentPlaybackPosition = e;
       markCurrentLine(_scriptTable);
       if (tcEntryControllerActive) {  
-        tcEntryController.text =  Timecode.fromDuration(e+SettingsClass.videoStartTc.tcAsDuration()).toString();
+        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e))+SettingsClass.videoStartTc).toString();
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
     });

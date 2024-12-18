@@ -273,14 +273,16 @@ class _SettingsPageState extends State<SettingsPage> {
         label: const Text("set video framerate"),
         onSelected: (value) {
           setState(() {
-            Timecode.framerate = value;
+            Timecode.framerate =  value;
           });
         },
         initialSelection: Timecode.framerate,
         dropdownMenuEntries: const <DropdownMenuEntry>[
-          DropdownMenuEntry(value: 24, label: "23.98 / 24 fps"),
-          DropdownMenuEntry(value: 25, label: "25 fps"),
-          DropdownMenuEntry(value: 30, label: "29,97 DF / 30 fps"),
+          DropdownMenuEntry(value: 23.976, label: "23.98 fps"),
+          DropdownMenuEntry(value: 24.0, label: "24 fps"),
+          DropdownMenuEntry(value: 25.0, label: "25 fps"),
+          DropdownMenuEntry(value: 29.97, label: "29,97 fps NDF"),
+          DropdownMenuEntry(value: 30.0, label: "30 fps / 29,97 fps DF"),
         ],
         ),
     );
