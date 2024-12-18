@@ -716,7 +716,8 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   }
 
 
-  int newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String charName = "char name", String dial = 'dialogue']) {
+  int newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String? charName = "char name", String dial = 'dialogue']) {
+    charName ??= "";
     charName = charName=="" ? "char name" : charName;
     dial = dial=="" ? "char name" : dial;
     Timecode timecode = Timecode();
@@ -836,7 +837,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
       ksn.onClick = (){
 
-        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
+        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
@@ -846,7 +847,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     shortcutsMap.putIfAbsent("add char #2", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
-        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName!);
+        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
