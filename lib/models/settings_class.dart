@@ -13,7 +13,8 @@ abstract class SettingsClass{
   static double videoHeight = 200;
   static Timecode videoStartTc=Timecode();
   static ExcelFile? scriptFile;
-  static TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf; 
+  static TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf;
+  static List<String> audioSourcesPathsList = List.empty(growable: true);
 
   static bool isDataComplete(){
     if (sheetName != ""

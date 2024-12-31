@@ -14,6 +14,7 @@ import 'package:script_editor/models/timecode.dart';
 import 'package:script_editor/widgets/outlined_button_with_shortcut.dart';
 import 'package:script_editor/widgets/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:path/path.dart' as path_package;
 
 
 class UpperPanelReload extends ChangeNotifier{
@@ -34,8 +35,10 @@ class ScriptPage extends StatefulWidget {
 
 class _ScriptPageState extends State<ScriptPage> {
 
-late final player = Player();
-late final controller = VideoController(player);
+
+final Player videoPlayer = Player();
+late final controller = VideoController(videoPlayer);
+late final List<Player> audioPlayers = List.empty(growable: true);
 
 late double _screenWidth;
 late double _screenHeight;
@@ -89,7 +92,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   @override
   void dispose(){
     keyEventNotifier!.removeListener(keyEventShortcutProcessFromProvider);
-    player.dispose();
+    videoPlayer.dispose();
     super.dispose();
   }
 
@@ -104,8 +107,8 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     keyEventNotifier!.addListener(keyEventShortcutProcessFromProvider);
 
 
-    player.open(Media(SettingsClass.videoFilePath));
-    player.stream.position.listen((e) {
+    videoPlayer.open(Media(SettingsClass.videoFilePath));
+    videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
       markCurrentLine(_scriptTable);
       if (tcEntryControllerActive) {
@@ -168,6 +171,56 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
 
   Widget _upperPanelWidget(BuildContext context) {
     EdgeInsets paddingEdgeInsets = const EdgeInsets.all(4.0);
+
+    Widget switchAudio(){
+
+      List<Widget> list = List.empty(growable: true);
+      list.add(
+        OutlinedButton(
+          onPressed: () async {
+            await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.videoFilePath));
+          },
+          child: const Text("org"))
+        );
+
+      for (AudioTrack audioTrack in videoPlayer.state.tracks.audio) {
+        list.add(
+          OutlinedButton(
+            onPressed: () async {
+              await videoPlayer.setAudioTrack(audioTrack);
+            },
+            child: Text(audioTrack.id))
+        );
+      }
+
+
+      for (var i = 0; i < SettingsClass.audioSourcesPathsList.length; i++) {
+        list.add(
+          OutlinedButton(
+            onPressed: () async {
+              await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.audioSourcesPathsList[i]));
+            },
+            child: Text(
+              maxLines: 1,
+              path_package.basename(SettingsClass.audioSourcesPathsList[i])))
+        );
+      }
+
+
+
+
+
+      // return Column(
+      //   children: list
+      // );
+      return SizedBox(
+        height: SettingsClass.videoHeight,
+        width: 200,
+        child: ListView(
+          children: list,
+        ),
+      );
+    }
 
 
     Padding visibilityControllers(EdgeInsets paddingEdgeInsets) {
@@ -267,6 +320,9 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                                   ),
                                 ),
                                 rightFromVideo,
+                                Padding(padding: paddingEdgeInsets,
+                                  child: switchAudio()
+                                ),
                                 Padding(
                                   padding: paddingEdgeInsets,
                                   child: Column(
@@ -378,17 +434,17 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                     },
                     onTapOutside: (PointerDownEvent pde){
                       jumpToTc(Timecode(tcEntryController.text));
-                      player.play();
+                      videoPlayer.play();
                       tcEntryControllerActive = true;
                     },
                     onSaved: (newValue){
                       jumpToTc(Timecode(tcEntryController.text));
-                      player.play();
+                      videoPlayer.play();
                       tcEntryControllerActive = true;
                     },
                     onFieldSubmitted: (value){
                       jumpToTc(Timecode(tcEntryController.text));
-                      player.play();
+                      videoPlayer.play();
                       tcEntryControllerActive = true;
                     }  
                   ),
@@ -744,7 +800,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   }
 
   void jumpToTc(Timecode tc){
-    player.seek((tc-SettingsClass.videoStartTc).tcAsDuration());
+    videoPlayer.seek((tc-SettingsClass.videoStartTc).tcAsDuration());
   }
 
   Timecode tcFromVideo(){
@@ -864,13 +920,13 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
 
 
     shortcutsMap.putIfAbsent("play/pause", (){
-      return KeyboardShortcutNode((){player.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
+      return KeyboardShortcutNode((){videoPlayer.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
     });
     shortcutsMap.putIfAbsent("seek >", (){
-      return KeyboardShortcutNode((){player.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
+      return KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
     });
     shortcutsMap.putIfAbsent("seek <", (){
-      return KeyboardShortcutNode((){player.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
+      return KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
     });
     shortcutsMap.putIfAbsent("add char #1", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");

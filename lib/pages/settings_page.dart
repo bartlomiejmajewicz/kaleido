@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +9,8 @@ import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:path/path.dart' as path_package;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -66,6 +70,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     
                     SelectableText("selected file: ${SettingsClass.videoFilePath}", maxLines: 2, style: const TextStyle(overflow: TextOverflow.clip),),
                   ]),
+                  PaddingTableRow(
+                    children: [
+                      const Text("select additional audio files:"),
+                      _additionalFilesSelector(),
+                      Container(),
+                    ]
+                  ),
                   PaddingTableRow(children: [
                     const Text("select script file:"),
                     ValueListenableBuilder(valueListenable: _scriptFileSelectorActive, builder: (context, value, child) {
@@ -185,6 +196,49 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
+  Widget _additionalFilesSelector(){
+
+    List<TableRow> list = List.empty(growable: true);
+
+    for (var i = 0; i < SettingsClass.audioSourcesPathsList.length; i++) {
+      list.add(TableRow(
+        children: [
+          SelectableText(path_package.basename(SettingsClass.audioSourcesPathsList[i]), maxLines: 1, style: const TextStyle(overflow: TextOverflow.clip),),
+          OutlinedButton(
+            onPressed: (){
+              setState(() {
+                SettingsClass.audioSourcesPathsList.removeAt(i);
+              });
+            },
+            child: const Icon(Icons.delete))
+        ]
+      ));
+    }
+
+    list.add(TableRow(
+      children: [
+        OutlinedButton(
+          onPressed: (){
+            setState(() {
+              _selectAudioFile();
+            });
+          },
+          child: const Icon(Icons.add_box_outlined),),
+        OutlinedButton(
+          onPressed: (){
+            setState(() {
+              _selectAudioFiles();
+            });
+          },
+          child: const Icon(Icons.library_add_outlined),),
+      ]
+    ));
+    return Table(
+      children: list
+    );
+  }
+
+
   Future<void> _saveSharedPreference(String key, String value) async {
     final sharedPreferences = await SharedPreferences.getInstance();
     sharedPreferences.setString(key, value);
@@ -206,6 +260,36 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     }
     _videoFileSelectorActive.value = true;
+  }
+
+  Future<void> _selectAudioFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio);
+    if (result != null) {
+      SettingsClass.audioSourcesPathsList.add(result.files.single.path!);
+      setState(() {
+        
+      });
+    } else {
+    // User canceled the picker
+      _showPickerDialogCancelled('You have to select an audio file to continue');
+    }
+  }
+
+  Future<void> _selectAudioFiles() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio, allowMultiple: true);
+    if (result != null) {
+      result.paths.forEach((element) {
+        if (element != null) {
+          SettingsClass.audioSourcesPathsList.add(element);
+        }
+      },);
+      setState(() {
+        
+      });
+    } else {
+    // User canceled the picker
+      _showPickerDialogCancelled('You have to select an audio file to continue');
+    }
   }
 
 
