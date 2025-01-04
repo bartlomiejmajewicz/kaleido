@@ -15,6 +15,7 @@ abstract class SettingsClass{
   static ExcelFile? scriptFile;
   static TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf;
   static List<String> audioSourcesPathsList = List.empty(growable: true);
+  static double inputFramerate = 25;
 
   static bool isDataComplete(){
     if (sheetName != ""

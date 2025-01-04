@@ -2,7 +2,7 @@
 
 class Timecode implements Comparable<Timecode> {
 
-  static double framerate = 25;
+  late double framerate;
   
   
 
@@ -12,8 +12,8 @@ class Timecode implements Comparable<Timecode> {
   int f=0;
 
 
-  Timecode([String timecodeAsText="00:00:00:00"]) {
-    if (tcValidateCheck(timecodeAsText)) {
+  Timecode([String timecodeAsText="00:00:00:00", this.framerate = 25]) {
+    if (tcValidateCheck(timecodeAsText, framerate)) {
       List<String> splittedTc = timecodeAsText.split(':');
       h = int.parse(splittedTc[0]);
       m = int.parse(splittedTc[1]);
@@ -39,23 +39,25 @@ class Timecode implements Comparable<Timecode> {
     
   }
 
-  Timecode.fromDuration(Duration duration){
+  Timecode.fromDuration(Duration duration, this.framerate){
+    framerate = framerate;
     tcFromDuration(duration);
   }
 
-  Timecode.fromIntValues(int hour, int min, int sec, int fr){
+  Timecode.fromIntValues(int hour, int min, int sec, int fr, this.framerate){
     h = hour;
     m = min;
     s = sec;
     f = fr;
   }
 
-  Timecode.fromFramesCount(int framesCount){
+  Timecode.fromFramesCount(int framesCount, this.framerate){
+    framerate = framerate;
     _tcFromFramesCount(framesCount);
   }
 
 
-  static bool tcValidateCheck(String timecodeAsText) {
+  static bool tcValidateCheck(String timecodeAsText, double framerate) {
   // check if the TC is a valid value
     var tcValidateCheck = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d):([0-5]\d)$');
     if (!tcValidateCheck.hasMatch(timecodeAsText)) {
@@ -158,7 +160,7 @@ class Timecode implements Comparable<Timecode> {
     f = ((framerate * millis) / 1000).round();
   }
 
-  static int countFrames(Duration duration){
+  static int countFrames(Duration duration, double framerate){
     return (duration.inMilliseconds ~/ (1000 / framerate));
   }
 
@@ -180,11 +182,11 @@ class Timecode implements Comparable<Timecode> {
   }
 
   Timecode operator + (Timecode other){
-    return Timecode.fromDuration(tcAsDuration()+other.tcAsDuration());
+    return Timecode.fromDuration(tcAsDuration()+other.tcAsDuration(), framerate);
   }
 
   Timecode operator - (Timecode other){
-    return Timecode.fromDuration(tcAsDuration()-other.tcAsDuration());
+    return Timecode.fromDuration(tcAsDuration()-other.tcAsDuration(), framerate);
   }
   
   @override

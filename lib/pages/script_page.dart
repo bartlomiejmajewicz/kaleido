@@ -112,7 +112,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
       _currentPlaybackPosition = e;
       markCurrentLine(_scriptTable);
       if (tcEntryControllerActive) {
-        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e))+SettingsClass.videoStartTc).toString();
+        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).toString();
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
     });
@@ -503,7 +503,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   void markCurrentLine(List<ScriptNode> scriptList){
     bool isThereAChange = false;
     for (var i = 0; i < scriptList.length; i++) {
-      if ((Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition))+SettingsClass.videoStartTc).framesCount() < scriptList[i].tcIn.framesCount() && !isThereAChange && i>0) {
+      if ((Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).framesCount() < scriptList[i].tcIn.framesCount() && !isThereAChange && i>0) {
         scriptList[i-1].isThisCurrentTCValueNotifier.value = true;
         isThereAChange = true;
       } else {
@@ -676,7 +676,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
                 child: TextFormField(
                   controller: _scriptTable[index].textControllerTc,
                   onChanged: (value) {
-                    if(Timecode.tcValidateCheck(value)){
+                    if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
                       _scriptTable[index].tcIn = Timecode(value);
                     }
                   },
@@ -804,7 +804,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
   }
 
   Timecode tcFromVideo(){
-    Timecode tc = Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition))+SettingsClass.videoStartTc;
+    Timecode tc = Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc;
     return tc;
   }
 

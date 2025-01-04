@@ -1,5 +1,4 @@
 
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -160,7 +159,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   PaddingTableRow(children: [
                     const Text("select project framerate: "),
                     _fpsSelectorWidget(),
-                    Text('selected fps: ${Timecode.framerate}'),
+                    Text('selected fps: ${SettingsClass.inputFramerate}'),
                   ]),
                   PaddingTableRow(children: [
                     const Text("select timecode output formatting: "),
@@ -173,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       initialValue: SettingsClass.videoStartTc.toString(),
                       onChanged: (value) {
                         //FIXME:
-                        if(Timecode.tcValidateCheck(value)){
+                        if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
                           setState(() {
                             SettingsClass.videoStartTc = Timecode(value);
                           });
@@ -278,11 +277,11 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _selectAudioFiles() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio, allowMultiple: true);
     if (result != null) {
-      result.paths.forEach((element) {
+      for (String? element in result.paths) {
         if (element != null) {
           SettingsClass.audioSourcesPathsList.add(element);
         }
-      },);
+      }
       setState(() {
         
       });
@@ -357,11 +356,13 @@ class _SettingsPageState extends State<SettingsPage> {
         label: const Text("set video framerate"),
         onSelected: (value) {
           setState(() {
-            Timecode.framerate =  value;
+            if (value != null) {
+              SettingsClass.inputFramerate = value;
+            }
           });
         },
-        initialSelection: Timecode.framerate,
-        dropdownMenuEntries: const <DropdownMenuEntry>[
+        initialSelection: SettingsClass.inputFramerate,
+        dropdownMenuEntries: const <DropdownMenuEntry<double>>[
           DropdownMenuEntry(value: 23.976, label: "23.98 fps"),
           DropdownMenuEntry(value: 24.0, label: "24 fps"),
           DropdownMenuEntry(value: 25.0, label: "25 fps"),

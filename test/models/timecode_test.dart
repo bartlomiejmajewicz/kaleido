@@ -44,43 +44,40 @@ void main() {
 
 
     test('tcValidateCheck correctly validates valid timecode strings', () {
-      Timecode.framerate = 25;
-      expect(Timecode.tcValidateCheck('12:34:56:20'), true);
-      expect(Timecode.tcValidateCheck('23:59:59:24'), true);
-      expect(Timecode.tcValidateCheck('12:34:56:28'), false);
+      expect(Timecode.tcValidateCheck('12:34:56:20', 25), true);
+      expect(Timecode.tcValidateCheck('23:59:59:24', 25), true);
+      expect(Timecode.tcValidateCheck('12:34:56:28', 25), false);
     });
 
     test('tcValidateCheck correctly invalidates invalid timecode strings', () {
-      expect(Timecode.tcValidateCheck('25:00:00:00'), false);
-      expect(Timecode.tcValidateCheck('12:60:00:00'), false);
-      expect(Timecode.tcValidateCheck('12:34:60:00'), false);
-      expect(Timecode.tcValidateCheck('12:34:56:60'), false);
-      expect(Timecode.tcValidateCheck('not-a-timecode'), false);
+      expect(Timecode.tcValidateCheck('25:00:00:00', 25), false);
+      expect(Timecode.tcValidateCheck('12:60:00:00', 25), false);
+      expect(Timecode.tcValidateCheck('12:34:60:00', 25), false);
+      expect(Timecode.tcValidateCheck('12:34:56:60', 25), false);
+      expect(Timecode.tcValidateCheck('not-a-timecode', 25), false);
     });
 
     test('framesCount calculates total frames correctly', () {
-      Timecode.framerate = 25;
-      Timecode tc = Timecode.fromIntValues(1, 2, 3, 4);
+      Timecode tc = Timecode.fromIntValues(1, 2, 3, 4, 25);
       int expectedFrames = 1 * 60 * 60 * 25 + 2 * 60 * 25 + 3 * 25 + 4;
       expect(tc.framesCount(), expectedFrames);
     });
 
     test('countFrames calculates total frames count from Duraction correctly', () {
-      Timecode.framerate = 25;
       Duration duration = const Duration(hours: 5, minutes: 12, seconds: 2);
-      int framesCount = Timecode.countFrames(duration);
-      int expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      int framesCount = Timecode.countFrames(duration, 25);
+      int expectedFramesCount = Timecode.fromDuration(duration, 25).framesCount();
       expect(framesCount, expectedFramesCount);
 
       duration = const Duration(hours: 2, minutes: 29, seconds: 33);
-      framesCount = Timecode.countFrames(duration);
-      expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      framesCount = Timecode.countFrames(duration, 25);
+      expectedFramesCount = Timecode.fromDuration(duration, 25).framesCount();
       expect(framesCount, expectedFramesCount);
 
 
       duration = const Duration(minutes: 12, seconds: 38);
-      framesCount = Timecode.countFrames(duration);
-      expectedFramesCount = Timecode.fromDuration(duration).framesCount();
+      framesCount = Timecode.countFrames(duration, 25);
+      expectedFramesCount = Timecode.fromDuration(duration, 25).framesCount();
       expect(framesCount, expectedFramesCount);
     });
 
@@ -96,7 +93,6 @@ void main() {
     });
 
     test('addFrame works correctly', () {
-      Timecode.framerate = 25;
       Timecode tc = Timecode("10:00:15:22");
       tc.addFrame();
       expect(tc.toString(), Timecode("10:00:15:23").toString());
@@ -115,7 +111,6 @@ void main() {
     },);
 
     test('substractFrame works correctly', () {
-      Timecode.framerate = 25;
       Timecode tc = Timecode("10:00:15:23");
       tc.substractFrame();
       expect(tc.toString(), Timecode("10:00:15:22").toString());
@@ -135,9 +130,8 @@ void main() {
     
 
     test('tcFromDuration initializes timecode correctly from duration', () {
-      Timecode.framerate = 25;
       Duration duration = const Duration(hours: 1, minutes: 2, seconds: 3, milliseconds: 400);
-      Timecode tc = Timecode.fromDuration(duration);
+      Timecode tc = Timecode.fromDuration(duration, 25);
       expect(tc.h, 1);
       expect(tc.m, 2);
       expect(tc.s, 3);
@@ -145,21 +139,20 @@ void main() {
     });
 
     test('tcAsDuration converts timecode to correct duration', () {
-      Timecode.framerate = 25;
+      double framerate = 25;
       int h = 1;
       int m = 2;
       int s = 3;
       int f = 4;
-      Timecode tc = Timecode.fromIntValues(h, m, s, f);
+      Timecode tc = Timecode.fromIntValues(h, m, s, f, 25);
       Duration duration = tc.tcAsDuration();
       expect(duration.inHours, h);
       expect(duration.inMinutes % 60, m);
       expect(duration.inSeconds % 60, s);
-      expect(duration.inMilliseconds % 1000, ((f / Timecode.framerate) * 1000).round());
+      expect(duration.inMilliseconds % 1000, ((f / framerate) * 1000).round());
     });
 
     test('Addition operator adds timecodes correctly', () {
-      Timecode.framerate = 25;
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
       Timecode result = tc1 + tc2;
@@ -167,7 +160,6 @@ void main() {
     });
 
     test('Subtraction operator subtracts timecodes correctly', () {
-      Timecode.framerate = 25;
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
       Timecode result = tc1 - tc2;
@@ -175,7 +167,6 @@ void main() {
     });
 
     test('Comparison operators work as expected', () {
-      Timecode.framerate = 25;
       Timecode tc1 = Timecode('01:00:00:00');
       Timecode tc2 = Timecode('00:30:00:00');
       Timecode tc3 = Timecode('01:00:00:00');
