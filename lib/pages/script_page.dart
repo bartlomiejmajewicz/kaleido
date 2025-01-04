@@ -17,8 +17,8 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:path/path.dart' as path_package;
 
 
-class UpperPanelReload extends ChangeNotifier{
-  void upperPanelReload(){
+class ChangeNotifierReload extends ChangeNotifier{
+  void reload(){
     notifyListeners();
   }
 }
@@ -66,7 +66,7 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
-UpperPanelReload upperPanelReload = UpperPanelReload();
+ChangeNotifierReload upperPanelReload = ChangeNotifierReload();
 
 Widget _lowerPanel = const Flexible(child: Text(""));
 
@@ -82,6 +82,8 @@ final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
 final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
 
 final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
+
+final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 @override
   void deactivate() {
@@ -504,10 +506,11 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     bool isThereAChange = false;
     for (var i = 0; i < scriptList.length; i++) {
       if ((Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).framesCount() < scriptList[i].tcIn.framesCount() && !isThereAChange && i>0) {
-        scriptList[i-1].isThisCurrentTCValueNotifier.value = true;
+        scriptList[i-1].isThisCurrentTC = true;
         isThereAChange = true;
+        _arrowHighlightedReload.reload();
       } else {
-        scriptList[i].isThisCurrentTCValueNotifier.value = false;
+        scriptList[i].isThisCurrentTC = false;
       }
     }
   }
@@ -640,18 +643,22 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
           key: UniqueKey(),
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            ValueListenableBuilder<bool>(valueListenable: _scriptTable[index].isThisCurrentTCValueNotifier, builder: (context, value, child) {
-              return SizedBox(
-                width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
-                child: ElevatedButton(
-                style: _scriptTable[index].isThisCurrentTCValueNotifier.value ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-                onPressed: (){
-                  jumpToTc(_scriptTable[index].tcIn);
-                },
-                child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
-                ),
-              );
-            },),
+            ListenableBuilder(
+              listenable: _arrowHighlightedReload,
+              builder: (context, child) {
+                return SizedBox(
+                  width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
+                  child: ElevatedButton(
+                  style: _scriptTable[index].isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
+                  onPressed: (){
+                    jumpToTc(_scriptTable[index].tcIn);
+                  },
+                  child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
+                  ),
+                );
+              },
+             
+            ),
         
         
             Padding(
@@ -906,7 +913,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     if(kDebugMode){
       print("_scriptTableRebuildRequest");
     }
-    upperPanelReload.upperPanelReload();
+    upperPanelReload.reload();
     //_scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
 
   }
@@ -975,7 +982,7 @@ final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
     }
 
     for (var i = 0; i < _scriptTable.length; i++) {
-      if (_scriptTable[i].isThisCurrentTCValueNotifier.value && (selectedCharacterName == allCharactersConst || selectedCharacterName == _scriptTable[i].charName)) {
+      if (_scriptTable[i].isThisCurrentTC && (selectedCharacterName == allCharactersConst || selectedCharacterName == _scriptTable[i].charName)) {
         if (currentItemScrollIndex != i) {
           if (scrollFollowsVideo) {
             scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
