@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:script_editor/models/settings_class.dart';
-import 'package:script_editor/pages/script_page.dart';
 
 
 
