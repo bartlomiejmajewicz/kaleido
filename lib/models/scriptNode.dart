@@ -6,7 +6,6 @@ class ScriptNode implements Comparable<ScriptNode>{
   late Timecode tcIn = Timecode();
   late String charName="";
   late String dial="";
-  late Widget widget;
   bool isThisCurrentTC = false;
   FocusNode dialFocusNode = FocusNode();
 

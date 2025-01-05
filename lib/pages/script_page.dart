@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:script_editor/main.dart';
+import 'package:script_editor/models/script_list.dart';
 import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/keyboard_shortcut_node.dart';
@@ -45,9 +46,9 @@ late double _screenHeight;
 
 Duration _currentPlaybackPosition = const Duration();
 
-final List<ScriptNode> _scriptTable = List.empty(growable: true);
+late ScriptList scriptList;
 static const String allCharactersConst = "ALL CHARACTERS";
-String selectedCharacterName = allCharactersConst;
+String? selectedCharacterName;
 late String sheetName;
 
 ExcelFile? scriptSourceFile;
@@ -66,7 +67,7 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
-ChangeNotifierReload upperPanelReload = ChangeNotifierReload();
+final ChangeNotifierReload _upperPanelReload = ChangeNotifierReload();
 
 Widget _lowerPanel = const Flexible(child: Text(""));
 
@@ -112,11 +113,14 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     videoPlayer.open(Media(SettingsClass.videoFilePath));
     videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
-      markCurrentLine(_scriptTable);
+      if (scriptList.markCurrentLine(Timecode.fromDuration(e, SettingsClass.inputFramerate), SettingsClass.videoStartTc, SettingsClass.inputFramerate)) {
+        _arrowHighlightedReload.reload();
+      }
+      
       if (tcEntryControllerActive) {
         tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).toString();
       }
-      focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value);
+      focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value, scriptList, selectedCharacterName);
     });
 
     if (SettingsClass.scriptFile == null) {
@@ -126,7 +130,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     else {
       scriptSourceFile = SettingsClass.scriptFile;
     }
-    scriptSourceFile!.importSheetToList(SettingsClass.sheetName, _scriptTable);
+    List<ScriptNode> scriptNodesTemporary = List.empty(growable: true);
+    scriptSourceFile!.importSheetToList(SettingsClass.sheetName, scriptNodesTemporary);
+    scriptList = ScriptList(scriptNodesTemporary);
     sheetName = SettingsClass.sheetName;
     _updateTableListViewFromScriptList();
     _scriptTableRebuildRequest();
@@ -161,7 +167,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
           children: [
             _upperPanelWidget(context),
           ListenableBuilder(
-            listenable: upperPanelReload,
+            listenable: _upperPanelReload,
             builder: (context, child) {
               return _lowerPanel;
             },),
@@ -348,7 +354,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                         )),
                                       OutlinedButton(
                                         onPressed: (){
-                                          int a = replaceCharName(charNameOldTEC.text, charNameNewTEC.text, _scriptTable);
+                                          int a = scriptList.replaceCharName(charNameOldTEC.text, charNameNewTEC.text);
                                           charNameOldTEC.text = "";
                                           charNameNewTEC.text = "";
                                           _updateTableListViewFromScriptList();
@@ -500,66 +506,25 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 
 
+  List<DropdownMenuEntry<String>> getCharactersMenuEntries(List <String> charactersNamesList){
 
+    charactersNamesList.insert(0, allCharactersConst);
 
-  void markCurrentLine(List<ScriptNode> scriptList){
-    bool isThereAChange = false;
-    for (var i = 0; i < scriptList.length; i++) {
-      if ((Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).framesCount() < scriptList[i].tcIn.framesCount() && !isThereAChange && i>0) {
-        scriptList[i-1].isThisCurrentTC = true;
-        isThereAChange = true;
-        _arrowHighlightedReload.reload();
-      } else {
-        scriptList[i].isThisCurrentTC = false;
-      }
-    }
-  }
-
-  List<DropdownMenuEntry<String>> getCharactersMenuEntries(List <ScriptNode> scriptList){
-    List<String> characterNames = List<String>.empty(growable: true);
-
-    for (ScriptNode scriptNode in scriptList) {
-      if (!characterNames.contains(scriptNode.charName)) {
-        characterNames.add(scriptNode.charName);
-      }
-    }
-
-    characterNames.sort((a, b) {
-      return a.compareTo(b);
-    },);
-
-    characterNames.insert(0, allCharactersConst);
-
-    return characterNames.map((e){
+    return charactersNamesList.map((e){
       return DropdownMenuEntry(
         value: e,
         label: e);
     }).toList();
   }
 
-  List<String> getCharactersList(List <ScriptNode> scriptList){
-    List<String> characterNames = List<String>.empty(growable: true);
-
-    for (ScriptNode scriptNode in scriptList) {
-      if (!characterNames.contains(scriptNode.charName)) {
-        characterNames.add(scriptNode.charName);
-      }
-    }
-
-    characterNames.sort((a, b) {
-      return a.compareTo(b);
-    },);
-
-    return characterNames;
-  }
 
 
   void _updateTableListViewFromScriptList(){
-    _lowerPanel = _generateTableAsScrollablePositionListView();
+    _lowerPanel = _generateTableAsScrollablePositionListView(scriptList.getList(characterName: selectedCharacterName));
   }
 
 
-  Widget _generateTableAsScrollablePositionListView() {
+  Widget _generateTableAsScrollablePositionListView(List<ScriptNode> list) {
     const double widthButtons = 80;
     const double widthColC = 100;
     const double widthColD = 220;
@@ -590,7 +555,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               child: FilledButton(
                 child: const Text("TC in"),
                 onPressed: () {
-                  _scriptTable.sort();
+                  scriptList.sortItems();
                   _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },)) : null,
@@ -600,12 +565,14 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
             child: _isCharacterVisible.value ? SizedBox(
               width:  widthColD,
               child: DropdownMenu(
-                dropdownMenuEntries: getCharactersMenuEntries(_scriptTable),
-                initialSelection: selectedCharacterName,
+                dropdownMenuEntries: getCharactersMenuEntries(scriptList.getCharactersList()),
+                initialSelection: allCharactersConst,
                 onSelected: (value) {
-                  if (value != null) {
-                    selectedCharacterName = value;
+                  selectedCharacterName = value;
+                  if (value == allCharactersConst) {
+                    selectedCharacterName = null;
                   }
+
                   _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },
@@ -627,16 +594,12 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       );
     }
 
-    Widget buildRow(BuildContext context, int index){
+    Widget buildRow(BuildContext context, ScriptNode scriptNode){
       // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
       //   _scriptTable[index].focusNode.requestFocus();
       // }
 
-      if (_scriptTable[index].charName != selectedCharacterName && selectedCharacterName != allCharactersConst) {
-        return const Row();
-      }
-
-      _scriptTable[index].textControllerTc.text = _scriptTable[index].tcIn.toString();
+      scriptNode.textControllerTc.text = scriptNode.tcIn.toString();
       return SizedBox(
         height: _listViewElementHeight.value,
         child: Row(
@@ -649,9 +612,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 return SizedBox(
                   width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
                   child: ElevatedButton(
-                  style: _scriptTable[index].isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
+                  style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
                   onPressed: (){
-                    jumpToTc(_scriptTable[index].tcIn);
+                    jumpToTc(scriptNode.tcIn);
                   },
                   child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
                   ),
@@ -667,8 +630,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 width: widthButtons,
                 child: ElevatedButton(
                   onPressed: (){
-                    _scriptTable[index].tcIn = tcFromVideo()+SettingsClass.videoStartTc;
-                    _scriptTable[index].textControllerTc.value = TextEditingValue(text: _scriptTable[index].tcIn.toString());
+                    scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                    scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
                   },
                   child: const Icon(Icons.arrow_downward),
                 ),
@@ -681,10 +644,10 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               child: _isTcInVisible.value ? SizedBox(
                 width: widthColC,
                 child: TextFormField(
-                  controller: _scriptTable[index].textControllerTc,
+                  controller: scriptNode.textControllerTc,
                   onChanged: (value) {
                     if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
-                      _scriptTable[index].tcIn = Timecode(value);
+                      scriptNode.tcIn = Timecode(value);
                     }
                   },
                 inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
@@ -697,9 +660,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               child: _isCharacterVisible.value ? SizedBox(
                 width: widthColD,
                 child: CharNameWidgetWithAutocomplete(
-                  charactersNamesList: getCharactersList(_scriptTable),
-                  initialValue: _scriptTable[index].charName,
-                  updateFunction: (value) => _scriptTable[index].charName=value,
+                  charactersNamesList: scriptList.getCharactersList(),
+                  initialValue: scriptNode.charName,
+                  updateFunction: (value) => scriptNode.charName=value,
                   maxOptionsWidth: widthColD,
                   ),
                 ) : null,
@@ -714,14 +677,14 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                     minLines: null,
                     maxLines: null,
                     autofocus: true,
-                    focusNode: _scriptTable[index].dialFocusNode,
+                    focusNode: scriptNode.dialFocusNode,
                     onChanged: (value) {
                       { 
-                        _scriptTable[index].dial = value;
+                        scriptNode.dial = value;
                     }
                     },
                     scribbleEnabled: false, 
-                    initialValue: _scriptTable[index].dial, 
+                    initialValue: scriptNode.dial, 
                     ),
                 ),
               ),
@@ -734,12 +697,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 child: ElevatedButton(
                   child: const Icon(Icons.delete),
                   onPressed: () {
-                    itemIndexFromButton = index;
-                    _scriptTable.remove(_scriptTable[index]);
+                    scriptList.removeItem(scriptNode);
                     _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
                     try {
-                      _scriptTable[index].dialFocusNode.requestFocus();
+                      scriptNode.dialFocusNode.requestFocus();
                     // ignore: empty_catches
                     } catch (e) {
                     }
@@ -767,9 +729,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 itemScrollController: scriptListController,
                 addAutomaticKeepAlives: false,
                 shrinkWrap: false,
-                itemCount: _scriptTable.length,
+                itemCount: list.length,
                 itemBuilder: (context, index) {
-                  return buildRow(context, index);
+                  return buildRow(context, list[index]);
                 },
               ),
             ),
@@ -785,7 +747,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
   int _saveFile(){
     try {
-      scriptSourceFile!.exportListToSheet(_scriptTable, sheetName, SettingsClass.timecodeFormatting);
+      scriptSourceFile!.exportListToSheet(scriptList.getList(), sheetName, SettingsClass.timecodeFormatting);
       scriptSourceFile!.saveFile();
       return 0;
     } catch (e) {
@@ -816,21 +778,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
   }
 
 
-  int newEntry(List<ScriptNode> scriptList, Timecode? tcIn, [String? charName = "char name", String dial = 'dialogue']) {
-    charName ??= "";
-    charName = charName=="" ? "char name" : charName;
-    dial = dial=="" ? "char name" : dial;
-    Timecode timecode = Timecode();
-    if (tcIn == null) {
-      timecode.tcFromDuration(_currentPlaybackPosition);
-    } else {
-      timecode = tcIn;
-    }
-    ScriptNode scriptNode = ScriptNode(timecode+SettingsClass.videoStartTc, charName, dial);
-    scriptList.add(scriptNode);
-    scriptList.sort();
-    return scriptList.indexOf(scriptNode);
-  }
 
   TextEditingValue tcValidityInputCheck(TextEditingValue oldValue, TextEditingValue newValue) {
     String returnedValue="";
@@ -848,18 +795,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     return TextEditingValue(text: returnedValue);
   }
 
-
-  int replaceCharName(String nameOld, String nameNew, List<ScriptNode> scriptList){
-
-    int affected=0;
-    for (var scriptNode in scriptList) {
-      if (scriptNode.charName == nameOld) {
-        scriptNode.charName = nameNew;
-        affected++;
-      }
-    }
-    return affected;
-  }
 
 
 
@@ -913,7 +848,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     if(kDebugMode){
       print("_scriptTableRebuildRequest");
     }
-    upperPanelReload.reload();
+    _upperPanelReload.reload();
     //_scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
 
   }
@@ -939,20 +874,20 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
       ksn.onClick = (){
 
-        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName);
+        int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
-        _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
+        scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };
       return ksn;
     });
     shortcutsMap.putIfAbsent("add char #2", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
-        int newEntryIndex = newEntry(_scriptTable, null, ksn.characterName);
+        int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
         _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
-        _scriptTable[newEntryIndex].dialFocusNode.requestFocus();
+        scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };
       return ksn;
     });
@@ -976,20 +911,20 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
   }
 
 
-  void focusNodeOrViewFollowsVideo(bool scrollFollowsVideo, bool focusNodeFollowsVideo){
+  void focusNodeOrViewFollowsVideo(bool scrollFollowsVideo, bool focusNodeFollowsVideo, ScriptList scriptList, String? selectedCharacterName){
     if (scrollFollowsVideo == false && focusNodeFollowsVideo == false){
       return;
     }
 
-    for (var i = 0; i < _scriptTable.length; i++) {
-      if (_scriptTable[i].isThisCurrentTC && (selectedCharacterName == allCharactersConst || selectedCharacterName == _scriptTable[i].charName)) {
+    for (var i = 0; i < scriptList.getList().length; i++) {
+      if (scriptList.getItemById(i).isThisCurrentTC && (selectedCharacterName == null || selectedCharacterName == scriptList.getItemById(i).charName)) {
         if (currentItemScrollIndex != i) {
           if (scrollFollowsVideo) {
             scriptListController.scrollTo(index: i, duration: const Duration(milliseconds: 500));
           }
           if (focusNodeFollowsVideo) {
             try {
-              _scriptTable[i].dialFocusNode.requestFocus();
+              scriptList.getItemById(i).dialFocusNode.requestFocus();
             // ignore: empty_catches
             } catch (e) {
             }
