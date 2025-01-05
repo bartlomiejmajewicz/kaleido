@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:script_editor/main.dart';
+import 'package:script_editor/models/utils.dart';
 import 'package:script_editor/models/script_list.dart';
 import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
 import 'package:script_editor/models/classes.dart';
@@ -16,13 +17,6 @@ import 'package:script_editor/widgets/outlined_button_with_shortcut.dart';
 import 'package:script_editor/widgets/resizable_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:path/path.dart' as path_package;
-
-
-class ChangeNotifierReload extends ChangeNotifier{
-  void reload(){
-    notifyListeners();
-  }
-}
 
 class ScriptPage extends StatefulWidget {
   const ScriptPage({super.key, required this.title});
@@ -67,19 +61,19 @@ int currentItemScrollIndex = 0;
 
 int itemIndexFromButton = 0;
 
+final ChangeNotifierReload _lowerPanelReload = ChangeNotifierReload();
 final ChangeNotifierReload _upperPanelReload = ChangeNotifierReload();
 
-Widget _lowerPanel = const Flexible(child: Text(""));
 
 
 Map<String, KeyboardShortcutNode> shortcutsMap = <String, KeyboardShortcutNode>{};
 
 KeyNotifier? keyEventNotifier;
 
-final ValueNotifier<bool> _isTcFromScriptToPlayerVisible = ValueNotifier(true);
-final ValueNotifier<bool> _isTcPlayerToScriptVisible = ValueNotifier(true);
-final ValueNotifier<bool> _isTcInVisible = ValueNotifier(true);
-final ValueNotifier<bool> _isCharacterVisible = ValueNotifier(true);
+bool _isTcFromScriptToPlayerVisible = true;
+bool _isTcPlayerToScriptVisible = true;
+bool _isTcInVisible = true;
+bool _isCharacterVisible = true;
 final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
 
 final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
@@ -111,6 +105,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 
     videoPlayer.open(Media(SettingsClass.videoFilePath));
+    videoPlayer.setSubtitleTrack(SubtitleTrack.no());
     videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
       if (scriptList.markCurrentLine(Timecode.fromDuration(e, SettingsClass.inputFramerate), SettingsClass.videoStartTc, SettingsClass.inputFramerate)) {
@@ -134,9 +129,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     scriptSourceFile!.importSheetToList(SettingsClass.sheetName, scriptNodesTemporary);
     scriptList = ScriptList(scriptNodesTemporary);
     sheetName = SettingsClass.sheetName;
-    _updateTableListViewFromScriptList();
     _scriptTableRebuildRequest();
-
     _initializeShortcutsList();
   }
 
@@ -149,10 +142,10 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     _screenHeight = MediaQuery.sizeOf(context).height;
 
     // size-responsive visibility
-    _isTcFromScriptToPlayerVisible.value = _screenWidth < 850 ? false : true;
-    _isTcPlayerToScriptVisible.value = _screenWidth < 800 ? false : true;
-    _isTcInVisible.value = _screenWidth < 750 ? false : true;
-    _isCharacterVisible.value = _screenWidth < 550 ? false : true;
+    _isTcFromScriptToPlayerVisible = _screenWidth < 850 ? false : true;
+    _isTcPlayerToScriptVisible = _screenWidth < 800 ? false : true;
+    _isTcInVisible = _screenWidth < 750 ? false : true;
+    _isCharacterVisible = _screenWidth < 550 ? false : true;
 
 
     SettingsClass.videoHeight = _screenHeight/3;
@@ -165,12 +158,16 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _upperPanelWidget(context),
-          ListenableBuilder(
-            listenable: _upperPanelReload,
-            builder: (context, child) {
-              return _lowerPanel;
-            },),
+            ListenableBuilder(
+              listenable: _upperPanelReload,
+              builder: (context, child) {
+                return _upperPanelWidget(context);
+              },),
+            ListenableBuilder(
+              listenable: _lowerPanelReload,
+              builder: (context, child) {
+                return _generateTableAsScrollablePositionListView(scriptList.getList(characterName: selectedCharacterName));
+              },),
           ]
         ),
       ),
@@ -237,10 +234,59 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         child: IntrinsicWidth(
           child: Column(
             children: [
-              _createVisibilityOptionButtonWithNotifier(_isTcFromScriptToPlayerVisible, "TC from script: "),
-              _createVisibilityOptionButtonWithNotifier(_isTcPlayerToScriptVisible, "TC from script: "),
-              _createVisibilityOptionButtonWithNotifier(_isTcInVisible, "TC in: "),
-              _createVisibilityOptionButtonWithNotifier(_isCharacterVisible, "char name visible: "),
+              OutlinedButton(
+                onPressed: (){
+                  _isTcFromScriptToPlayerVisible = !_isTcFromScriptToPlayerVisible;
+                  _upperPanelReload.reload();
+                  _scriptTableRebuildRequest();
+                },
+                child: Row(
+                  children: [
+                    const Text("TC from script: "),
+                    Icon(
+                      _isTcFromScriptToPlayerVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
+                  ],
+                )),
+              OutlinedButton(
+                onPressed: (){
+                  _isTcPlayerToScriptVisible = !_isTcPlayerToScriptVisible;
+                  _upperPanelReload.reload();
+                  _scriptTableRebuildRequest();
+                },
+                child: Row(
+                  children: [
+                    const Text("TC to script: "),
+                    Icon(
+                      _isTcPlayerToScriptVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
+                  ],
+                )),
+              OutlinedButton(
+                onPressed: (){
+                  _isTcInVisible = !_isTcInVisible;
+                  _upperPanelReload.reload();
+                  _scriptTableRebuildRequest();
+                },
+                child: Row(
+                  children: [
+                    const Text("TC in: "),
+                    Icon(
+                      _isTcInVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
+                  ],
+                )),
+              OutlinedButton(
+                onPressed: (){
+                  _isCharacterVisible = !_isCharacterVisible;
+                  _upperPanelReload.reload();
+                  _scriptTableRebuildRequest();
+                },
+                child: Row(
+                  children: [
+                    const Text("char name visible: "),
+                    Icon(
+                      _isCharacterVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
+                  ],
+                )),
+
               Row(
                 children: [
                   const Text("Line height:"),
@@ -249,7 +295,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                       IconButton(
                         onPressed: (){
                           _listViewElementHeight.value+=5;
-                          _updateTableListViewFromScriptList();
                           _scriptTableRebuildRequest();
                         },
                         icon: const Icon(Icons.arrow_drop_up_outlined)
@@ -257,7 +302,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                       IconButton(
                         onPressed: (){
                           _listViewElementHeight.value-=5;
-                          _updateTableListViewFromScriptList();
                           _scriptTableRebuildRequest();
                         },
                         icon: const Icon(Icons.arrow_drop_down_outlined)
@@ -357,7 +401,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                           int a = scriptList.replaceCharName(charNameOldTEC.text, charNameNewTEC.text);
                                           charNameOldTEC.text = "";
                                           charNameNewTEC.text = "";
-                                          _updateTableListViewFromScriptList();
                                           _scriptTableRebuildRequest();
                                           showDialog(context: context, builder: (BuildContext context){
                                             return SimpleDialog(
@@ -499,7 +542,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       },),
       onPressed: () {
         valueListenable.value = !valueListenable.value;
-        _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
     },);
   }
@@ -519,9 +561,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 
 
-  void _updateTableListViewFromScriptList(){
-    _lowerPanel = _generateTableAsScrollablePositionListView(scriptList.getList(characterName: selectedCharacterName));
-  }
 
 
   Widget _generateTableAsScrollablePositionListView(List<ScriptNode> list) {
@@ -536,33 +575,32 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         children: [
           Padding(
             padding: paddingSize,
-            child: _isTcFromScriptToPlayerVisible.value ? const SizedBox(
+            child: _isTcFromScriptToPlayerVisible ? const SizedBox(
               width: widthButtons,
               child: Text("TC from script\nto player"),
             ) : null
           ),
           Padding(
             padding: paddingSize,
-            child: _isTcPlayerToScriptVisible.value ? const SizedBox(
+            child: _isTcPlayerToScriptVisible ? const SizedBox(
               width: widthButtons,
               child: Text("TC from player\nto script")
             ) : null,
           ),
           Padding(
             padding: paddingSize,
-            child: _isTcInVisible.value ? SizedBox(
+            child: _isTcInVisible ? SizedBox(
               width: widthColC,
               child: FilledButton(
                 child: const Text("TC in"),
                 onPressed: () {
                   scriptList.sortItems();
-                  _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },)) : null,
           ),
           Padding(
             padding: paddingSize,
-            child: _isCharacterVisible.value ? SizedBox(
+            child: _isCharacterVisible ? SizedBox(
               width:  widthColD,
               child: DropdownMenu(
                 dropdownMenuEntries: getCharactersMenuEntries(scriptList.getCharactersList()),
@@ -573,7 +611,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                     selectedCharacterName = null;
                   }
 
-                  _updateTableListViewFromScriptList();
                   _scriptTableRebuildRequest();
                 },
               ),
@@ -610,13 +647,13 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               listenable: _arrowHighlightedReload,
               builder: (context, child) {
                 return SizedBox(
-                  width: _isTcFromScriptToPlayerVisible.value ? widthButtons : 0,
+                  width: _isTcFromScriptToPlayerVisible ? widthButtons : 0,
                   child: ElevatedButton(
                   style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
                   onPressed: (){
                     jumpToTc(scriptNode.tcIn);
                   },
-                  child: _isTcFromScriptToPlayerVisible.value ? const Icon(Icons.arrow_upward) : null,
+                  child: _isTcFromScriptToPlayerVisible ? const Icon(Icons.arrow_upward) : null,
                   ),
                 );
               },
@@ -626,7 +663,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         
             Padding(
               padding: paddingSize,
-              child: _isTcPlayerToScriptVisible.value ? SizedBox(
+              child: _isTcPlayerToScriptVisible ? SizedBox(
                 width: widthButtons,
                 child: ElevatedButton(
                   onPressed: (){
@@ -641,7 +678,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         
             Padding(
               padding: paddingSize,
-              child: _isTcInVisible.value ? SizedBox(
+              child: _isTcInVisible ? SizedBox(
                 width: widthColC,
                 child: TextFormField(
                   controller: scriptNode.textControllerTc,
@@ -657,7 +694,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         
             Padding(
               padding: paddingSize,
-              child: _isCharacterVisible.value ? SizedBox(
+              child: _isCharacterVisible ? SizedBox(
                 width: widthColD,
                 child: CharNameWidgetWithAutocomplete(
                   charactersNamesList: scriptList.getCharactersList(),
@@ -698,7 +735,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   child: const Icon(Icons.delete),
                   onPressed: () {
                     scriptList.removeItem(scriptNode);
-                    _updateTableListViewFromScriptList();
                     _scriptTableRebuildRequest();
                     try {
                       scriptNode.dialFocusNode.requestFocus();
@@ -834,7 +870,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
           keyboardShortcutNode.assignedNowNotifier.value = false;
-          _updateTableListViewFromScriptList();
           _scriptTableRebuildRequest();
         }
         if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){
@@ -848,7 +883,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     if(kDebugMode){
       print("_scriptTableRebuildRequest");
     }
-    _upperPanelReload.reload();
+    _lowerPanelReload.reload();
     //_scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
 
   }
@@ -875,7 +910,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       ksn.onClick = (){
 
         int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
-        _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };
@@ -885,7 +919,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
         int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
-        _updateTableListViewFromScriptList();
         _scriptTableRebuildRequest();
         scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };

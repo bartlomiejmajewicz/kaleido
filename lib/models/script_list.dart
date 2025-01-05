@@ -104,19 +104,3 @@ class ScriptList {
 
 
 }
-
-void main(List<String> args) {
-  var siema = ScriptList(
-    [ScriptNode(Timecode.fromIntValues(1, 5, 0, 0, 25), "characterName", ""),
-    ScriptNode(Timecode.fromIntValues(1, 8, 22, 0, 25), "characterName", ""),
-    ScriptNode(Timecode.fromIntValues(1, 10, 15, 0, 25), "characterName", ""),
-    ScriptNode(Timecode.fromIntValues(2, 15, 2, 0, 25), "characterName", ""),
-    ScriptNode(Timecode.fromIntValues(3, 5, 0, 0, 25), "characterName", ""),
-    ScriptNode(Timecode.fromIntValues(4, 5, 0, 0, 25), "characterName", ""),
-    ]
-  );
-
-  var odpo = siema.markCurrentLine(Timecode("01:05:22:00"), Timecode(), 25);
-  print(odpo);
-  
-}

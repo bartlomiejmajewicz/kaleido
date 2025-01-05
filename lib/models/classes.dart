@@ -54,7 +54,6 @@ class ExcelFile extends SourceFile{
       ..createSync(recursive: true)
       ..writeAsBytesSync(fileBytes);
     } catch (e) {
-      throw e;
     }
 
   }
