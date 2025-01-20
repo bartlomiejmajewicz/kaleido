@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:script_editor/main.dart';
+import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/models/utils.dart';
 import 'package:script_editor/models/script_list.dart';
 import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
@@ -153,6 +154,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 
     return Scaffold(
+      appBar: Authorisation.isLicenseActive() ? null : AppBar(
+        title: const Text(
+          "License not active. Saving disabled.",
+          style: TextStyle(color: Colors.red),),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -782,6 +788,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
 
   int _saveFile(){
+    if (!Authorisation.isLicenseActive()) {
+      return 100;
+    }
     try {
       scriptSourceFile!.exportListToSheet(scriptList.getList(), sheetName, SettingsClass.timecodeFormatting);
       scriptSourceFile!.saveFile();

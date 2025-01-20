@@ -47,7 +47,5 @@ This project status is: **in progress** which means it could have some issues.
 ## Pending functionalities
 
 * MTC/MTC external synchronization
-* additional page to run script without editing (AKA watch mode)
+* additional page to run script without editing (AKA reading mode)
 * Run an editor without video file
-* authorization mechanism to manage licensing
-* persistence - saving last opened file and options

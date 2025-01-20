@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
+import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/models/settings_class.dart';
+import 'package:script_editor/pages/authorization_page.dart';
 import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> main() async {
   MediaKit.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
+  await Authorisation.initialize();
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -119,6 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
         page = const SettingsPage();
       case 1:
         page = const ScriptPage(title: "script editor");
+      case 2:
+        page = const AuthorizationPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -155,6 +160,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icon(Icons.playlist_play_rounded),
                       label: Text('Script editor'),
                     ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.enhanced_encryption),
+                      label: Text('License'))
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {

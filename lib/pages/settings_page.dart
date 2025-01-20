@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/settings_class.dart';
@@ -49,6 +50,11 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     }
     return Scaffold(
+      appBar: Authorisation.isLicenseActive() ? null : AppBar(
+        title: const Text(
+          "License not active. Saving disabled.",
+          style: TextStyle(color: Colors.red),),
+      ),
       body: SizedBox(
         child: Padding(
           padding: const EdgeInsets.all(28.0),
