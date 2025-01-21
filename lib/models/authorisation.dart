@@ -115,6 +115,17 @@ class Authorisation {
   static String? _licenseId;
   static String? _deviceId;
 
+
+/// clears all license data from the class.
+/// use only for removing dummy or damaged licenses
+  static void clearAllLicenseData(){
+    _licenseEncryptedData = null;
+    _licenseEncryptedIv = null;
+    _licenseEmail = null;
+    _licenseId = null;
+    _deviceId = null;
+  }
+
   static LicenseDetails? extractLicenseDetails(){
     if (_licenseEncryptedData == null || _licenseEncryptedIv == null || _licenseEmail == null || _licenseId == null) {
       return null;

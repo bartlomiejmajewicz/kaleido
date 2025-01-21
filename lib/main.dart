@@ -134,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = const ScriptPage(title: "script editor");
       case 2:
-        page = const AuthorizationPage();
+        page = AuthorizationPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
