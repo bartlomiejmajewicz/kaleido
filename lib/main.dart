@@ -13,7 +13,18 @@ import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// prevents Android from blocking HTTP request (CERTIFICATE_VERIFY_FAILED)
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+
+
 Future<void> main() async {
+  HttpOverrides.global = MyHttpOverrides();
   MediaKit.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   await Authorisation.initialize();
@@ -40,11 +51,11 @@ Future<void> main() async {
     SettingsClass.videoFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Mix With Phil Allen/Mixing+in+the+box+with+Phil+Allen+-+00+Drum+Cleanup.mp4";
     SettingsClass.scriptFilePath = "/Volumes/Macintosh HD/Users/bmajewicz/Desktop/Zeszyt1.xlsx";
   }
-  if (kDebugMode && Platform.isAndroid) {
-    SettingsClass.sheetName = "Script";
-    SettingsClass.videoFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260531214/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.mp4";
-    SettingsClass.scriptFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260552163/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.xlsx";
-  }
+  // if (kDebugMode && Platform.isAndroid) {
+  //   SettingsClass.sheetName = "Script";
+  //   SettingsClass.videoFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260531214/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.mp4";
+  //   SettingsClass.scriptFilePath = "/data/user/0/com.example.script_editor/cache/file_picker/1733260552163/Friends.S08E21-The One with the Cooking Class.720p.bluray-sujaidr.xlsx";
+  // }
   MediaKit.ensureInitialized();
   runApp(
     ChangeNotifierProvider(
@@ -166,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
-                    if(!SettingsClass.isDataComplete()){
+                    if(!SettingsClass.isDataComplete() && value == 1){
                       showDialog(context: context, builder: (BuildContext context){
                           return const SimpleDialog(
                               children: [

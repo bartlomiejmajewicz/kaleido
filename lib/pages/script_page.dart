@@ -155,6 +155,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
     return Scaffold(
       appBar: Authorisation.isLicenseActive() ? null : AppBar(
+        centerTitle: true,
         title: const Text(
           "License not active. Saving disabled.",
           style: TextStyle(color: Colors.red),),

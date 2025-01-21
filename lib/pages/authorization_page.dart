@@ -6,14 +6,6 @@ import 'package:script_editor/models/unique_device_id.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-// void main(List<String> args) async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Authorisation.initialize();
-//   runApp(
-//     const MaterialApp(
-//       home: AuthorizationPage())
-//   );
-// }
 
 class LicenseNotifier extends ChangeNotifier{
   void reload(){
@@ -111,7 +103,7 @@ class _AuthorizationPageState extends State<AuthorizationPage> {
                             SnackBar(content: Text(response)));
                           _licenseNotifier.reload();
                       } : null,
-                      child: Text("Deactivate License")),
+                      child: const Text("Deactivate License")),
                   ),
                 ],);
                           
