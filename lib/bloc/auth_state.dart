@@ -10,10 +10,7 @@ sealed class AuthState {
   }
 }
 
-// ignore: must_be_immutable
-final class AuthInitial extends AuthState {
-  AuthInitial():super();
-}
+
 
 // ignore: must_be_immutable
 final class AuthLoadingLicense extends AuthState{

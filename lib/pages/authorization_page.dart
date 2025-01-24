@@ -23,8 +23,11 @@ class AuthorizationPage extends StatelessWidget {
 
   final TextEditingController _tecEmail = TextEditingController();
   final TextEditingController _tecCode = TextEditingController();
+  final TextEditingController _tecLicenseEnc = TextEditingController();
+  final TextEditingController _tecIv = TextEditingController();
   final ValueNotifier<bool> _showSecretButton = ValueNotifier(false);
-  final double _textFieldWidth = 200;
+  final ValueNotifier<bool> _showOfflineAuthorizationFields = ValueNotifier(false);
+  final double _textFieldWidth = 400;
 
   @override
   Widget build(BuildContext context) {
@@ -68,20 +71,53 @@ class AuthorizationPage extends StatelessWidget {
               ),
 
 
-              SizedBox(
-                width: _textFieldWidth,
-                child: TextField(
-                  decoration: const InputDecoration(helperText: "email"),
-                  controller: _tecEmail,
-                ),
+              Column(
+                children: [
+                  SizedBox(
+                    width: _textFieldWidth,
+                    child: TextField(
+                      decoration: const InputDecoration(helperText: "email"),
+                      controller: _tecEmail,
+                    ),
+                  ),
+                  SizedBox(
+                    width: _textFieldWidth,
+                    child: TextField(
+                      decoration: const InputDecoration(helperText: "license code"),
+                      controller: _tecCode,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(
-                width: _textFieldWidth,
-                child: TextField(
-                  decoration: const InputDecoration(helperText: "license code"),
-                  controller: _tecCode,
-                ),
-              ),
+
+
+              ValueListenableBuilder(
+                    valueListenable: _showOfflineAuthorizationFields,
+                    builder: (context, value, child) {
+                      if (value == false) {
+                        return Container();
+                      }
+                      return Column(
+                        children: [
+                          SizedBox(
+                            width: _textFieldWidth,
+                            child: TextField(
+                              decoration: const InputDecoration(helperText: "license string A"),
+                              controller: _tecLicenseEnc,
+                            ),
+                          ),
+                          SizedBox(
+                            width: _textFieldWidth,
+                            child: TextField(
+                              decoration: const InputDecoration(helperText: "license string B"),
+                              controller: _tecIv,
+                            ),
+                          ),
+                        ],
+                      );
+                    },),
+
+
 
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
@@ -93,10 +129,15 @@ class AuthorizationPage extends StatelessWidget {
                         child: OutlinedButton(
                           key: UniqueKey(),
                             onPressed: state is AuthLicenseActive || state is AuthLoadingLicense
-                                ? null
-                                : () {
-                                    context.read<AuthBloc>().add(AuthActivateLicense(_tecEmail.text, _tecCode.text));
-                                  },
+                              ? null
+                              : () {
+                                if (_showOfflineAuthorizationFields.value) {
+                                  context.read<AuthBloc>().add(AuthActivateLicenseOffline(_tecEmail.text, _tecCode.text, _tecLicenseEnc.text, _tecIv.text));
+                                } else {
+                                  context.read<AuthBloc>().add(AuthActivateLicense(_tecEmail.text, _tecCode.text));
+                                }
+
+                              },
                             child: const Text("Activate License")),
                       ),
                       Padding(
@@ -122,20 +163,20 @@ class AuthorizationPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(5.0),
                     child: OutlinedButton(
-                        onLongPress: () => _showSecretButton.value = true,
+                        onLongPress: () => _showSecretButton.value = !_showSecretButton.value,
                         onPressed: () => _showLicenseInfo(
                             Authorisation.extractLicenseDetails(), context),
                         child: const Text("Show license info")),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: ValueListenableBuilder(
-                      valueListenable: _showSecretButton,
-                      builder: (context, value, child) {
-                        if (value == false) {
-                          return Container();
-                        }
-                        return OutlinedButton(
+                  ValueListenableBuilder(
+                    valueListenable: _showSecretButton,
+                    builder: (context, value, child) {
+                      if (value == false) {
+                        return Container();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: OutlinedButton(
                             onPressed: () async {
                               SharedPreferences sp =
                                   await SharedPreferences.getInstance();
@@ -143,10 +184,21 @@ class AuthorizationPage extends StatelessWidget {
                               context.read<AuthBloc>().add(AuthForceInitialState());
                             },
                             child: const Text(
-                                "Remove all license data (do not use unless instructed)"));
+                                "Remove all license data (do not use unless instructed)")),
+                      );
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: OutlinedButton(
+                      onPressed: (){
+                        _showOfflineAuthorizationFields.value = !_showOfflineAuthorizationFields.value;
                       },
-                    ),
-                  )
+                      child: const Text("Offline authorization")),
+                  ),
+
+                  
+                  
                 ],
               ),
             ]),
@@ -190,108 +242,3 @@ class AuthorizationPage extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-/**
- * 
- * 
- *             ),
-            FutureBuilder(
-              future: UniqueDeviceId.getDeviceUuid(),
-              builder: (context, snapshot) {
-                return Center(
-                  child: SelectableText(
-                    "Your device ID is: ${snapshot.data}",
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                );
-              },
-            ),
-            
-            SizedBox(
-              width: _textFieldWidth,
-              child: TextField(
-                decoration: const InputDecoration(
-                  helperText: "email"
-                  ),
-                controller: _tecEmail,
-              ),
-            ),
-            
-            SizedBox(
-              width: _textFieldWidth,
-              child: TextField(
-                decoration: const InputDecoration(
-                  helperText: "license code"
-                  ),
-                controller: _tecCode,
-              ),
-            ),
-            ListenableBuilder(
-              listenable: _licenseNotifier,
-              builder: (context, child) {
-                return Column(children: [
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: OutlinedButton(
-                      onPressed: Authorisation.isLicensePresent() ? null : () async {
-                          String response = await _auth.pullLicenseFromServer(_tecEmail.text, _tecCode.text, null);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(response)));
-                          _licenseNotifier.reload();
-                        },
-                      child: const Text("Activate License")),
-                  ),
-                
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: OutlinedButton(
-                      onPressed: Authorisation.isLicensePresent() ? () async {
-                        String response = await _auth.pushLicenseToServer();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(response)));
-                          _licenseNotifier.reload();
-                      } : null,
-                      child: const Text("Deactivate License")),
-                  ),
-                ],);
-                          
-              },
-              
-            ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: OutlinedButton(
-                    onLongPress: () => _showSecretButton.value = true,
-                    onPressed: ()=> _showLicenseInfo(Authorisation.extractLicenseDetails(), context),
-                    child: const Text("Show license info")),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: ValueListenableBuilder(
-                  valueListenable: _showSecretButton,
-                  builder: (context, value, child) {
-                    if (value == false) {
-                      return Container();
-                    }
-                    return OutlinedButton(
-                      onPressed: () async {
-                        SharedPreferences sp = await SharedPreferences.getInstance();
-                        sp.clear();
-                        _licenseNotifier.reload();
-                      },
-                      child: const Text("Remove all license data (do not use unless instructed)"));
-                },
-                ),
-              )
-              ],
-            ),
-            ]
-
- */

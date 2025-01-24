@@ -133,14 +133,22 @@ class Authorisation {
     return _extractLicenseDetailsFromData(_licenseEncryptedData!, _licenseEncryptedIv!, _licenseEmail!, _licenseId!);
   }
 
-  static LicenseDetails _extractLicenseDetailsFromData(String encData, String encIv, String email, String licenseId){
-    String decryptedString = _decrypt(encData, encIv);
-    List<String> splittedString = decryptedString.split("|");
-    return LicenseDetails(
-      DateTime(int.parse(splittedString[0].split(".")[2]), int.parse(splittedString[0].split(".")[1]), int.parse(splittedString[0].split(".")[0])),
-      DateTime(int.parse(splittedString[1].split(".")[2]), int.parse(splittedString[1].split(".")[1]), int.parse(splittedString[1].split(".")[0])),
-      splittedString[2], email, licenseId
-      );
+  static LicenseDetails? _extractLicenseDetailsFromData(String encData, String encIv, String email, String licenseId){
+    LicenseDetails? license;
+    try {
+      String decryptedString = _decrypt(encData, encIv);
+      List<String> splittedString = decryptedString.split("|");
+      license = LicenseDetails(
+        DateTime(int.parse(splittedString[0].split(".")[2]), int.parse(splittedString[0].split(".")[1]), int.parse(splittedString[0].split(".")[0])),
+        DateTime(int.parse(splittedString[1].split(".")[2]), int.parse(splittedString[1].split(".")[1]), int.parse(splittedString[1].split(".")[0])),
+        splittedString[2], email, licenseId
+        );
+    // ignore: empty_catches
+    } catch (e) {
+      
+    }
+    return license;
+    
   }
 
   Future<String> pullLicenseFromServer(String email, String licenseId, String? deviceId) async {
@@ -244,6 +252,34 @@ class Authorisation {
       'iv': hex.encode(iv.bytes),
       'encryptedData': encrypted.base64,
     });
+  }
+
+
+/// status code returned:
+/// 0 == ok license activated
+/// 1 == the license data is not correct
+/// 2 == missing some data
+  static Future<int> authoriseLocally(String email, String licenseId, String activationCodeEnc, String activationCodeIv) async {
+    if (email.isEmpty || licenseId.isEmpty || activationCodeEnc.isEmpty || activationCodeIv.isEmpty) {
+      return 2;
+    }
+
+    final LicenseDetails? license = _extractLicenseDetailsFromData(activationCodeEnc, activationCodeIv, email, licenseId);
+    if (license == null) {
+      return 1;
+    }
+
+    _licenseEncryptedIv = activationCodeIv;
+    _licenseEncryptedData = activationCodeEnc;
+    _licenseEmail = email;
+    _licenseId = licenseId;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString('licenseData', _licenseEncryptedData!);
+    sharedPreferences.setString('licenseIv', _licenseEncryptedIv!);
+    sharedPreferences.setString('licenseEmail', _licenseEmail!);
+    sharedPreferences.setString('licenseId', _licenseId!);
+
+    return 0;
   }
 
 }

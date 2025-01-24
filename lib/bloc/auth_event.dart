@@ -15,3 +15,12 @@ final class AuthActivateLicense extends AuthEvent{
   String licenseCode;
   AuthActivateLicense(this.email, this.licenseCode);
 }
+
+// ignore: must_be_immutable
+final class AuthActivateLicenseOffline extends AuthEvent{
+  String email;
+  String licenseCode;
+  String licenseStringEncoded;
+  String licenseStringIv;
+  AuthActivateLicenseOffline(this.email, this.licenseCode, this.licenseStringEncoded, this.licenseStringIv);
+}

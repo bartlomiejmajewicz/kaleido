@@ -20,12 +20,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // }
     on<AuthDeactivateLicense>(_deAuthoriseLicense);
     on<AuthActivateLicense>(_authoriseLicense);
+    on<AuthActivateLicenseOffline>(_authoriseOffline);
     on<AuthForceInitialState>(_forceInitialState);
   }
 
   void _forceInitialState(AuthForceInitialState event, Emitter<AuthState> emit){
     Authorisation.clearAllLicenseData();
-    emit(AuthInitial());
+    emit(AuthLicenseNotActive(null));
   }
 
   Future<void> _authoriseLicense(AuthActivateLicense event, Emitter<AuthState> emit) async {
@@ -44,6 +45,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLicenseNotActive(response));
     }
   }
+
+
+  Future<void> _authoriseOffline(AuthActivateLicenseOffline event, Emitter<AuthState> emit) async {
+    emit(AuthLoadingLicense());
+    final String email = event.email;
+    final String licenseCode = event.licenseCode;
+    final String licenseStringEncoded = event.licenseStringEncoded;
+    final String licenseStringIv = event.licenseStringIv;
+
+    final int responseCode = await Authorisation.authoriseLocally(email, licenseCode, licenseStringEncoded, licenseStringIv);
+    String responseString = "License activated properly";
+    switch (responseCode) {
+      case 1:
+        responseString = "License data incorrect";
+        break;
+      case 2:
+        responseString = "Missing license data";
+        break;
+    }
+
+    if (Authorisation.isLicensePresent()) {
+      emit(AuthLicenseActive(responseString));
+    } else {
+      emit(AuthLicenseNotActive(responseString));
+    }
+  }
+
+
 
   Future<void> _deAuthoriseLicense(AuthEvent event, Emitter<AuthState> emit) async {
 
