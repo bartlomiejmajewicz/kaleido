@@ -33,16 +33,21 @@ class ExcelFile extends SourceFile{
   ExcelFile(super.fileLocation);
   ExcelFile.fromFile(super.file) : super.fromFile();
 
-  late dynamic _excel;
+  dynamic _excel;
   List<String> sheetsList = List.empty(growable: true);
 
   @override
   void loadFile() {
-    var bytes = _file.readAsBytesSync();
-    _excel = Excel.decodeBytes(bytes);
-    for (var table in _excel.tables.keys) {
-      sheetsList.add(table);
+    try {
+      var bytes = _file.readAsBytesSync();
+      _excel = Excel.decodeBytes(bytes);
+      for (var table in _excel.tables.keys) {
+        sheetsList.add(table);
+      }
+    } catch (e) {
+      
     }
+    
   }
 
 
@@ -70,6 +75,9 @@ class ExcelFile extends SourceFile{
   void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
     sctiptList.clear();
     int rowNr = 0;
+    if(_excel == null){
+      return;
+    }
     if (_excel.tables[sheetName] == null) {
       return;
     }
