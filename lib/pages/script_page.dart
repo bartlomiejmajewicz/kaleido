@@ -218,13 +218,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         );
       }
 
-
-
-
-
-      // return Column(
-      //   children: list
-      // );
       return SizedBox(
         height: SettingsClass.videoHeight,
         width: 200,
@@ -919,7 +912,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
       ksn.onClick = (){
 
-        int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
+        int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: ksn.characterName, videoStartTc: SettingsClass.videoStartTc);
         _scriptTableRebuildRequest();
         scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };
@@ -928,7 +921,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     shortcutsMap.putIfAbsent("add char #2", (){
       KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
       ksn.onClick = (){
-        int newEntryIndex = scriptList.newEntry(null, charName: ksn.characterName);
+        int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: ksn.characterName, videoStartTc: SettingsClass.videoStartTc);
         _scriptTableRebuildRequest();
         scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
       };

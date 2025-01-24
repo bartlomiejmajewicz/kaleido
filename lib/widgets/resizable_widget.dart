@@ -21,16 +21,6 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
   double top = 0;
   double left = 0;
 
-  void onDrag(double dx, double dy) {
-    var newHeight = SettingsClass.videoHeight + dy;
-    var newWidth = SettingsClass.videoWidth + dx;
-
-    setState(() {
-      SettingsClass.videoHeight = newHeight > 0 ? newHeight : 50;
-      SettingsClass.videoWidth = newWidth > 0 ? newWidth : 50;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
