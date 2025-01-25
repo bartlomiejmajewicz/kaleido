@@ -2,15 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:script_editor/models/keyboard_shortcut_node.dart';
 
 // ignore: must_be_immutable
-class OutlinedButtonWithShortcut extends StatelessWidget{
+class OutlinedButtonWithShortcut extends StatefulWidget{
+
+  static ValueNotifier<bool>? globalReloadNotifier;
+
   final ValueChanged<int>updateUiMethod;
   KeyboardShortcutNode? kns;
   OutlinedButtonWithShortcut({super.key, required this.updateUiMethod, this.kns});
 
   @override
+  State<OutlinedButtonWithShortcut> createState() => _OutlinedButtonWithShortcutState();
+}
+
+class _OutlinedButtonWithShortcutState extends State<OutlinedButtonWithShortcut> {
+  @override
+  void initState() {
+    super.initState();
+    OutlinedButtonWithShortcut.globalReloadNotifier ??= ValueNotifier(false);
+  }
+  @override
   Widget build(BuildContext context) {
-    if (kns != null) {
-      return generateButtonWithShortcut(kns!, context);
+    if (widget.kns != null) {
+      return generateButtonWithShortcut(widget.kns!, context);
     } else {
       return OutlinedButton(onPressed: (){}, child: const Text("missing function..."));
     }
@@ -27,28 +40,28 @@ class OutlinedButtonWithShortcut extends StatelessWidget{
     } else {
       label = Text(ksn.description);
     }
-    return ValueListenableBuilder(valueListenable: ksn.assignedNowNotifier, builder: (context, value, child){
+    return ValueListenableBuilder(valueListenable: OutlinedButtonWithShortcut.globalReloadNotifier!, builder: (context, value, child){
       return Tooltip(
         key: GlobalKey(),
         message: ksn.toString(),
         child: OutlinedButton(
         onLongPress:(){
-          updateUiMethod(0);
-          ksn.assignedNowNotifier.value = true;
-          updateUiMethod(0);
+          widget.updateUiMethod(0);
+          ksn.assignedNowNotifier = true;
+          OutlinedButtonWithShortcut.globalReloadNotifier!.value = true;
+          widget.updateUiMethod(0);
         },
         onPressed: (){
-          if (ksn.assignedNowNotifier.value) {
-            ksn.assignedNowNotifier.value = false;
-            updateUiMethod(0);
+          if (ksn.assignedNowNotifier) {
+            ksn.assignedNowNotifier = false;
+            widget.updateUiMethod(0);
           } else {
             ksn.onClick();
           }
         },
-        child: ksn.assignedNowNotifier.value ? const Text("assign the shortcut") : label,
+        child: ksn.assignedNowNotifier ? const Text("assign the shortcut") : label,
         ),
       );
     });
   }
-
 }

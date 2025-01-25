@@ -187,6 +187,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     Widget switchAudio(){
 
       List<Widget> list = List.empty(growable: true);
+      list.add(const Text("Select audio track:"));
       list.add(
         OutlinedButton(
           onPressed: () async {
@@ -737,7 +738,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                     scriptList.removeItem(scriptNode);
                     _scriptTableRebuildRequest();
                     try {
-                      scriptNode.dialFocusNode.requestFocus();
+                      //scriptNode.dialFocusNode.requestFocus();
                     // ignore: empty_catches
                     } catch (e) {
                     }
@@ -869,10 +870,16 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
     if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
       shortcutsMap.forEach((key, keyboardShortcutNode){
-        if (keyboardShortcutNode.assignedNowNotifier.value) {
+        if (keyboardShortcutNode.assignedNowNotifier) {
           keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
-          keyboardShortcutNode.assignedNowNotifier.value = false;
+          keyboardShortcutNode.assignedNowNotifier = false;
+          try {
+            OutlinedButtonWithShortcut.globalReloadNotifier!.value = false;
+          // ignore: empty_catches
+          } catch (e) {
+          }
+          
           _scriptTableRebuildRequest();
         }
         if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){

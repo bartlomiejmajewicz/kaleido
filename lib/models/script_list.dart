@@ -2,7 +2,7 @@ import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/timecode.dart';
 
 class ScriptList {
-  List<ScriptNode> _list;
+  final List<ScriptNode> _list;
 
   ScriptList(this._list);
 

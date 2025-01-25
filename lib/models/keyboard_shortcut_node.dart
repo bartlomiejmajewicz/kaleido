@@ -6,7 +6,7 @@ class KeyboardShortcutNode{
   Set<LogicalKeyboardKey>? logicalKeySet;
   String? characterName;
   String description;
-  ValueNotifier<bool> assignedNowNotifier = ValueNotifier(false);
+  bool assignedNowNotifier = false;
   List<IconData>? iconsList;
   late Function onClick;
 
