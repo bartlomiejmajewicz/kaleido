@@ -53,6 +53,8 @@ TextEditingController tempTextEditController = TextEditingController();
 TextEditingController charNameOldTEC = TextEditingController();
 TextEditingController charNameNewTEC = TextEditingController();
 TextEditingController tcEntryController = TextEditingController();
+TextEditingController charName01 = TextEditingController();
+TextEditingController charName02 = TextEditingController();
 bool tcEntryControllerActive = true;
 
 ValueNotifier<bool> scrollFollowsVideo = ValueNotifier(false);
@@ -131,7 +133,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     scriptList = ScriptList(scriptNodesTemporary);
     sheetName = SettingsClass.sheetName;
     _scriptTableRebuildRequest();
-    _initializeShortcutsList();
   }
 
 
@@ -340,7 +341,17 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
             children: [
               Padding(
                 padding: paddingEdgeInsets,
-                child: OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap['upperPanelVisibility'],),
+                child: 
+                  OutlinedButtonWithShortcut(
+                    key: UniqueKey(),
+                    kns: KeyboardShortcutNode((){
+                      if (_isUpperMenuVisible.value) {
+                          _isUpperMenuVisible.value = false;
+                        } else {
+                          _isUpperMenuVisible.value = true;
+                        }
+                    }, "upperPanelVisibility", iconsList: [Icons.swap_vert])
+                  )
               ),
               ValueListenableBuilder(
                 valueListenable: _isUpperMenuVisible,
@@ -359,7 +370,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                   padding: paddingEdgeInsets,
                                   child: Column(
                                     children: [
-                                      OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["save"]),
+                                      OutlinedButtonWithShortcut(
+                                        kns: KeyboardShortcutNode((){_saveFileWithSnackbar(context);}, "save", iconsList: [Icons.save]))
                                     ]
                                   ),
                                 ),
@@ -427,15 +439,20 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                           SizedBox(
                                             width: 200,
                                             child: TextFormField(
-                                              onChanged: (value) {
-                                                shortcutsMap["add char #1"]!.characterName = value;
-                                              },
+                                              controller: charName01,
                                               decoration: const InputDecoration(
                                                 helperText: "character name #1",
                                               ),
                                             ),
                                           ),
-                                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #1"])
+                                          OutlinedButtonWithShortcut(
+                                            updateUi: updateUi,
+                                            kns: KeyboardShortcutNode((){
+                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName01.text, videoStartTc: SettingsClass.videoStartTc);
+                                              _scriptTableRebuildRequest();
+                                              scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
+                                            },
+                                            "add char #1")),
                                         ],
                                       ),
                                         Row(
@@ -443,16 +460,20 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                           SizedBox(
                                             width: 200,
                                             child: TextFormField(
-                                              onChanged: (value) {
-                                                shortcutsMap["add char #2"]!.characterName = value;
-                                              },
+                                              controller: charName02,
                                               decoration: const InputDecoration(
                                                 helperText: "character name #2",
                                               ),
                                             ),
                                           ),
-                                          OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["add char #2"]),
-                                          //generateButtonWithShortcut(shortcutsList[4]),
+                                          OutlinedButtonWithShortcut(
+                                            updateUi: updateUi,
+                                            kns: KeyboardShortcutNode((){
+                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName02.text, videoStartTc: SettingsClass.videoStartTc);
+                                              _scriptTableRebuildRequest();
+                                              scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
+                                            },
+                                            "add char #2")),
                                         ],
                                       )
                                     ],
@@ -469,8 +490,17 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 },
               ),
               Row(children: [
-                OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek <"]),
-                OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["play/pause"]),
+                OutlinedButtonWithShortcut(
+                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind])
+                ),
+                OutlinedButtonWithShortcut(
+                  kns: KeyboardShortcutNode((){videoPlayer.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause])
+                ),
+                
+                OutlinedButtonWithShortcut(
+                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward])
+                ),
+
                 SizedBox(
                   width: 120,
                   child: TextFormField(
@@ -501,7 +531,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                     }  
                   ),
                 ),
-                OutlinedButtonWithShortcut(updateUiMethod: updateUi, kns: shortcutsMap["seek >"]),
                 ValueListenableBuilder(valueListenable: scrollFollowsVideo, builder: (context, value, child) {
                   return Checkbox(
                     value: value,
@@ -869,23 +898,26 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     countModifiers = hk.isShiftPressed ? countModifiers+1 : countModifiers;
 
     if (keyEvent.runtimeType == KeyDownEvent && hk.logicalKeysPressed.length > countModifiers) {
-      shortcutsMap.forEach((key, keyboardShortcutNode){
-        if (keyboardShortcutNode.assignedNowNotifier) {
-          keyboardShortcutNode.logicalKeySet = hk.logicalKeysPressed;
+      if (OutlinedButtonWithShortcut.buttonsWithShortcutsList == null) {
+        return;
+      }
+      for (OutlinedButtonWithShortcut element in OutlinedButtonWithShortcut.buttonsWithShortcutsList!) {
+        if (element.kns!.assignedNow) {
+          element.kns!.logicalKeySet = hk.logicalKeysPressed;
           assignShortcutOperation = true;
-          keyboardShortcutNode.assignedNowNotifier = false;
+          element.kns!.assignedNow = false;
           try {
-            OutlinedButtonWithShortcut.globalReloadNotifier!.value = false;
+            OutlinedButtonWithShortcut.globalButtonsReloadNotifier!.reload();
           // ignore: empty_catches
           } catch (e) {
           }
           
           _scriptTableRebuildRequest();
         }
-        if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, keyboardShortcutNode.logicalKeySet)){
-          keyboardShortcutNode.onClick();
+        if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, element.kns!.logicalKeySet)){
+          element.kns!.onClick();
         }
-      });
+      }
     }
   }
 
@@ -901,55 +933,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
   void updateUi(int a){
     // ignore: unused_element
     setState(() {
-    });
-  }
-  void _initializeShortcutsList(){
-
-
-    shortcutsMap.putIfAbsent("play/pause", (){
-      return KeyboardShortcutNode((){videoPlayer.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause]);
-    });
-    shortcutsMap.putIfAbsent("seek >", (){
-      return KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward]);
-    });
-    shortcutsMap.putIfAbsent("seek <", (){
-      return KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind]);
-    });
-    shortcutsMap.putIfAbsent("add char #1", (){
-      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #1");
-      ksn.onClick = (){
-
-        int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: ksn.characterName, videoStartTc: SettingsClass.videoStartTc);
-        _scriptTableRebuildRequest();
-        scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
-      };
-      return ksn;
-    });
-    shortcutsMap.putIfAbsent("add char #2", (){
-      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "add char #2");
-      ksn.onClick = (){
-        int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: ksn.characterName, videoStartTc: SettingsClass.videoStartTc);
-        _scriptTableRebuildRequest();
-        scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
-      };
-      return ksn;
-    });
-    shortcutsMap.putIfAbsent("save", (){
-      KeyboardShortcutNode ksn = KeyboardShortcutNode((){}, "save ", iconsList: [Icons.save]);
-      ksn.onClick = (){
-        _saveFileWithSnackbar(context);
-      };
-      return ksn;
-    });
-    shortcutsMap.putIfAbsent("upperPanelVisibility", (){
-      KeyboardShortcutNode ksn = KeyboardShortcutNode((){
-        if (_isUpperMenuVisible.value) {
-            _isUpperMenuVisible.value = false;
-          } else {
-            _isUpperMenuVisible.value = true;
-          }
-      }, "upperPanelVisibility", iconsList: [Icons.swap_vert]);
-      return ksn;
     });
   }
 

@@ -4,13 +4,12 @@ import 'package:flutter/services.dart';
 
 class KeyboardShortcutNode{
   Set<LogicalKeyboardKey>? logicalKeySet;
-  String? characterName;
   String description;
-  bool assignedNowNotifier = false;
+  bool assignedNow = false;
   List<IconData>? iconsList;
   late Function onClick;
 
-  KeyboardShortcutNode(this.onClick, this.description, {this.characterName, this.logicalKeySet, this.iconsList});
+  KeyboardShortcutNode(this.onClick, this.description, {this.logicalKeySet, this.iconsList});
 
 
   String _showShortcut(){
