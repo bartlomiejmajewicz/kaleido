@@ -48,6 +48,7 @@ class _ResizebleWidgetState extends State<ResizebleWidget> {
       
                 setState(() {
                   SettingsClass.videoHeight = newHeight > 0 ? newHeight : 0;
+                  SettingsClass.videoHeightNotifier.value = newHeight > 0 ? newHeight : 0;
                   SettingsClass.videoWidth = newWidth > 0 ? newWidth : 0;
                 });
               },

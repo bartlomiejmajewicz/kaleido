@@ -37,7 +37,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final Authorisation authorisation = Authorisation();
 
     final String response = await authorisation.pullLicenseFromServer(email, licenseCode, null);
-    print(response);
 
     if (Authorisation.isLicensePresent()) {
       emit(AuthLicenseActive(response));
@@ -80,7 +79,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final Authorisation authorisation = Authorisation();
     final String response = await authorisation.pushLicenseToServer();
-    print(response);
     if (Authorisation.isLicensePresent()) {
       emit(AuthLicenseActive(response));
     } else {

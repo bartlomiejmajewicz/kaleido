@@ -1,4 +1,5 @@
 
+import 'package:flutter/material.dart';
 import 'package:script_editor/models/timecode.dart';
 
 import 'classes.dart';
@@ -16,6 +17,8 @@ abstract class SettingsClass{
   static TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf;
   static List<String> audioSourcesPathsList = List.empty(growable: true);
   static double inputFramerate = 25;
+
+  static ValueNotifier<double> videoHeightNotifier = ValueNotifier(videoHeight);
 
   static bool isDataComplete(){
     if (sheetName != ""

@@ -44,6 +44,7 @@ class ExcelFile extends SourceFile{
       for (var table in _excel.tables.keys) {
         sheetsList.add(table);
       }
+    // ignore: empty_catches
     } catch (e) {
       
     }
@@ -58,6 +59,7 @@ class ExcelFile extends SourceFile{
       _file
       ..createSync(recursive: true)
       ..writeAsBytesSync(fileBytes);
+    // ignore: empty_catches
     } catch (e) {
     }
 

@@ -150,8 +150,12 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     _isCharacterVisible = _screenWidth < 550 ? false : true;
 
 
-    SettingsClass.videoHeight = _screenHeight/3;
-    SettingsClass.videoWidth = _screenWidth/2;
+    if (SettingsClass.videoHeight > _screenHeight/2) {
+      SettingsClass.videoHeight = _screenHeight/3;
+    }
+    if (SettingsClass.videoWidth > _screenWidth/2) {
+      SettingsClass.videoWidth = _screenWidth/3;
+    }
 
 
     return Scaffold(
@@ -220,12 +224,17 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         );
       }
 
-      return SizedBox(
-        height: SettingsClass.videoHeight,
-        width: 200,
-        child: ListView(
-          children: list,
-        ),
+      return ValueListenableBuilder(
+        valueListenable: SettingsClass.videoHeightNotifier,
+        builder: (context, value, child) {
+          return SizedBox(
+            height: value,
+            width: 200,
+            child: ListView(
+              children: list,
+            ),
+          );
+        },
       );
     }
 
@@ -557,23 +566,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
   
 
-  OutlinedButton _createVisibilityOptionButtonWithNotifier(ValueNotifier<bool> valueListenable, String text) {
-    return OutlinedButton(
-      child: ValueListenableBuilder(valueListenable: valueListenable, builder: (context, value, child) {
-        Icon icon = Icon( value ? Icons.check_box_outlined : Icons.check_box_outline_blank);
-        return Row(
-          children: [
-            Text(text),
-            icon,
-          ],
-        );
-      },),
-      onPressed: () {
-        valueListenable.value = !valueListenable.value;
-        _scriptTableRebuildRequest();
-    },);
-  }
-
 
 
   List<DropdownMenuEntry<String>> getCharactersMenuEntries(List <String> charactersNamesList){
@@ -596,6 +588,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     const double widthColC = 100;
     const double widthColD = 220;
     const EdgeInsetsGeometry paddingSize = EdgeInsets.symmetric(horizontal: 4.0);
+    // reduced number of Flexible used in the E (dialogue) column - we render it once in the header and take width size to the other rows
+    GlobalKey rowEExpandedKey = GlobalKey();
+    RenderBox? renderBox;
 
     
     Row headerRow(){
@@ -644,8 +639,9 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               ),
             ) : null,
           ),
-          const Expanded(
-            child: Text("Dialogue"),
+          Expanded(
+            key: rowEExpandedKey,
+            child: const Text("Dialogue"),
           ),
           const Padding(padding: paddingSize,
             child: SizedBox(
@@ -663,6 +659,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
       //   _scriptTable[index].focusNode.requestFocus();
       // }
+      renderBox ??= rowEExpandedKey.currentContext?.findRenderObject() as RenderBox?;
 
       scriptNode.textControllerTc.text = scriptNode.tcIn.toString();
       return SizedBox(
@@ -733,25 +730,23 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 ) : null,
             ),
             
-            Flexible(
-              child: Padding(
-                padding: paddingSize,
-                child: SizedBox(
-                  //height: _listViewElementHeight.value,
-                  child: TextFormField(
-                    minLines: null,
-                    maxLines: null,
-                    autofocus: true,
-                    focusNode: scriptNode.dialFocusNode,
-                    onChanged: (value) {
-                      { 
-                        scriptNode.dial = value;
-                    }
-                    },
-                    scribbleEnabled: false, 
-                    initialValue: scriptNode.dial, 
-                    ),
-                ),
+            Padding(
+              padding: paddingSize,
+              child: SizedBox(
+                width: renderBox==null ? 300 : renderBox!.size.width,
+                child: TextFormField(
+                  minLines: null,
+                  maxLines: null,
+                  autofocus: true,
+                  focusNode: scriptNode.dialFocusNode,
+                  onChanged: (value) {
+                    { 
+                      scriptNode.dial = value;
+                  }
+                  },
+                  scribbleEnabled: false, 
+                  initialValue: scriptNode.dial, 
+                  ),
               ),
             ),
               
