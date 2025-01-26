@@ -77,7 +77,6 @@ bool _isTcFromScriptToPlayerVisible = true;
 bool _isTcPlayerToScriptVisible = true;
 bool _isTcInVisible = true;
 bool _isCharacterVisible = true;
-final ValueNotifier<double> _listViewElementHeight = ValueNotifier(50);
 
 final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
 
@@ -302,36 +301,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                       _isCharacterVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
                   ],
                 )),
-
-              Row(
-                children: [
-                  const Text("Line height:"),
-                  Column(
-                    children: [
-                      IconButton(
-                        onPressed: (){
-                          _listViewElementHeight.value+=5;
-                          _scriptTableRebuildRequest();
-                        },
-                        icon: const Icon(Icons.arrow_drop_up_outlined)
-                        ),
-                      IconButton(
-                        onPressed: (){
-                          _listViewElementHeight.value-=5;
-                          _scriptTableRebuildRequest();
-                        },
-                        icon: const Icon(Icons.arrow_drop_down_outlined)
-                        ),
-                    ],
-                  ),
-                  ValueListenableBuilder(
-                    valueListenable: _listViewElementHeight,
-                    builder: (context, value, child) {
-                      return Text(_listViewElementHeight.value.toString());
-                      },
-                    ),
-                ],
-              ),
             ],
           ),
         ),
@@ -660,120 +629,119 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       );
     }
 
-    Widget buildRow(BuildContext context, ScriptNode scriptNode){
+    Widget buildRow(BuildContext context, ScriptNode scriptNode, int scriptNodeIndex){
       // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
       //   _scriptTable[index].focusNode.requestFocus();
       // }
       renderBox ??= rowEExpandedKey.currentContext?.findRenderObject() as RenderBox?;
 
       scriptNode.textControllerTc.text = scriptNode.tcIn.toString();
-      return SizedBox(
-        height: _listViewElementHeight.value,
-        child: Row(
-          key: UniqueKey(),
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            ListenableBuilder(
-              listenable: _arrowHighlightedReload,
-              builder: (context, child) {
-                return SizedBox(
-                  width: _isTcFromScriptToPlayerVisible ? widthButtons : 0,
-                  child: ElevatedButton(
-                  style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-                  onPressed: (){
-                    jumpToTc(scriptNode.tcIn);
-                  },
-                  child: _isTcFromScriptToPlayerVisible ? const Icon(Icons.arrow_upward) : null,
-                  ),
-                );
-              },
-             
-            ),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: _isTcPlayerToScriptVisible ? SizedBox(
-                width: widthButtons,
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ListenableBuilder(
+            listenable: _arrowHighlightedReload,
+            builder: (context, child) {
+              return SizedBox(
+                width: _isTcFromScriptToPlayerVisible ? widthButtons : 0,
                 child: ElevatedButton(
-                  onPressed: (){
-                    scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
-                    scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-                  },
-                  child: const Icon(Icons.arrow_downward),
+                style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
+                onPressed: (){
+                  jumpToTc(scriptNode.tcIn);
+                },
+                child: _isTcFromScriptToPlayerVisible ? const Icon(Icons.arrow_upward) : null,
+                ),
+              );
+            },
+           
+          ),
+      
+      
+          Padding(
+            padding: paddingSize,
+            child: _isTcPlayerToScriptVisible ? SizedBox(
+              width: widthButtons,
+              child: ElevatedButton(
+                onPressed: (){
+                  scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+                },
+                child: const Icon(Icons.arrow_downward),
+              ),
+            ) : null,
+          ),
+      
+      
+          Padding(
+            padding: paddingSize,
+            child: _isTcInVisible ? SizedBox(
+              width: widthColC,
+              child: TextFormField(
+                controller: scriptNode.textControllerTc,
+                onChanged: (value) {
+                  if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
+                    scriptNode.tcIn = Timecode(value);
+                  }
+                },
+              inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+              )) : null,
+          ),
+      
+      
+          Padding(
+            key: UniqueKey(),
+            padding: paddingSize,
+            child: _isCharacterVisible ? SizedBox(
+              width: widthColD,
+              child: CharNameWidgetWithAutocomplete(
+                charactersNamesList: scriptList.getCharactersList(),
+                initialValue: scriptNode.charName,
+                updateFunction: (value) => scriptNode.charName=value,
+                maxOptionsWidth: widthColD,
                 ),
               ) : null,
+          ),
+          
+          Padding(
+            key: UniqueKey(),
+            padding: paddingSize,
+            child: SizedBox(
+              width: renderBox==null ? 300 : renderBox!.size.width,
+              child: TextFormField(
+                minLines: null,
+                maxLines: null,
+                autofocus: true,
+                focusNode: scriptNode.dialFocusNode,
+                onChanged: (value) {
+                  { 
+                    scriptNode.dial = value;
+                }
+                },
+                scribbleEnabled: false, 
+                initialValue: scriptNode.dial, 
+                ),
             ),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: _isTcInVisible ? SizedBox(
-                width: widthColC,
-                child: TextFormField(
-                  controller: scriptNode.textControllerTc,
-                  onChanged: (value) {
-                    if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
-                      scriptNode.tcIn = Timecode(value);
-                    }
-                  },
-                inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-                )) : null,
-            ),
-        
-        
-            Padding(
-              padding: paddingSize,
-              child: _isCharacterVisible ? SizedBox(
-                width: widthColD,
-                child: CharNameWidgetWithAutocomplete(
-                  charactersNamesList: scriptList.getCharactersList(),
-                  initialValue: scriptNode.charName,
-                  updateFunction: (value) => scriptNode.charName=value,
-                  maxOptionsWidth: widthColD,
-                  ),
-                ) : null,
-            ),
+          ),
             
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(
-                width: renderBox==null ? 300 : renderBox!.size.width,
-                child: TextFormField(
-                  minLines: null,
-                  maxLines: null,
-                  autofocus: true,
-                  focusNode: scriptNode.dialFocusNode,
-                  onChanged: (value) {
-                    { 
-                      scriptNode.dial = value;
+          Padding(
+            padding: paddingSize,
+            child: SizedBox(
+              width: widthButtons,
+              child: ElevatedButton(
+                child: const Icon(Icons.delete),
+                onPressed: () {
+                  scriptList.removeItem(scriptNode);
+                  _scriptTableRebuildRequest();
+                  try {
+                    scriptList.getItemById(scriptNodeIndex-1).dialFocusNode.requestFocus();
+                    //scriptNode.dialFocusNode.requestFocus();
+                  // ignore: empty_catches
+                  } catch (e) {
                   }
-                  },
-                  scribbleEnabled: false, 
-                  initialValue: scriptNode.dial, 
-                  ),
-              ),
+                },),
             ),
-              
-            Padding(
-              padding: paddingSize,
-              child: SizedBox(
-                width: widthButtons,
-                child: ElevatedButton(
-                  child: const Icon(Icons.delete),
-                  onPressed: () {
-                    scriptList.removeItem(scriptNode);
-                    _scriptTableRebuildRequest();
-                    try {
-                      //scriptNode.dialFocusNode.requestFocus();
-                    // ignore: empty_catches
-                    } catch (e) {
-                    }
-                  },),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
@@ -795,7 +763,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 shrinkWrap: false,
                 itemCount: list.length,
                 itemBuilder: (context, index) {
-                  return buildRow(context, list[index]);
+                  return buildRow(context, list[index], index);
                 },
               ),
             ),
