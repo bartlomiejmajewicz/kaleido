@@ -96,6 +96,12 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     super.dispose();
   }
 
+  /// called to initialize async videoPlayer methods outside of the initState()
+  Future<void> initStateFuture() async {
+    await videoPlayer.open(Media(SettingsClass.videoFilePath));
+    await videoPlayer.setSubtitleTrack(SubtitleTrack.no());
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,8 +113,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     keyEventNotifier!.addListener(keyEventShortcutProcessFromProvider);
 
 
-    videoPlayer.open(Media(SettingsClass.videoFilePath));
-    videoPlayer.setSubtitleTrack(SubtitleTrack.no());
+    initStateFuture();
     videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
       if (scriptList.markCurrentLine(Timecode.fromDuration(e, SettingsClass.inputFramerate), SettingsClass.videoStartTc, SettingsClass.inputFramerate)) {
