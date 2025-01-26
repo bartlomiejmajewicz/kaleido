@@ -446,7 +446,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                             ),
                                           ),
                                           OutlinedButtonWithShortcut(
-                                            updateUi: updateUi,
                                             kns: KeyboardShortcutNode((){
                                               int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName01.text, videoStartTc: SettingsClass.videoStartTc);
                                               _scriptTableRebuildRequest();
@@ -467,7 +466,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                             ),
                                           ),
                                           OutlinedButtonWithShortcut(
-                                            updateUi: updateUi,
                                             kns: KeyboardShortcutNode((){
                                               int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName02.text, videoStartTc: SettingsClass.videoStartTc);
                                               _scriptTableRebuildRequest();
@@ -912,7 +910,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
           } catch (e) {
           }
           
-          _scriptTableRebuildRequest();
         }
         if(assignShortcutOperation == false && setEquals(hk.logicalKeysPressed, element.kns!.logicalKeySet)){
           element.kns!.onClick();

@@ -9,9 +9,8 @@ class OutlinedButtonWithShortcut extends StatefulWidget{
   static ChangeNotifierReload? globalButtonsReloadNotifier;
 
   //final ValueChanged<int>updateUiMethod;
-  Function? updateUi;
   KeyboardShortcutNode? kns;
-  OutlinedButtonWithShortcut({super.key, this.updateUi, this.kns});
+  OutlinedButtonWithShortcut({super.key, this.kns});
 
   @override
   State<OutlinedButtonWithShortcut> createState() => _OutlinedButtonWithShortcutState();
