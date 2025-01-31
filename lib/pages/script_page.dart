@@ -198,34 +198,38 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       List<Widget> list = List.empty(growable: true);
       list.add(const Text("Select audio track:"));
       list.add(
-        OutlinedButton(
-          onPressed: () async {
-            await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.videoFilePath));
-          },
-          child: const Text("org"))
-        );
+        OutlinedButtonWithShortcut(
+          kns: KeyboardShortcutNode(
+            () async {
+              await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.videoFilePath));
+            },),
+          child: const Text("org audio"),
+        ));
 
       for (AudioTrack audioTrack in videoPlayer.state.tracks.audio) {
         list.add(
-          OutlinedButton(
-            onPressed: () async {
-              await videoPlayer.setAudioTrack(audioTrack);
-            },
-            child: Text(audioTrack.id))
+          OutlinedButtonWithShortcut(
+            kns: KeyboardShortcutNode(
+              ()async{
+                await videoPlayer.setAudioTrack(audioTrack);
+              },
+            ),
+          child: Text(audioTrack.id),
+          )
         );
       }
 
 
       for (var i = 0; i < SettingsClass.audioSourcesPathsList.length; i++) {
         list.add(
-          OutlinedButton(
-            onPressed: () async {
-              await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.audioSourcesPathsList[i]));
-            },
-            child: Text(
-              maxLines: 1,
-              path_package.basename(SettingsClass.audioSourcesPathsList[i])))
-        );
+          OutlinedButtonWithShortcut(
+            kns: KeyboardShortcutNode(
+              () async {
+                await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.audioSourcesPathsList[i]));
+              },
+            ),
+            child: Text(path_package.basename(SettingsClass.audioSourcesPathsList[i])),
+            ));
       }
 
       return ValueListenableBuilder(
@@ -333,7 +337,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                         } else {
                           _isUpperMenuVisible.value = true;
                         }
-                    }, "upperPanelVisibility", iconsList: [Icons.swap_vert])
+                    }),
+                    child: const Icon(Icons.swap_vert),
                   )
               ),
               ValueListenableBuilder(
@@ -354,7 +359,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                   child: Column(
                                     children: [
                                       OutlinedButtonWithShortcut(
-                                        kns: KeyboardShortcutNode((){_saveFileWithSnackbar(context);}, "save", iconsList: [Icons.save]))
+                                        kns: KeyboardShortcutNode((){_saveFileWithSnackbar(context);}),
+                                        child: const Icon(Icons.save),)
                                     ]
                                   ),
                                 ),
@@ -433,8 +439,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                               int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName01.text, videoStartTc: SettingsClass.videoStartTc);
                                               _scriptTableRebuildRequest();
                                               scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
-                                            },
-                                            "add char #1")),
+                                            },),
+                                            child: const Text("add char #1"),),
                                         ],
                                       ),
                                         Row(
@@ -453,8 +459,8 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                               int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName02.text, videoStartTc: SettingsClass.videoStartTc);
                                               _scriptTableRebuildRequest();
                                               scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
-                                            },
-                                            "add char #2")),
+                                            },),
+                                            child: const Text("add char #2")),
                                         ],
                                       )
                                     ],
@@ -472,14 +478,17 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               ),
               Row(children: [
                 OutlinedButtonWithShortcut(
-                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition-const Duration(seconds: 5)));},"seek <", iconsList: [Icons.fast_rewind])
+                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition-const Duration(seconds: 5)));}),
+                  child: const Icon(Icons.fast_rewind),
                 ),
                 OutlinedButtonWithShortcut(
-                  kns: KeyboardShortcutNode((){videoPlayer.playOrPause();}, "play/pause", iconsList: [Icons.play_arrow, Icons.pause])
+                  kns: KeyboardShortcutNode((){videoPlayer.playOrPause();}),
+                  child: const Row(children: [Icon(Icons.play_arrow), Icon(Icons.pause)],),
                 ),
                 
                 OutlinedButtonWithShortcut(
-                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}, "seek >", iconsList: [Icons.fast_forward])
+                  kns: KeyboardShortcutNode((){videoPlayer.seek((_currentPlaybackPosition+const Duration(seconds: 5)));}),
+                  child: const Icon(Icons.fast_forward),
                 ),
 
                 SizedBox(

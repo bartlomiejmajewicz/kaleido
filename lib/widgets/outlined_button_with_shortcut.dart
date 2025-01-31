@@ -10,7 +10,8 @@ class OutlinedButtonWithShortcut extends StatefulWidget{
 
   //final ValueChanged<int>updateUiMethod;
   KeyboardShortcutNode? kns;
-  OutlinedButtonWithShortcut({super.key, this.kns});
+  Widget child;
+  OutlinedButtonWithShortcut({super.key, this.kns, required this.child});
 
   @override
   State<OutlinedButtonWithShortcut> createState() => _OutlinedButtonWithShortcutState();
@@ -42,16 +43,6 @@ class _OutlinedButtonWithShortcutState extends State<OutlinedButtonWithShortcut>
   }
 
   Widget generateButtonWithShortcut(KeyboardShortcutNode ksn, BuildContext context){
-    Widget label;
-    if (ksn.iconsList != null) {
-      List<Widget> iconsList = List.empty(growable: true);
-      for (var element in ksn.iconsList!) {
-        iconsList.add(Icon(element));
-      }
-      label = Row(children: iconsList);
-    } else {
-      label = Text(ksn.description);
-    }
 
     return ListenableBuilder(
       key: UniqueKey(),
@@ -74,7 +65,7 @@ class _OutlinedButtonWithShortcutState extends State<OutlinedButtonWithShortcut>
               ksn.onClick();
             }
           },
-          child: ksn.assignedNow ? const Text("assign the shortcut") : label,
+          child: ksn.assignedNow ? const Text("assign the shortcut") : widget.child,
           ),
         );
       }
