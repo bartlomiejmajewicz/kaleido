@@ -10,7 +10,7 @@ class ScriptList {
     // return true if something has changed
     bool isThereAChange = false;
     for (var i = 0; i < _list.length; i++) {
-      if ((Timecode.fromFramesCount(currentPlaybackPosition.framesCount(), videoFramerate)+videoStartTc).framesCount() < _list[i].tcIn.framesCount() && !isThereAChange && i>0) {
+      if ((currentPlaybackPosition+videoStartTc).framesCount() < _list[i].tcIn.framesCount() && !isThereAChange && i>0) {
         _list[i-1].isThisCurrentTC = true;
         isThereAChange = true;
       } else {

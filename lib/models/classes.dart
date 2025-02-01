@@ -102,7 +102,7 @@ class ExcelFile extends SourceFile{
           }
 
           if (collNr == tcInColl) {
-            scriptNode.tcIn = Timecode(cell.value.value.toString());
+            scriptNode.tcIn = Timecode(cell.value.value.toString(), inputFramerate);
             if (sctiptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString(), inputFramerate)) {
               if (sctiptList.last.tcIn.m <= scriptNode.tcIn.m) {
                 // previous TC is most probably in the same hour

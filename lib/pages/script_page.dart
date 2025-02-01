@@ -116,12 +116,12 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     initStateFuture();
     videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
-      if (scriptList.markCurrentLine(Timecode.fromDuration(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.startingTimecode, context.read<SettingsBloc>().state.inputFramerate)) {
+      if (scriptList.markCurrentLine(Timecode.fromFramesCount(Timecode.countFrames(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.inputFramerate)+context.read<SettingsBloc>().state.startingTimecode, context.read<SettingsBloc>().state.startingTimecode, context.read<SettingsBloc>().state.inputFramerate)) {
         _arrowHighlightedReload.reload();
       }
       
       if (tcEntryControllerActive) {
-        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.inputFramerate)+context.read<SettingsBloc>().state.startingTimecode).toString();
+        tcEntryController.text = (Timecode.fromFramesCount(Timecode.countFrames(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.inputFramerate)+context.read<SettingsBloc>().state.startingTimecode).toString();
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value, scriptList, selectedCharacterName);
     });
@@ -130,7 +130,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     scriptSourceFile!.loadFile();
 
     List<ScriptNode> scriptNodesTemporary = List.empty(growable: true);
-    scriptSourceFile!.importSheetToList(context.read<SettingsBloc>().state.selectedSheetName!, scriptNodesTemporary, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.inputFramerate);
+    scriptSourceFile!.importSheetToList(context.read<SettingsBloc>().state.selectedSheetName!, scriptNodesTemporary, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.inputFramerate);
     scriptList = ScriptList(scriptNodesTemporary);
     sheetName = context.read<SettingsBloc>().state.selectedSheetName!;
     _scriptTableRebuildRequest();
