@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:script_editor/models/scriptNode.dart';
-import 'package:script_editor/models/settings_class.dart';
 import 'package:script_editor/models/timecode.dart';
 
 
@@ -74,7 +73,7 @@ class ExcelFile extends SourceFile{
     return _file;
   }
 
-  void importSheetToList(String sheetName, List <ScriptNode> sctiptList){
+  void importSheetToList(String sheetName, List <ScriptNode> sctiptList, int collNumber, int rowNumber, double inputFramerate){
     sctiptList.clear();
     int rowNr = 0;
     if(_excel == null){
@@ -84,12 +83,12 @@ class ExcelFile extends SourceFile{
       return;
     }
     for (var row in _excel.tables[sheetName]!.rows) {
-      if (rowNr >= SettingsClass.rowNumber) {
+      if (rowNr >= rowNumber) {
         
         int collNr = 0;
-        int tcInColl = SettingsClass.collNumber;
-        int charNameColl = SettingsClass.collNumber+1;
-        int dialColl = SettingsClass.collNumber+2;
+        int tcInColl = collNumber;
+        int charNameColl = collNumber+1;
+        int dialColl = collNumber+2;
         ScriptNode scriptNode = ScriptNode.empty();
         for (var cell in row) {
           if (cell == null) {
@@ -104,7 +103,7 @@ class ExcelFile extends SourceFile{
 
           if (collNr == tcInColl) {
             scriptNode.tcIn = Timecode(cell.value.value.toString());
-            if (sctiptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString(), SettingsClass.inputFramerate)) {
+            if (sctiptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString(), inputFramerate)) {
               if (sctiptList.last.tcIn.m <= scriptNode.tcIn.m) {
                 // previous TC is most probably in the same hour
                 scriptNode.tcIn.h = sctiptList.last.tcIn.h;
@@ -129,20 +128,20 @@ class ExcelFile extends SourceFile{
     //sctiptList.sort();
   }
 
-  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc, TimecodeFormatting tcFormatting){
+  void exportListToSheet(List<ScriptNode> myList, String sheetNameLoc, TimecodeFormatting tcFormatting, int rowNumber, int collNumber){
     Sheet sheetObject = _excel[sheetNameLoc];
     int a=0;
     for (var scriptNode in myList) {
       switch (tcFormatting) {
         case TimecodeFormatting.formatMmSs:
-          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.asStringFormattedMmSs()));
+          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+0, rowIndex: rowNumber+a), TextCellValue(scriptNode.tcIn.asStringFormattedMmSs()));
           break;
         default:
-          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+0, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.tcIn.toString()));
+          sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+0, rowIndex: rowNumber+a), TextCellValue(scriptNode.tcIn.toString()));
           break;
       }
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+1, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.charName));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: SettingsClass.collNumber+2, rowIndex: SettingsClass.rowNumber+a), TextCellValue(scriptNode.dial));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+1, rowIndex: rowNumber+a), TextCellValue(scriptNode.charName));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+2, rowIndex: rowNumber+a), TextCellValue(scriptNode.dial));
       a++;
     }
     while(a<sheetObject.rows.length){

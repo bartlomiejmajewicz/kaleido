@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
+import 'package:script_editor/bloc/settings_bloc.dart';
 import 'package:script_editor/main.dart';
 import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/models/utils.dart';
@@ -97,7 +98,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
 
   /// called to initialize async videoPlayer methods outside of the initState()
   Future<void> initStateFuture() async {
-    await videoPlayer.open(Media(SettingsClass.videoFilePath));
+    await videoPlayer.open(Media(context.read<SettingsBloc>().state.videoFilePath!));
     await videoPlayer.setSubtitleTrack(SubtitleTrack.no());
   }
 
@@ -115,27 +116,23 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     initStateFuture();
     videoPlayer.stream.position.listen((e) {
       _currentPlaybackPosition = e;
-      if (scriptList.markCurrentLine(Timecode.fromDuration(e, SettingsClass.inputFramerate), SettingsClass.videoStartTc, SettingsClass.inputFramerate)) {
+      if (scriptList.markCurrentLine(Timecode.fromDuration(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.startingTimecode, context.read<SettingsBloc>().state.inputFramerate)) {
         _arrowHighlightedReload.reload();
       }
       
       if (tcEntryControllerActive) {
-        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc).toString();
+        tcEntryController.text =  (Timecode.fromFramesCount(Timecode.countFrames(e, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.inputFramerate)+context.read<SettingsBloc>().state.startingTimecode).toString();
       }
       focusNodeOrViewFollowsVideo(scrollFollowsVideo.value, focusNodeFollowsVideo.value, scriptList, selectedCharacterName);
     });
 
-    if (SettingsClass.scriptFile == null) {
-      scriptSourceFile = ExcelFile(SettingsClass.scriptFilePath);
-      scriptSourceFile!.loadFile();
-    }
-    else {
-      scriptSourceFile = SettingsClass.scriptFile;
-    }
+    scriptSourceFile = ExcelFile(context.read<SettingsBloc>().state.scriptFilePath!);
+    scriptSourceFile!.loadFile();
+
     List<ScriptNode> scriptNodesTemporary = List.empty(growable: true);
-    scriptSourceFile!.importSheetToList(SettingsClass.sheetName, scriptNodesTemporary);
+    scriptSourceFile!.importSheetToList(context.read<SettingsBloc>().state.selectedSheetName!, scriptNodesTemporary, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.inputFramerate);
     scriptList = ScriptList(scriptNodesTemporary);
-    sheetName = SettingsClass.sheetName;
+    sheetName = context.read<SettingsBloc>().state.selectedSheetName!;
     _scriptTableRebuildRequest();
   }
 
@@ -201,7 +198,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
         OutlinedButtonWithShortcut(
           kns: KeyboardShortcutNode(
             () async {
-              await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.videoFilePath));
+              await videoPlayer.setAudioTrack(AudioTrack.uri(context.read<SettingsBloc>().state.videoFilePath!));
             },),
           child: const Text("org audio"),
         ));
@@ -220,15 +217,15 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       }
 
 
-      for (var i = 0; i < SettingsClass.audioSourcesPathsList.length; i++) {
+      for (var i = 0; i < context.read<SettingsBloc>().state.audioFilesPaths.length; i++) {
         list.add(
           OutlinedButtonWithShortcut(
             kns: KeyboardShortcutNode(
               () async {
-                await videoPlayer.setAudioTrack(AudioTrack.uri(SettingsClass.audioSourcesPathsList[i]));
+                await videoPlayer.setAudioTrack(AudioTrack.uri(context.read<SettingsBloc>().state.audioFilesPaths[i]));
               },
             ),
-            child: Text(path_package.basename(SettingsClass.audioSourcesPathsList[i])),
+            child: Text(path_package.basename(context.read<SettingsBloc>().state.audioFilesPaths[i])),
             ));
       }
 
@@ -436,7 +433,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                           ),
                                           OutlinedButtonWithShortcut(
                                             kns: KeyboardShortcutNode((){
-                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName01.text, videoStartTc: SettingsClass.videoStartTc);
+                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, context.read<SettingsBloc>().state.inputFramerate), charName: charName01.text, videoStartTc: context.read<SettingsBloc>().state.startingTimecode);
                                               _scriptTableRebuildRequest();
                                               scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
                                             },),
@@ -456,7 +453,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                                           ),
                                           OutlinedButtonWithShortcut(
                                             kns: KeyboardShortcutNode((){
-                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, SettingsClass.inputFramerate), charName: charName02.text, videoStartTc: SettingsClass.videoStartTc);
+                                              int newEntryIndex = scriptList.newEntry(Timecode.fromDuration(_currentPlaybackPosition, context.read<SettingsBloc>().state.inputFramerate), charName: charName02.text, videoStartTc: context.read<SettingsBloc>().state.startingTimecode);
                                               _scriptTableRebuildRequest();
                                               scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
                                             },),
@@ -672,7 +669,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               width: widthButtons,
               child: ElevatedButton(
                 onPressed: (){
-                  scriptNode.tcIn = tcFromVideo()+SettingsClass.videoStartTc;
+                  scriptNode.tcIn = tcFromVideo()+context.read<SettingsBloc>().state.startingTimecode;
                   scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
                 },
                 child: const Icon(Icons.arrow_downward),
@@ -688,7 +685,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               child: TextFormField(
                 controller: scriptNode.textControllerTc,
                 onChanged: (value) {
-                  if(Timecode.tcValidateCheck(value, SettingsClass.inputFramerate)){
+                  if(Timecode.tcValidateCheck(value, context.read<SettingsBloc>().state.inputFramerate)){
                     scriptNode.tcIn = Timecode(value);
                   }
                 },
@@ -791,7 +788,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       return 100;
     }
     try {
-      scriptSourceFile!.exportListToSheet(scriptList.getList(), sheetName, SettingsClass.timecodeFormatting);
+      scriptSourceFile!.exportListToSheet(scriptList.getList(), sheetName, context.read<SettingsBloc>().state.timecodeFormatting, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber);
       scriptSourceFile!.saveFile();
       return 0;
     } catch (e) {
@@ -813,11 +810,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
   }
 
   void jumpToTc(Timecode tc){
-    videoPlayer.seek((tc-SettingsClass.videoStartTc).tcAsDuration());
+    videoPlayer.seek((tc-context.read<SettingsBloc>().state.startingTimecode).tcAsDuration());
   }
 
   Timecode tcFromVideo(){
-    Timecode tc = Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, SettingsClass.inputFramerate), SettingsClass.inputFramerate)+SettingsClass.videoStartTc;
+    Timecode tc = Timecode.fromFramesCount(Timecode.countFrames(_currentPlaybackPosition, context.read<SettingsBloc>().state.inputFramerate), context.read<SettingsBloc>().state.inputFramerate)+context.read<SettingsBloc>().state.startingTimecode;
     return tc;
   }
 
@@ -900,7 +897,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       print("_scriptTableRebuildRequest");
     }
     _lowerPanelReload.reload();
-    //_scriptTableRebuildFlag.value = !_scriptTableRebuildFlag.value;
 
   }
 
