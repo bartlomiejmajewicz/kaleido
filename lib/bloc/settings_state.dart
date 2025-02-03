@@ -2,15 +2,15 @@ part of 'settings_bloc.dart';
 
 @immutable
 class SettingsState {
-  String? videoFilePath;
-  String? scriptFilePath;
+  final String? videoFilePath;
+  final String? scriptFilePath;
   List<String> audioFilesPaths = List.empty(growable: true);
-  String? selectedSheetName;
+  final String? selectedSheetName;
   int rowNumber = 0;
   int collNumber = 0;
   double inputFramerate = 25;
   TimecodeFormatting timecodeFormatting = TimecodeFormatting.formatHhMmSsFf;
-  Timecode startingTimecode;
+  final Timecode startingTimecode;
 
   SettingsState(this.videoFilePath, this.scriptFilePath, this.audioFilesPaths, this.selectedSheetName, this.rowNumber, this.collNumber, this.inputFramerate, this.timecodeFormatting, this.startingTimecode);
 
@@ -25,8 +25,7 @@ class SettingsState {
     double? inputFramerateNew,
     TimecodeFormatting? timecodeFormattingNew,
     Timecode? startingTimecodeNew,
-    }){
-      
+    }) {
     if (newAudioFilePath != null) {
       audioFilesPaths.add(newAudioFilePath);
     }

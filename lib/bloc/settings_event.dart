@@ -3,6 +3,8 @@ part of 'settings_bloc.dart';
 @immutable
 sealed class SettingsEvent {
 }
+
+class SetValuesFromSharedPreferences extends SettingsEvent{}
 class SetVideoPath extends SettingsEvent{
   final String videoFilePath;
   SetVideoPath(this.videoFilePath);

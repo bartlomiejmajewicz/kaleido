@@ -7,7 +7,6 @@ import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/models/classes.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/timecode.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:path/path.dart' as path_package;
 
@@ -23,8 +22,6 @@ class _SettingsPageState extends State<SettingsPage> {
   TextEditingController tecColl = TextEditingController();
   TextEditingController tecRow = TextEditingController();
 
-  final ValueNotifier<bool> _videoFileSelectorActive = ValueNotifier(true);
-  final ValueNotifier<bool> _scriptFileSelectorActive = ValueNotifier(true);
   final ValueNotifier<bool> _isFileSelectorsActive = ValueNotifier(true);
 
   @override
@@ -57,16 +54,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       valueListenable: _isFileSelectorsActive,
                       builder: (context, value, child) {
                         return OutlinedButton(
-                          onPressed: value ? () async {
-                            String? response = await _selectVideoFile();
-                            if (context.mounted && response != null) {
-                              context
-                                  .read<SettingsBloc>()
-                                  .add(SetVideoPath(response));
-                            }
-                          } : null
-                          ,
-                          child: const Text("select video file..."));
+                            onPressed: value
+                                ? () async {
+                                    String? response = await _selectVideoFile();
+                                    if (context.mounted && response != null) {
+                                      context
+                                          .read<SettingsBloc>()
+                                          .add(SetVideoPath(response));
+                                    }
+                                  }
+                                : null,
+                            child: const Text("select video file..."));
                       },
                     ),
                     BlocBuilder<SettingsBloc, SettingsState>(
@@ -94,14 +92,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       valueListenable: _isFileSelectorsActive,
                       builder: (context, value, child) {
                         return OutlinedButton(
-                            onPressed: value ? () async {
-                              String? response = await _selectScriptFile();
-                              if (response != null) {  
-                              context
-                                  .read<SettingsBloc>()
-                                  .add(SetScriptPath(response));
-                              }
-                            } : null,
+                            onPressed: value
+                                ? () async {
+                                    String? response =
+                                        await _selectScriptFile();
+                                    if (response != null) {
+                                      context
+                                          .read<SettingsBloc>()
+                                          .add(SetScriptPath(response));
+                                    }
+                                  }
+                                : null,
                             child: const Text("select script file..."));
                       },
                     ),
@@ -256,7 +257,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   //
                   PaddingTableRow(children: [
                     const Text("select project framerate: "),
-                    _fpsSelectorWidget(),
+                    BlocBuilder<SettingsBloc, SettingsState>(
+                      builder: (context, state) {
+                        return _fpsSelectorWidget();
+                      },
+                    ),
                     BlocBuilder<SettingsBloc, SettingsState>(
                       builder: (context, state) {
                         return Text('selected fps: ${state.inputFramerate}');
@@ -312,7 +317,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               BlocBuilder<SettingsBloc, SettingsState>(
                 builder: (context, state) {
-                  return _sheetPreviewWidget(state.scriptFilePath, state.selectedSheetName);
+                  return _sheetPreviewWidget(
+                      state.scriptFilePath, state.selectedSheetName);
                 },
               ),
             ],
@@ -333,10 +339,10 @@ class _SettingsPageState extends State<SettingsPage> {
           style: const TextStyle(overflow: TextOverflow.clip),
         ),
         OutlinedButton(
-          onPressed: () {
-            context.read<SettingsBloc>().add(RemoveAudioFileAtIndex(i));
-          },
-          child: const Icon(Icons.delete))
+            onPressed: () {
+              context.read<SettingsBloc>().add(RemoveAudioFileAtIndex(i));
+            },
+            child: const Icon(Icons.delete))
       ]));
     }
 
@@ -345,12 +351,16 @@ class _SettingsPageState extends State<SettingsPage> {
         valueListenable: _isFileSelectorsActive,
         builder: (context, value, child) {
           return OutlinedButton(
-            onPressed: value ? () async {
-              String? audioFilePath = await _selectAudioFile();
-              if (audioFilePath != null) {
-                context.read<SettingsBloc>().add(AddAudioFile(audioFilePath));
-              }
-            } : null,
+            onPressed: value
+                ? () async {
+                    String? audioFilePath = await _selectAudioFile();
+                    if (audioFilePath != null) {
+                      context
+                          .read<SettingsBloc>()
+                          .add(AddAudioFile(audioFilePath));
+                    }
+                  }
+                : null,
             child: const Icon(Icons.add_box_outlined),
           );
         },
@@ -359,12 +369,14 @@ class _SettingsPageState extends State<SettingsPage> {
         valueListenable: _isFileSelectorsActive,
         builder: (context, value, child) {
           return OutlinedButton(
-            onPressed: value ? () async {
-              List<String> audioFilesPaths = await _selectAudioFiles();
-              for (String element in audioFilesPaths) {
-                context.read<SettingsBloc>().add(AddAudioFile(element));
-              }
-            } : null,
+            onPressed: value
+                ? () async {
+                    List<String> audioFilesPaths = await _selectAudioFiles();
+                    for (String element in audioFilesPaths) {
+                      context.read<SettingsBloc>().add(AddAudioFile(element));
+                    }
+                  }
+                : null,
             child: const Icon(Icons.library_add_outlined),
           );
         },
@@ -373,21 +385,14 @@ class _SettingsPageState extends State<SettingsPage> {
     return Table(children: list);
   }
 
-  Future<void> _saveSharedPreference(String key, String value) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setString(key, value);
-  }
-
   Future<String?> _selectVideoFile() async {
     _isFileSelectorsActive.value = false;
     FilePickerResult? result =
         await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
-      _saveSharedPreference('videoPath', result.files.single.path!);
       _isFileSelectorsActive.value = true;
       return result.files.single.path!;
-    } else {
-    }
+    } else {}
     _isFileSelectorsActive.value = true;
   }
 
@@ -433,7 +438,6 @@ class _SettingsPageState extends State<SettingsPage> {
         .pickFiles(type: FileType.custom, allowedExtensions: ['xls', 'xlsx']);
     if (result != null) {
       try {
-        _saveSharedPreference('scriptPath', result.files.single.path!);
         _isFileSelectorsActive.value = true;
         return result.files.single.path;
       } catch (e) {
@@ -483,9 +487,9 @@ class _SettingsPageState extends State<SettingsPage> {
         width: 200,
         label: const Text("set video framerate"),
         onSelected: (value) {
-            if (value != null) {
-              context.read<SettingsBloc>().add(SetInputFramerate(value));
-            }
+          if (value != null) {
+            context.read<SettingsBloc>().add(SetInputFramerate(value));
+          }
         },
         initialSelection: currentFps,
         dropdownMenuEntries: const <DropdownMenuEntry<double>>[
@@ -591,14 +595,20 @@ class _SettingsPageState extends State<SettingsPage> {
     return TextEditingValue(text: returnedValue);
   }
 
-  DataTable _sheetPreviewWidget(String? scriptFilePath, String? scriptSheetName) {
+  DataTable _sheetPreviewWidget(
+      String? scriptFilePath, String? scriptSheetName) {
     List<ScriptNode> list = List.empty(growable: true);
     List<DataRow> datarows = List.empty(growable: true);
     if (scriptFilePath != "" && scriptSheetName != "") {
       try {
         ExcelFile excelFile = ExcelFile(scriptFilePath!);
         excelFile.loadFile();
-        excelFile.importSheetToList(scriptSheetName!, list, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.inputFramerate);
+        excelFile.importSheetToList(
+            scriptSheetName!,
+            list,
+            context.read<SettingsBloc>().state.collNumber,
+            context.read<SettingsBloc>().state.rowNumber,
+            context.read<SettingsBloc>().state.inputFramerate);
         for (var i = 0; i < 3 && i < list.length; i++) {
           datarows.add(DataRow(cells: [
             DataCell(Text(list[i].tcIn.toString())),

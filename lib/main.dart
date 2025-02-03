@@ -27,30 +27,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Authorisation.initialize();
 
-
-  // TODO: new shared-preferences saving - reading needed
-  // final sharedPreferences = await SharedPreferences.getInstance();
-  // String? sharedPreferencesVideoPath = sharedPreferences.getString("videoPath");
-  // if (sharedPreferencesVideoPath != null) {
-  //   SettingsClass.videoFilePath = sharedPreferencesVideoPath;
-  // }
-
-  // String? sharedPreferencesSheetName = sharedPreferences.getString("sheetName");
-  // if (sharedPreferencesSheetName != null) {
-  //   //SettingsClass.sheetName = sharedPreferencesSheetName;
-  // }
-  // String? sharedPreferencesExcelPath =
-  //     sharedPreferences.getString("scriptPath");
-  // if (sharedPreferencesExcelPath != null) {
-  //   //SettingsClass.scriptFilePath = sharedPreferencesExcelPath;
-  // }
-
   MediaKit.ensureInitialized();
   runApp(
     ChangeNotifierProvider(
         create: (_) => KeyNotifier(),
         child: BlocProvider(
-          create: (context) => SettingsBloc(),
+          create: (context) => SettingsBloc()..add(SetValuesFromSharedPreferences()),
           child: const MyApp(),
         )),
   );
