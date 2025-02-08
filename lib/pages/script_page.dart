@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -63,7 +65,8 @@ ValueNotifier<bool> focusNodeFollowsVideo = ValueNotifier(false);
 ItemScrollController scriptListController = ItemScrollController();
 int currentItemScrollIndex = 0;
 
-int itemIndexFromButton = 0;
+int? itemIndexFromButton;
+Key? currentKeyFromButton;
 
 final ChangeNotifierReload _lowerPanelReload = ChangeNotifierReload();
 final ChangeNotifierReload _upperPanelReload = ChangeNotifierReload();
@@ -129,9 +132,10 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
     scriptSourceFile = ExcelFile(context.read<SettingsBloc>().state.scriptFilePath!);
     scriptSourceFile!.loadFile();
 
-    List<ScriptNode> scriptNodesTemporary = List.empty(growable: true);
-    scriptSourceFile!.importSheetToList(context.read<SettingsBloc>().state.selectedSheetName!, scriptNodesTemporary, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.inputFramerate);
-    scriptList = ScriptList(scriptNodesTemporary);
+    List<ScriptNode>? scriptNodesTemporary = scriptSourceFile!.importSheetToList(context.read<SettingsBloc>().state.selectedSheetName!, context.read<SettingsBloc>().state.collNumber, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.inputFramerate);
+    if (scriptNodesTemporary != null) {
+      scriptList = ScriptList(scriptNodesTemporary);
+    }
     sheetName = context.read<SettingsBloc>().state.selectedSheetName!;
     _scriptTableRebuildRequest();
   }
@@ -639,6 +643,13 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       // if (index == itemIndexFromButton && (Platform.isMacOS ||Platform.isLinux || Platform.isWindows)) {
       //   _scriptTable[index].focusNode.requestFocus();
       // }
+      Key? keyForDialField;
+      if (scriptNodeIndex == itemIndexFromButton) {
+        keyForDialField = currentKeyFromButton;
+      } else {
+        keyForDialField = UniqueKey();
+      }
+
       renderBox ??= rowEExpandedKey.currentContext?.findRenderObject() as RenderBox?;
 
       scriptNode.textControllerTc.text = scriptNode.tcIn.toString();
@@ -709,22 +720,26 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
           ),
           
           Padding(
-            key: UniqueKey(),
+            key: keyForDialField,
             padding: paddingSize,
             child: SizedBox(
               width: renderBox==null ? 300 : renderBox!.size.width,
               child: TextFormField(
+                onTap: () {
+                  itemIndexFromButton = scriptNodeIndex;
+                  currentKeyFromButton = keyForDialField;
+                },
                 minLines: null,
                 maxLines: null,
                 autofocus: true,
                 focusNode: scriptNode.dialFocusNode,
                 onChanged: (value) {
                   { 
-                    scriptNode.dial = value;
+                    scriptNode.dialLoc = value;
                 }
                 },
                 scribbleEnabled: false, 
-                initialValue: scriptNode.dial, 
+                initialValue: scriptNode.dialLoc, 
                 ),
             ),
           ),
@@ -737,10 +752,12 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 child: const Icon(Icons.delete),
                 onPressed: () {
                   scriptList.removeItem(scriptNode);
+                  currentKeyFromButton = UniqueKey();
                   _scriptTableRebuildRequest();
                   try {
-                    scriptList.getItemById(scriptNodeIndex-1).dialFocusNode.requestFocus();
-                    //scriptNode.dialFocusNode.requestFocus();
+                    if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+                      scriptList.getItemById(scriptNodeIndex-1).dialFocusNode.requestFocus();
+                    }
                   // ignore: empty_catches
                   } catch (e) {
                   }

@@ -66,7 +66,7 @@ void main() {
 
       expect(tcIn.framesCount(), scriptList.getList()[newIndex].tcIn.framesCount());
       expect(charName, scriptList.getList()[newIndex].charName);
-      expect(dial, scriptList.getList()[newIndex].dial);
+      expect(dial, scriptList.getList()[newIndex].dialLoc);
     });
 
     test('removeItemById removes item at given id', () {

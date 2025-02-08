@@ -504,7 +504,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _formattingSelector() {
-    TimecodeFormatting cirrentTimecodeFormatting =
+    TimecodeFormatting currentTimecodeFormatting =
         context.read<SettingsBloc>().state.timecodeFormatting;
     return IntrinsicWidth(
       child: DropdownMenu(
@@ -513,7 +513,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onSelected: (value) {
           context.read<SettingsBloc>().add(SetInputTcFormatting(value));
         },
-        initialSelection: cirrentTimecodeFormatting,
+        initialSelection: currentTimecodeFormatting,
         dropdownMenuEntries: const <DropdownMenuEntry>[
           DropdownMenuEntry(
               value: TimecodeFormatting.formatHhMmSsFf, label: "HH:MM:SS:FF"),
@@ -597,23 +597,22 @@ class _SettingsPageState extends State<SettingsPage> {
 
   DataTable _sheetPreviewWidget(
       String? scriptFilePath, String? scriptSheetName) {
-    List<ScriptNode> list = List.empty(growable: true);
+    List<ScriptNode>? list = List.empty(growable: true);
     List<DataRow> datarows = List.empty(growable: true);
     if (scriptFilePath != "" && scriptSheetName != "") {
       try {
         ExcelFile excelFile = ExcelFile(scriptFilePath!);
         excelFile.loadFile();
-        excelFile.importSheetToList(
+        list = excelFile.importSheetToList(
             scriptSheetName!,
-            list,
             context.read<SettingsBloc>().state.collNumber,
             context.read<SettingsBloc>().state.rowNumber,
             context.read<SettingsBloc>().state.inputFramerate);
-        for (var i = 0; i < 3 && i < list.length; i++) {
+        for (var i = 0; i < 3 && i < list!.length; i++) {
           datarows.add(DataRow(cells: [
             DataCell(Text(list[i].tcIn.toString())),
             DataCell(Text(list[i].charName)),
-            DataCell(Text(list[i].dial)),
+            DataCell(Text(list[i].dialLoc)),
           ]));
         }
         // ignore: empty_catches

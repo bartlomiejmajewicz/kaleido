@@ -73,14 +73,14 @@ class ExcelFile extends SourceFile{
     return _file;
   }
 
-  void importSheetToList(String sheetName, List <ScriptNode> sctiptList, int collNumber, int rowNumber, double inputFramerate){
-    sctiptList.clear();
+  List <ScriptNode>? importSheetToList(String sheetName, int collNumber, int rowNumber, double inputFramerate){
+    List <ScriptNode> scriptList = List.empty(growable: true);
     int rowNr = 0;
     if(_excel == null){
-      return;
+      return null;
     }
     if (_excel.tables[sheetName] == null) {
-      return;
+      return null;
     }
     for (var row in _excel.tables[sheetName]!.rows) {
       if (rowNr >= rowNumber) {
@@ -103,13 +103,13 @@ class ExcelFile extends SourceFile{
 
           if (collNr == tcInColl) {
             scriptNode.tcIn = Timecode(cell.value.value.toString(), inputFramerate);
-            if (sctiptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString(), inputFramerate)) {
-              if (sctiptList.last.tcIn.m <= scriptNode.tcIn.m) {
+            if (scriptList.isNotEmpty && Timecode.tcAsMmSsValidateCheck(cell.value.value.toString()) && !Timecode.tcValidateCheck(cell.value.value.toString(), inputFramerate)) {
+              if (scriptList.last.tcIn.m <= scriptNode.tcIn.m) {
                 // previous TC is most probably in the same hour
-                scriptNode.tcIn.h = sctiptList.last.tcIn.h;
+                scriptNode.tcIn.h = scriptList.last.tcIn.h;
               } else {
                 // previous TC m is later than new TC == new hour
-                scriptNode.tcIn.h = sctiptList.last.tcIn.h+1;
+                scriptNode.tcIn.h = scriptList.last.tcIn.h+1;
               }
             }
           }
@@ -117,14 +117,15 @@ class ExcelFile extends SourceFile{
             scriptNode.charName = cell.value.value.toString();
           }
           if (collNr == dialColl) {
-            scriptNode.dial = cell.value.value.toString();
+            scriptNode.dialLoc = cell.value.value.toString();
           }
           collNr++;
         }
-        sctiptList.add(scriptNode);
+        scriptList.add(scriptNode);
       }
       rowNr++;
     }
+    return scriptList;
     //sctiptList.sort();
   }
 
@@ -141,7 +142,7 @@ class ExcelFile extends SourceFile{
           break;
       }
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+1, rowIndex: rowNumber+a), TextCellValue(scriptNode.charName));
-      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+2, rowIndex: rowNumber+a), TextCellValue(scriptNode.dial));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+2, rowIndex: rowNumber+a), TextCellValue(scriptNode.dialLoc));
       a++;
     }
     while(a<sheetObject.rows.length){

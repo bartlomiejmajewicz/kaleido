@@ -3,9 +3,9 @@ import 'package:script_editor/models/timecode.dart';
 
 class ScriptNode implements Comparable<ScriptNode>{
 
-  late Timecode tcIn = Timecode();
-  late String charName="";
-  late String dial="";
+  Timecode tcIn = Timecode();
+  String charName="";
+  String dialLoc="";
   bool isThisCurrentTC = false;
   FocusNode dialFocusNode = FocusNode();
 
@@ -15,14 +15,14 @@ class ScriptNode implements Comparable<ScriptNode>{
   ScriptNode(Timecode timecodeIn, String characterName, String dialogue){
     tcIn = timecodeIn;
     charName = characterName;
-    dial = dialogue;
+    dialLoc = dialogue;
   }
 
   ScriptNode.empty();
 
   @override
   String toString() {
-    return "$tcIn - $charName - $dial";
+    return "$tcIn - $charName - $dialLoc";
   }
   
   @override
