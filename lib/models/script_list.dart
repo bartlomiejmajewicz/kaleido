@@ -40,16 +40,18 @@ class ScriptList {
   }
 
 /// get list of all ScriptNode or just selected character's lines
-  List<ScriptNode> getList({String? characterName}){
+  List<ScriptNode> getList({String? characterName, String? searchPhrase}){
 
-    if (characterName == null) {
-      return _list;
-    }
+    // if (characterName == null) {
+    //   return _list;
+    // }
 
     List<ScriptNode> list = List.empty(growable: true);
     for (var element in _list) {
-      if (element.charName == characterName) {
-        list.add(element);
+      if (element.charName == characterName || characterName == null) {
+        if (searchPhrase == null || element.dialLoc.toLowerCase().contains(searchPhrase.toLowerCase())) {
+          list.add(element);
+        }
       }
     }
     return list;
