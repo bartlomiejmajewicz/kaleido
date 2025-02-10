@@ -73,6 +73,16 @@ Key? currentKeyFromButton;
 final ChangeNotifierReload _lowerPanelReload = ChangeNotifierReload();
 final ChangeNotifierReload _upperPanelReload = ChangeNotifierReload();
 final ChangeNotifierReload _lowerPanelHeaderReload = ChangeNotifierReload();
+<<<<<<< HEAD
+=======
+
+
+final double widthButtons = 80;
+final double widthColC = 100;
+final double widthColD = 220;
+final EdgeInsetsGeometry paddingSizeScript = const EdgeInsets.symmetric(horizontal: 4.0);
+final GlobalKey rowEExpandedKey = GlobalKey();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
 
 
 final double widthButtons = 80;
@@ -271,7 +281,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   _isTcFromScriptToPlayerVisible = !_isTcFromScriptToPlayerVisible;
                   _upperPanelReload.reload();
                   _lowerPanelHeaderReload.reload();
+<<<<<<< HEAD
                   _lowerPanelReload.reload();
+=======
+                  _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
                 },
                 child: Row(
                   children: [
@@ -285,7 +299,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   _isTcPlayerToScriptVisible = !_isTcPlayerToScriptVisible;
                   _upperPanelReload.reload();
                   _lowerPanelHeaderReload.reload();
+<<<<<<< HEAD
                   _lowerPanelReload.reload();
+=======
+                  _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
                 },
                 child: Row(
                   children: [
@@ -299,7 +317,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   _isTcInVisible = !_isTcInVisible;
                   _upperPanelReload.reload();
                   _lowerPanelHeaderReload.reload();
+<<<<<<< HEAD
                   _lowerPanelReload.reload();
+=======
+                  _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
                 },
                 child: Row(
                   children: [
@@ -313,7 +335,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   _isCharacterVisible = !_isCharacterVisible;
                   _upperPanelReload.reload();
                   _lowerPanelHeaderReload.reload();
+<<<<<<< HEAD
                   _lowerPanelReload.reload();
+=======
+                  _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
                 },
                 child: Row(
                   children: [
@@ -911,7 +937,11 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               child: const Text("TC in"),
               onPressed: () {
                 scriptList.sortItems();
+<<<<<<< HEAD
                 _lowerPanelReload.reload();
+=======
+                _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
               },)) : null,
         ),
         Padding(
@@ -926,13 +956,18 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 if (value == allCharactersConst) {
                   selectedCharacterName = null;
                 }
+<<<<<<< HEAD
                 _lowerPanelReload.reload();
+=======
+                _scriptTableRebuildRequest();
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
               },
             ),
           ) : null,
         ),
         Expanded(
           key: rowEExpandedKey,
+<<<<<<< HEAD
           child: Stack(
             children: [
               TextField(
@@ -956,6 +991,18 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   child: const Icon(Icons.cancel)),
               ),
             ],
+=======
+          child: TextField(
+            decoration: const InputDecoration(
+              hintText: "search in loc dialogue...",
+              hintStyle: TextStyle(color: Colors.grey)
+            ),
+            controller: _tecDialLocSearch,
+            focusNode: _dialLocSearchFocusNode,
+            onChanged: (value) {
+              _scriptTableRebuildRequest();
+            },
+>>>>>>> cce7b97567cf91bab25fe5e8b616317a21cdc03f
           ),
         ),
         Padding(padding: paddingSizeScript,
