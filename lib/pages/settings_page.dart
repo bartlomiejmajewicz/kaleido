@@ -18,7 +18,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  ExcelFile? excelFile;
   TextEditingController tecColl = TextEditingController();
   TextEditingController tecRow = TextEditingController();
 
@@ -613,6 +612,7 @@ class _SettingsPageState extends State<SettingsPage> {
             DataCell(Text(list[i].tcIn.toString())),
             DataCell(Text(list[i].charName)),
             DataCell(Text(list[i].dialLoc)),
+            DataCell(Text(list[i].dialOrg)),
           ]));
         }
         // ignore: empty_catches
@@ -620,6 +620,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     datarows.add(const DataRow(cells: [
+      DataCell(Text("...")),
       DataCell(Text("...")),
       DataCell(Text("...")),
       DataCell(Text("...")),
@@ -632,7 +633,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         DataColumn(label: Text("Character")),
         DataColumn(
-          label: Text("Dialogue"),
+          label: Text("Dialogue loc"),
+        ),
+        DataColumn(
+          label: Text("Dialogue org"),
         ),
       ],
       rows: datarows,

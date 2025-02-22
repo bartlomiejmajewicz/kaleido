@@ -10,11 +10,11 @@ void main() {
 
     setUp(() {
       mockNodes = [
-        ScriptNode(Timecode.fromIntValues(1, 5, 0, 0, 25), "characterName1", "dial 1"),
-        ScriptNode(Timecode.fromIntValues(1, 8, 22, 0, 25), "characterName2", "dial 2"),
-        ScriptNode(Timecode.fromIntValues(1, 10, 15, 0, 25), "characterName3", "dial 3"),
-        ScriptNode(Timecode.fromIntValues(2, 15, 2, 0, 25), "characterName1", "dial 4"),
-        ScriptNode(Timecode.fromIntValues(3, 5, 0, 0, 25), "characterName2", "dial 5"),
+        ScriptNode(Timecode.fromIntValues(1, 5, 0, 0, 25), "characterName1", "dial 1", ""),
+        ScriptNode(Timecode.fromIntValues(1, 8, 22, 0, 25), "characterName2", "dial 2", ""),
+        ScriptNode(Timecode.fromIntValues(1, 10, 15, 0, 25), "characterName3", "dial 3", ""),
+        ScriptNode(Timecode.fromIntValues(2, 15, 2, 0, 25), "characterName1", "dial 4", ""),
+        ScriptNode(Timecode.fromIntValues(3, 5, 0, 0, 25), "characterName2", "dial 5", ""),
       ];
       scriptList = ScriptList(mockNodes);
     });

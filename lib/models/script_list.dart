@@ -40,7 +40,7 @@ class ScriptList {
   }
 
 /// get list of all ScriptNode or just selected character's lines
-  List<ScriptNode> getList({String? characterName, String? searchPhrase}){
+  List<ScriptNode> getList({String? characterName, String? searchLocPhrase, String? searchOrgPhrase}){
 
     // if (characterName == null) {
     //   return _list;
@@ -49,8 +49,10 @@ class ScriptList {
     List<ScriptNode> list = List.empty(growable: true);
     for (var element in _list) {
       if (element.charName == characterName || characterName == null) {
-        if (searchPhrase == null || element.dialLoc.toLowerCase().contains(searchPhrase.toLowerCase())) {
-          list.add(element);
+        if (searchLocPhrase == null || element.dialLoc.toLowerCase().contains(searchLocPhrase.toLowerCase())) {
+          if (searchOrgPhrase == null || element.dialOrg.toLowerCase().contains(searchOrgPhrase.toLowerCase())) {
+            list.add(element);
+          }
         }
       }
     }
@@ -77,7 +79,7 @@ class ScriptList {
     dial ??= "";
     tcIn ??= Timecode();
     videoStartTc ??= Timecode("00:00:00:00");
-    ScriptNode scriptNode = ScriptNode(tcIn+videoStartTc, charName, dial);
+    ScriptNode scriptNode = ScriptNode(tcIn+videoStartTc, charName, dial, "");
 
     _list.add(scriptNode);
 

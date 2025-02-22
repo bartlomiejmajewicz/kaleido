@@ -53,7 +53,7 @@ ExcelFile? scriptSourceFile;
 
 
 final TextEditingController _tecDialLocSearch = TextEditingController();
-final FocusNode _dialLocSearchFocusNode = FocusNode();
+final TextEditingController _tecDialOrgSearch = TextEditingController();
 TextEditingController tempTextEditController = TextEditingController();
 TextEditingController charNameOldTEC = TextEditingController();
 TextEditingController charNameNewTEC = TextEditingController();
@@ -88,6 +88,7 @@ bool _isTcFromScriptToPlayerVisible = true;
 bool _isTcPlayerToScriptVisible = true;
 bool _isTcInVisible = true;
 bool _isCharacterVisible = true;
+bool _isDialOrgVisible = true;
 
 final ValueNotifier<bool> _isUpperMenuVisible = ValueNotifier(true);
 
@@ -195,7 +196,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
             ListenableBuilder(
               listenable: _lowerPanelReload,
               builder: (context, child) {
-                return _generateTableAsScrollablePositionListView(scriptList.getList(characterName: selectedCharacterName, searchPhrase: _tecDialLocSearch.text));
+                return _generateTableAsScrollablePositionListView(scriptList.getList(characterName: selectedCharacterName, searchLocPhrase: _tecDialLocSearch.text, searchOrgPhrase: _tecDialOrgSearch.text));
               },),
           ]
         ),
@@ -322,6 +323,26 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                       _isCharacterVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
                   ],
                 )),
+
+              OutlinedButton(
+                onPressed: (){
+                  _isDialOrgVisible = !_isDialOrgVisible;
+                  _upperPanelReload.reload();
+                  _lowerPanelHeaderReload.reload();
+                  _lowerPanelReload.reload();
+                },
+                child: Row(
+                  children: [
+                    const Text("dial org visible: "),
+                    Icon(
+                      _isDialOrgVisible ? Icons.check_box_outlined : Icons.check_box_outline_blank)
+                  ],
+                )),
+
+
+
+
+                
             ],
           ),
         ),
@@ -598,118 +619,149 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
       renderBox ??= rowEExpandedKey.currentContext?.findRenderObject() as RenderBox?;
 
       scriptNode.textControllerTc.text = scriptNode.tcIn.toString();
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          ListenableBuilder(
-            listenable: _arrowHighlightedReload,
-            builder: (context, child) {
-              return SizedBox(
-                width: _isTcFromScriptToPlayerVisible ? widthButtons : 0,
+      return KeepAlive(
+        keepAlive: true,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ListenableBuilder(
+              listenable: _arrowHighlightedReload,
+              builder: (context, child) {
+                return SizedBox(
+                  width: _isTcFromScriptToPlayerVisible ? widthButtons : 0,
+                  child: ElevatedButton(
+                  style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
+                  onPressed: (){
+                    jumpToTc(scriptNode.tcIn);
+                  },
+                  child: _isTcFromScriptToPlayerVisible ? const Icon(Icons.arrow_upward) : null,
+                  ),
+                );
+              },
+             
+            ),
+        
+        
+            Padding(
+              padding: paddingSizeScript,
+              child: _isTcPlayerToScriptVisible ? SizedBox(
+                width: widthButtons,
                 child: ElevatedButton(
-                style: scriptNode.isThisCurrentTC ? const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.green)) : const ButtonStyle(),
-                onPressed: (){
-                  jumpToTc(scriptNode.tcIn);
-                },
-                child: _isTcFromScriptToPlayerVisible ? const Icon(Icons.arrow_upward) : null,
-                ),
-              );
-            },
-           
-          ),
-      
-      
-          Padding(
-            padding: paddingSizeScript,
-            child: _isTcPlayerToScriptVisible ? SizedBox(
-              width: widthButtons,
-              child: ElevatedButton(
-                onPressed: (){
-                  scriptNode.tcIn = tcFromVideo()+context.read<SettingsBloc>().state.startingTimecode;
-                  scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
-                },
-                child: const Icon(Icons.arrow_downward),
-              ),
-            ) : null,
-          ),
-      
-      
-          Padding(
-            padding: paddingSizeScript,
-            child: _isTcInVisible ? SizedBox(
-              width: widthColC,
-              child: TextFormField(
-                controller: scriptNode.textControllerTc,
-                onChanged: (value) {
-                  if(Timecode.tcValidateCheck(value, context.read<SettingsBloc>().state.inputFramerate)){
-                    scriptNode.tcIn = Timecode(value);
-                  }
-                },
-              inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
-              )) : null,
-          ),
-      
-      
-          Padding(
-            key: UniqueKey(),
-            padding: paddingSizeScript,
-            child: _isCharacterVisible ? SizedBox(
-              width: widthColD,
-              child: CharNameWidgetWithAutocomplete(
-                charactersNamesList: scriptList.getCharactersList(),
-                initialValue: scriptNode.charName,
-                updateFunction: (value) => scriptNode.charName=value,
-                maxOptionsWidth: widthColD,
+                  onPressed: (){
+                    scriptNode.tcIn = tcFromVideo()+context.read<SettingsBloc>().state.startingTimecode;
+                    scriptNode.textControllerTc.value = TextEditingValue(text: scriptNode.tcIn.toString());
+                  },
+                  child: const Icon(Icons.arrow_downward),
                 ),
               ) : null,
-          ),
-          
-          Padding(
-            key: keyForDialField,
-            padding: paddingSizeScript,
-            child: SizedBox(
-              width: renderBox==null ? 300 : renderBox!.size.width,
-              child: TextFormField(
-                onTap: () {
-                  itemIndexFromButton = scriptNodeIndex;
-                  currentKeyFromButton = keyForDialField;
-                },
-                minLines: null,
-                maxLines: null,
-                autofocus: true,
-                focusNode: scriptNode.dialFocusNode,
-                onChanged: (value) {
-                  { 
-                    scriptNode.dialLoc = value;
-                }
-                },
-                scribbleEnabled: false, 
-                initialValue: scriptNode.dialLoc, 
-                ),
             ),
-          ),
-            
-          Padding(
-            padding: paddingSizeScript,
-            child: SizedBox(
-              width: widthButtons,
-              child: ElevatedButton(
-                child: const Icon(Icons.delete),
-                onPressed: () {
-                  scriptList.removeItem(scriptNode);
-                  currentKeyFromButton = UniqueKey();
-                  _lowerPanelReload.reload();
-                  try {
-                    if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
-                      scriptList.getItemById(scriptNodeIndex-1).dialFocusNode.requestFocus();
+        
+        
+            Padding(
+              padding: paddingSizeScript,
+              child: _isTcInVisible ? SizedBox(
+                width: widthColC,
+                child: TextFormField(
+                  controller: scriptNode.textControllerTc,
+                  onChanged: (value) {
+                    if(Timecode.tcValidateCheck(value, context.read<SettingsBloc>().state.inputFramerate)){
+                      scriptNode.tcIn = Timecode(value);
                     }
-                  // ignore: empty_catches
-                  } catch (e) {
-                  }
-                },),
+                  },
+                inputFormatters: [TextInputFormatter.withFunction(tcValidityInputCheck)],
+                )) : null,
             ),
-          ),
-        ],
+
+            // CHARACTER NAME FIELD
+            Padding(
+              key: UniqueKey(),
+              padding: paddingSizeScript,
+              child: _isCharacterVisible ? SizedBox(
+                width: widthColD,
+                child: CharNameWidgetWithAutocomplete(
+                  charactersNamesList: scriptList.getCharactersList(),
+                  initialValue: scriptNode.charName,
+                  updateFunction: (value) => scriptNode.charName=value,
+                  maxOptionsWidth: widthColD,
+                  ),
+                ) : null,
+            ),
+            
+            // LOC LINE FIELD
+            Padding(
+              key: keyForDialField,
+              padding: paddingSizeScript,
+              child: SizedBox(
+                width: renderBox==null ? 300 : (renderBox!.size.width-8),
+                child: TextFormField(
+                  onTap: () {
+                    itemIndexFromButton = scriptNodeIndex;
+                    currentKeyFromButton = keyForDialField;
+                  },
+                  minLines: null,
+                  maxLines: null,
+                  autofocus: true,
+                  focusNode: scriptNode.dialFocusNode,
+                  onChanged: (value) {
+                    { 
+                      scriptNode.dialLoc = value;
+                  }
+                  },
+                  scribbleEnabled: false, 
+                  initialValue: scriptNode.dialLoc, 
+                  ),
+              ),
+            ),
+        
+            // ORG LINE FIELD
+            Padding(
+              padding: paddingSizeScript,
+              child: !_isDialOrgVisible ? null : SizedBox(
+                width: renderBox==null ? 300 : (renderBox!.size.width-8),
+                child: TextFormField(
+                  key: GlobalKey(),
+                  onTap: () {
+                    itemIndexFromButton = scriptNodeIndex;
+                    currentKeyFromButton = keyForDialField;
+                  },
+                  minLines: null,
+                  maxLines: null,
+                  autofocus: true,
+                  //focusNode: scriptNode.dialFocusNode,
+                  onChanged: (value) {
+                    { 
+                      scriptNode.dialOrg = value;
+                  }
+                  },
+                  scribbleEnabled: false, 
+                  initialValue: scriptNode.dialOrg, 
+                  ),
+              ),
+            ),
+              
+            // DELETE BUTTON
+            Padding(
+              padding: paddingSizeScript,
+              child: SizedBox(
+                width: widthButtons,
+                child: ElevatedButton(
+                  child: const Icon(Icons.delete),
+                  onPressed: () {
+                    scriptList.removeItem(scriptNode);
+                    currentKeyFromButton = UniqueKey();
+                    _lowerPanelReload.reload();
+                    try {
+                      if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+                        scriptList.getItemById(scriptNodeIndex-1).dialFocusNode.requestFocus();
+                      }
+                    // ignore: empty_catches
+                    } catch (e) {
+                    }
+                  },),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -726,7 +778,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
               },
               child: ScrollablePositionedList.builder(
                 itemScrollController: scriptListController,
-                addAutomaticKeepAlives: false,
+                addAutomaticKeepAlives: true,
                 shrinkWrap: false,
                 itemCount: list.length,
                 itemBuilder: (context, index) {
@@ -931,7 +983,7 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
             ),
           ) : null,
         ),
-        Expanded(
+        Flexible(
           key: rowEExpandedKey,
           child: Stack(
             children: [
@@ -941,7 +993,6 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                   hintStyle: TextStyle(color: Colors.grey)
                 ),
                 controller: _tecDialLocSearch,
-                focusNode: _dialLocSearchFocusNode,
                 onChanged: (value) {
                   _lowerPanelReload.reload();
                 },
@@ -958,6 +1009,35 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
             ],
           ),
         ),
+
+        Container(
+          child: !_isDialOrgVisible ? null : Flexible(
+            child: Stack(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    hintText: "search in org dialogue...",
+                    hintStyle: TextStyle(color: Colors.grey)
+                  ),
+                  controller: _tecDialOrgSearch,
+                  onChanged: (value) {
+                    _lowerPanelReload.reload();
+                  },
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton(
+                    onPressed: (){
+                      _tecDialOrgSearch.text = "";
+                      _lowerPanelReload.reload();
+                    },
+                    child: const Icon(Icons.cancel)),
+                ),
+              ],
+            ),
+          ),
+        ),
+
         Padding(padding: paddingSizeScript,
           child: SizedBox(
             width: widthButtons,

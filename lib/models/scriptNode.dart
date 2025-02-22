@@ -5,6 +5,7 @@ class ScriptNode implements Comparable<ScriptNode>{
 
   Timecode tcIn = Timecode();
   String charName="";
+  String dialOrg="";
   String dialLoc="";
   bool isThisCurrentTC = false;
   FocusNode dialFocusNode = FocusNode();
@@ -12,10 +13,10 @@ class ScriptNode implements Comparable<ScriptNode>{
   TextEditingController textControllerTc=TextEditingController();
 
 
-  ScriptNode(Timecode timecodeIn, String characterName, String dialogue){
+  ScriptNode(Timecode timecodeIn, String characterName, String dialLocalized, this.dialOrg){
     tcIn = timecodeIn;
     charName = characterName;
-    dialLoc = dialogue;
+    dialLoc = dialLocalized;
   }
 
   ScriptNode.empty();

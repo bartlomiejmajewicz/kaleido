@@ -89,6 +89,7 @@ class ExcelFile extends SourceFile{
         int tcInColl = collNumber;
         int charNameColl = collNumber+1;
         int dialColl = collNumber+2;
+        int dialOrgColl = collNumber+3;
         ScriptNode scriptNode = ScriptNode.empty();
         for (var cell in row) {
           if (cell == null) {
@@ -119,6 +120,9 @@ class ExcelFile extends SourceFile{
           if (collNr == dialColl) {
             scriptNode.dialLoc = cell.value.value.toString();
           }
+          if (collNr == dialOrgColl) {
+            scriptNode.dialOrg = cell.value.value.toString();
+          }
           collNr++;
         }
         scriptList.add(scriptNode);
@@ -143,6 +147,7 @@ class ExcelFile extends SourceFile{
       }
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+1, rowIndex: rowNumber+a), TextCellValue(scriptNode.charName));
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+2, rowIndex: rowNumber+a), TextCellValue(scriptNode.dialLoc));
+      sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+3, rowIndex: rowNumber+a), TextCellValue(scriptNode.dialOrg));
       a++;
     }
     while(a<sheetObject.rows.length){
