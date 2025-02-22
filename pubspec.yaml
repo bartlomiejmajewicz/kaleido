@@ -48,7 +48,7 @@ dependencies:
   http: ^1.2.2
   encrypt: ^5.0.3
   device_info_plus: ^11.2.0
-  flutter_launcher_icons: ^0.14.3
+  rename_app: ^1.6.2
 
 dev_dependencies:
   flutter_test:
