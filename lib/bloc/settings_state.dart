@@ -2,10 +2,10 @@ part of 'settings_bloc.dart';
 
 @immutable
 class SettingsState {
-  final String? videoFilePath;
-  final String? scriptFilePath;
+  String? videoFilePath;
+  String? scriptFilePath;
   List<String> audioFilesPaths = List.empty(growable: true);
-  final String? selectedSheetName;
+  String? selectedSheetName;
   int rowNumber = 0;
   int collNumber = 0;
   double inputFramerate = 25;
@@ -68,6 +68,38 @@ class SettingsState {
     }
     return true;
   }
+
+  SettingsState clearSelectedParameters(
+    [
+      bool clearVideoFilePath = false,
+      bool clearScriptFilePath = false,
+      bool clearSelectedSheetName = false,
+      bool clearStartingRow = false,
+      bool clearStartingCol = false,
+      bool clearAudioFilePaths = false,
+      ]
+    ){
+      if (clearVideoFilePath) {
+        videoFilePath = null;
+      }
+      if (clearScriptFilePath) {
+        scriptFilePath = null;
+      }
+      if (clearSelectedSheetName) {
+        selectedSheetName = null;
+      }
+      if (clearStartingRow) {
+        rowNumber = 0;
+      }
+      if (clearStartingCol) {
+        collNumber = 0;
+      }
+      if (clearAudioFilePaths) {
+        audioFilesPaths.clear();
+      }
+
+      return copyToNewState();
+    }
 }
 
 // final class SettingsInitial extends SettingsState {}

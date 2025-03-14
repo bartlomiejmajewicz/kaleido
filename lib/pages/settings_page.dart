@@ -312,6 +312,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       },
                     )
                   ]),
+
+                  PaddingTableRow(children: [
+                    const Text("clear all input data:"),
+                    OutlinedButton(onPressed: () {
+                      context.read<SettingsBloc>().add(ClearParameters(true, true, true, true, true, true));
+                    }, child:
+                    const Text("clear all input data")),
+                    Container()
+                  ]),
                 ],
               ),
               BlocBuilder<SettingsBloc, SettingsState>(
@@ -381,7 +390,9 @@ class _SettingsPageState extends State<SettingsPage> {
         },
       ),
     ]));
-    return Table(children: list);
+    return Table(
+      key: UniqueKey(),
+      children: list);
   }
 
   Future<String?> _selectVideoFile() async {

@@ -25,6 +25,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetInputFramerate>(_setInputFramerate);
     on<SetInputTcFormatting>(_setTcInputFormatting);
     on<SetStartingTc>(_setStartingTc);
+    on<ClearParameters>(_clearParameters);
   }
 
 /// values are restored from the Shared Preferences
@@ -56,7 +57,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   Future<void> _setScriptPath(SetScriptPath event, Emitter<SettingsState> emit) async {
     final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     sharedPreferences.setString("scriptPath", event.scriptFilePath);
+    sharedPreferences.remove("sheetName");
     emit(state.copyToNewState(scriptFilePathNew: event.scriptFilePath));
+    emit(state.clearSelectedParameters(false, false, true));
   }
 
   Future<void> _addAudioFile(AddAudioFile event, Emitter<SettingsState> emit) async {
@@ -98,5 +101,25 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> _setStartingTc(SetStartingTc event, Emitter<SettingsState> emit) async {
     emit(state.copyToNewState(startingTimecodeNew: event.startingTimecode));
+  }
+
+  Future<void> _clearParameters(ClearParameters event, Emitter<SettingsState> emit) async {
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (event.clearVideoFilePath) {
+      sharedPreferences.remove("videoPath");
+    }
+    if (event.clearScriptFilePath) {
+      sharedPreferences.remove("scriptPath");
+    }
+    if (event.clearSelectedSheetName) {
+      sharedPreferences.remove("sheetName");
+    }
+    if (event.clearStartingCol) {
+      sharedPreferences.remove("coll");
+    }
+    if (event.clearStartingRow) {
+      sharedPreferences.remove("row");
+    }
+    emit(state.clearSelectedParameters(event.clearVideoFilePath, event.clearScriptFilePath, event.clearSelectedSheetName, event.clearStartingRow, event.clearStartingCol, event.clearAudioFilePaths));
   }
 }

@@ -54,3 +54,13 @@ class SetStartingTc extends SettingsEvent{
   final Timecode startingTimecode;
   SetStartingTc(this.startingTimecode);
 }
+
+class ClearParameters extends SettingsEvent{
+  final bool clearVideoFilePath;
+  final bool clearScriptFilePath;
+  final bool clearSelectedSheetName;
+  final bool clearStartingRow;
+  final bool clearStartingCol;
+  final bool clearAudioFilePaths;
+  ClearParameters(this.clearVideoFilePath, this.clearScriptFilePath, this.clearSelectedSheetName, this.clearStartingRow, this.clearStartingCol, this.clearAudioFilePaths);
+}
