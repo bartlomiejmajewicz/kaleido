@@ -10,6 +10,7 @@ import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/pages/authorization_page.dart';
 import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
+import 'package:script_editor/pages/validation_page.dart';
 
 // prevents Android from blocking HTTP request (CERTIFICATE_VERIFY_FAILED)
 class MyHttpOverrides extends HttpOverrides {
@@ -97,6 +98,8 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = const ScriptPage(title: "script editor");
       case 2:
+        page = const ValidationPage(title: "validation");
+      case 3:
         page = AuthorizationPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -134,6 +137,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     NavigationRailDestination(
                       icon: Icon(Icons.playlist_play_rounded),
                       label: Text('Script editor'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.troubleshoot),
+                      label: Text('Script validator'),
                     ),
                     NavigationRailDestination(
                         icon: Icon(Icons.enhanced_encryption),
