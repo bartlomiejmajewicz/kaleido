@@ -49,6 +49,7 @@ dependencies:
   encrypt: ^5.0.3
   device_info_plus: ^11.2.0
   rename_app: ^1.6.2
+  super_clipboard: ^0.9.0-dev.6
 
 dev_dependencies:
   flutter_test:

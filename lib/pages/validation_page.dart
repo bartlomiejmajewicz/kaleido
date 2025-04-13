@@ -1,27 +1,12 @@
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
-import 'package:provider/provider.dart';
 import 'package:script_editor/bloc/settings_bloc.dart';
-import 'package:script_editor/main.dart';
 import 'package:script_editor/models/authorisation.dart';
-import 'package:script_editor/models/utils.dart';
 import 'package:script_editor/models/script_list.dart';
-import 'package:script_editor/widgets/char_name_widget_with_autocomplete.dart';
 import 'package:script_editor/models/classes.dart';
-import 'package:script_editor/models/keyboard_shortcut_node.dart';
 import 'package:script_editor/models/scriptNode.dart';
-import 'package:script_editor/models/settings_class.dart';
-import 'package:script_editor/models/timecode.dart';
-import 'package:script_editor/widgets/outlined_button_with_shortcut.dart';
-import 'package:script_editor/widgets/resizable_widget.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:path/path.dart' as path_package;
+import 'package:super_clipboard/super_clipboard.dart';
 
 class ValidationPage extends StatelessWidget {
   const ValidationPage({super.key, required this.title});
@@ -46,31 +31,65 @@ class ValidationPage extends StatelessWidget {
             "License not active. Saving disabled.",
             style: TextStyle(color: Colors.red),),
         ),
-        // body: SingleChildScrollView(
-        //   child: statisticsTable(scriptList))
-        body: ListView(
-          children: [
-            statisticsTable(scriptList),
-            errorsTable(scriptList)
-          ],
+        body: BlocBuilder<ValidationCubit, ValidationState>(
+          builder: (context, state) {
+            return ListView(
+            children: [
+              _statisticsTableWidget(scriptList),
+              OutlinedButton(
+                onPressed: (){
+                  _copyStatisticsToClipboard(scriptList);
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Copy to clipboard "),
+                    Icon(Icons.copy)]),),
+              errorsTable(scriptList, context),
+              OutlinedButton(onPressed: (){
+                _saveFileWithSnackbar(context, scriptList);
+                context.read<ValidationCubit>().setNewState();
+              }, child: const Text("Save changes to the file")),
+              const SizedBox(height: 50,)
+            ],
+          );
+          },
         ),
     ));
   }
 
-  Widget statisticsTable(ScriptList scriptList){
-    List<DataRow> list = List.empty(growable: true);
-
-    for (String charName in scriptList.getCharactersList()) {
-      int wordsCount = 0;
-      for (ScriptNode element in scriptList.getList(characterName: charName)) {
-        wordsCount = wordsCount + element.dialLoc.trim().split(' ').length;
+  Future<void> _copyStatisticsToClipboard(ScriptList scriptList) async {
+    String htmlData = "";
+    SystemClipboard? clipboard = SystemClipboard.instance;
+    if (clipboard!=null) {
+      List<_StatisticsTableNode> list = _statisticsTableList(scriptList);
+      htmlData = '''<table border="1">''';
+      htmlData = "$htmlData<tr><th>Character Name</th><th>Entries Count</th><th>Words Count</th></tr>";
+      for (_StatisticsTableNode element in list) {
+        htmlData = "$htmlData <tr>";
+        htmlData = "$htmlData<td>${element.charName}</td>";
+        htmlData = "$htmlData<td>${element.entriesCount}</td>";
+        htmlData = "$htmlData<td>${element.wordsCount}</td>";
+        htmlData = "$htmlData </tr>";
       }
+      htmlData = "$htmlData </table>";
+    
+      DataWriterItem item = DataWriterItem();
+      item.add(Formats.htmlText(htmlData));
+      await clipboard.write([item]);
+    }
+  }
 
+  Widget _statisticsTableWidget(ScriptList scriptList){
+    List<DataRow> list = List.empty(growable: true);
+    List<_StatisticsTableNode> listOfSTN = _statisticsTableList(scriptList);
+
+    for (_StatisticsTableNode element in listOfSTN) {
       list.add(DataRow(
         cells: [
-          DataCell(SelectableText(charName)),
-          DataCell(SelectableText(scriptList.getList(characterName: charName).length.toString())),
-          DataCell(SelectableText(wordsCount.toString())),
+          DataCell(SelectableText(element.charName)),
+          DataCell(SelectableText(element.entriesCount.toString())),
+          DataCell(SelectableText(element.wordsCount.toString())),
         ]
       ));
     }
@@ -84,12 +103,26 @@ class ValidationPage extends StatelessWidget {
       rows: list);
   }
 
+  List<_StatisticsTableNode> _statisticsTableList(ScriptList scriptList){
+    List<_StatisticsTableNode> list = List.empty(growable: true);
 
-  Widget errorsTable(ScriptList scriptList){
+    for (String charName in scriptList.getCharactersList()) {
+      int wordsCount = 0;
+      for (ScriptNode element in scriptList.getList(characterName: charName)) {
+        wordsCount = wordsCount + element.dialLoc.trim().split(' ').length;
+      }
+      _StatisticsTableNode stn = _StatisticsTableNode(charName, scriptList.getList(characterName: charName).length, wordsCount);
+
+      list.add(stn);
+    }
+
+    return list;
+  }
+
+
+  Widget errorsTable(ScriptList scriptList, BuildContext context){
 
     List<DataRow> list = List.empty(growable: true);
-
-    
 
     for (String charName1 in scriptList.getCharactersList()) {
       for (String charName2 in scriptList.getCharactersList()) {
@@ -108,11 +141,12 @@ class ValidationPage extends StatelessWidget {
                 children: [
                   OutlinedButton(onPressed: () {
                     scriptList.replaceCharName(charName2, charName1);
-                    //TODO: SAVE AFTER THAT / move scriptList to the global BLOC to use it in all pages
+                    context.read<ValidationCubit>().setNewState();
                   },
                     child: Text("Change all to $charName1")),
                   OutlinedButton(onPressed: () {
                     scriptList.replaceCharName(charName1, charName2);
+                    context.read<ValidationCubit>().setNewState();
                   },
                     child: Text("Change all to $charName2"))
                 ],
@@ -133,19 +167,57 @@ class ValidationPage extends StatelessWidget {
       ],
       rows: list);
   }
+
+
+  int _saveFile(BuildContext context, ScriptList scriptList){
+    if (!Authorisation.isLicenseActive()) {
+      return 100;
+    }
+    try {
+      var scriptSourceFile = ExcelFile(context.read<SettingsBloc>().state.scriptFilePath!);
+      scriptSourceFile!.loadFile();
+      scriptSourceFile!.exportListToSheet(scriptList.getList(), context.read<SettingsBloc>().state.selectedSheetName!, context.read<SettingsBloc>().state.timecodeFormatting, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber);
+      scriptSourceFile!.saveFile();
+      return 0;
+    } catch (e) {
+      return 100;
+    }
+  }
+
+  void _saveFileWithSnackbar(BuildContext context, ScriptList scriptList){
+    if (_saveFile(context, scriptList) == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("file saved!"),));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("file could NOT be saved"),
+            backgroundColor: Colors.red,));
+    }
+  }
 }
 
 class ValidationCubit extends Cubit<ValidationState> {
   ValidationCubit() : super(ValidationInitialState()){
   }
+  void setNewState(){
+    emit(ValidationState());
+  }
 }
 
 class ValidationState{
-
 }
 
 class ValidationInitialState extends ValidationState {
   ValidationInitialState(){
   }
 
+}
+
+class _StatisticsTableNode{
+  String charName;
+  int wordsCount;
+  int entriesCount;
+  _StatisticsTableNode(this.charName, this.entriesCount, this.wordsCount);
 }
