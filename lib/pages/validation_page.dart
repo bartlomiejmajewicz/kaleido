@@ -50,7 +50,16 @@ class ValidationPage extends StatelessWidget {
                 _saveFileWithSnackbar(context, scriptList);
                 context.read<ValidationCubit>().setNewState();
               }, child: const Text("Save changes to the file")),
-              const SizedBox(height: 50,)
+              OutlinedButton(
+                onPressed: (){
+                  _copyStatisticsErrorsToClipboard(errorsTable(scriptList, context));
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Copy to clipboard "),
+                    Icon(Icons.copy)]),),
+              const SizedBox(height: 50,),
             ],
           );
           },
@@ -61,24 +70,50 @@ class ValidationPage extends StatelessWidget {
   Future<void> _copyStatisticsToClipboard(ScriptList scriptList) async {
     String htmlData = "";
     SystemClipboard? clipboard = SystemClipboard.instance;
-    if (clipboard!=null) {
-      List<_StatisticsTableNode> list = _statisticsTableList(scriptList);
-      htmlData = '''<table border="1">''';
-      htmlData = "$htmlData<tr><th>Character Name</th><th>Entries Count</th><th>Words Count</th></tr>";
-      for (_StatisticsTableNode element in list) {
-        htmlData = "$htmlData <tr>";
-        htmlData = "$htmlData<td>${element.charName}</td>";
-        htmlData = "$htmlData<td>${element.entriesCount}</td>";
-        htmlData = "$htmlData<td>${element.wordsCount}</td>";
-        htmlData = "$htmlData </tr>";
-      }
-      htmlData = "$htmlData </table>";
-    
-      DataWriterItem item = DataWriterItem();
-      item.add(Formats.htmlText(htmlData));
-      await clipboard.write([item]);
+    if (clipboard == null) {
+      return;
     }
-  }
+    List<_StatisticsTableNode> list = _statisticsTableList(scriptList);
+    htmlData = '''<table border="1">''';
+    htmlData = "$htmlData<tr><th>Character Name</th><th>Entries Count</th><th>Words Count</th></tr>";
+    for (_StatisticsTableNode element in list) {
+      htmlData = "$htmlData <tr>";
+      htmlData = "$htmlData<td>${element.charName}</td>";
+      htmlData = "$htmlData<td>${element.entriesCount}</td>";
+      htmlData = "$htmlData<td>${element.wordsCount}</td>";
+      htmlData = "$htmlData </tr>";
+    }
+    htmlData = "$htmlData </table>";
+  
+    DataWriterItem item = DataWriterItem();
+    item.add(Formats.htmlText(htmlData));
+    await clipboard.write([item]);
+    }
+
+  Future<void> _copyStatisticsErrorsToClipboard(DataTable dataTable) async {
+    String htmlData = "";
+    SystemClipboard? clipboard = SystemClipboard.instance;
+    if (clipboard == null) {
+      return;
+    }
+    List<DataRow> dataRows = dataTable.rows;
+    htmlData = '''<table border="1">''';
+    htmlData = "$htmlData<tr><th>Character Name(s)</th><th>Issue</th></tr>";
+    for (DataRow dataRow in dataRows) {
+
+      SelectableText a = dataRow.cells[0].child as SelectableText;
+      SelectableText b = dataRow.cells[1].child as SelectableText;
+      htmlData = "$htmlData <tr>";
+      htmlData = "$htmlData<td>${a.data}</td>";
+      htmlData = "$htmlData<td>${b.data}</td>";
+      htmlData = "$htmlData </tr>";
+    }
+    htmlData = "$htmlData </table>";
+  
+    DataWriterItem item = DataWriterItem();
+    item.add(Formats.htmlText(htmlData));
+    await clipboard.write([item]);
+    }
 
   Widget _statisticsTableWidget(ScriptList scriptList){
     List<DataRow> list = List.empty(growable: true);
@@ -120,7 +155,7 @@ class ValidationPage extends StatelessWidget {
   }
 
 
-  Widget errorsTable(ScriptList scriptList, BuildContext context){
+  DataTable errorsTable(ScriptList scriptList, BuildContext context){
 
     List<DataRow> list = List.empty(growable: true);
 
