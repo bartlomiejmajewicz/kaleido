@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:script_editor/bloc/settings_bloc.dart';
 import 'package:script_editor/models/authorisation.dart';
 import 'package:script_editor/pages/authorization_page.dart';
+import 'package:script_editor/pages/conform_page.dart';
 import 'package:script_editor/pages/script_page.dart';
 import 'package:script_editor/pages/settings_page.dart';
 import 'package:script_editor/pages/validation_page.dart';
@@ -100,6 +101,8 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         page = const ValidationPage(title: "validation");
       case 3:
+        page = ConformPage(title: "conform");
+      case 4:
         page = AuthorizationPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -140,7 +143,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.troubleshoot),
-                      label: Text('Script validator'),
+                      label: Text('Script validator')
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.cached_rounded),
+                      label: Text('Script conform'),
                     ),
                     NavigationRailDestination(
                         icon: Icon(Icons.enhanced_encryption),

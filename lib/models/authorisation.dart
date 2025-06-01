@@ -165,6 +165,15 @@ class Authorisation {
     return await _licenseServerOperations(_licenseEmail!, _licenseId!, "push", await UniqueDeviceId.getDeviceUuid());
   }
 
+  Future<String> destroyExpiredLicense() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.remove('licenseData');
+    sharedPreferences.remove('licenseIv');
+    sharedPreferences.remove('licenseEmail');
+    sharedPreferences.remove('licenseId');
+    return "The license has been succesfully removed from your device";
+  }
+
 
   Future<String> _licenseServerOperations(String email, String licenseId, String operationType, String? deviceId) async {
     deviceId ??= await UniqueDeviceId.getDeviceUuid();

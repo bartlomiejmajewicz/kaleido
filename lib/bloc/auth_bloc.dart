@@ -78,7 +78,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoadingLicense());
 
     final Authorisation authorisation = Authorisation();
-    final String response = await authorisation.pushLicenseToServer();
+    String response = "";
+    if(Authorisation.isLicensePresent() && !Authorisation.isLicenseActive()){
+      // license present but not active (expired)
+      response = await authorisation.destroyExpiredLicense();
+    } else {
+      response = await authorisation.pushLicenseToServer();
+    }
+    
     if (Authorisation.isLicensePresent()) {
       emit(AuthLicenseActive(response));
     } else {

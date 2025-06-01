@@ -73,6 +73,10 @@ class ScriptList {
     return affected;
   }
 
+  void addNode(ScriptNode scriptNode){
+    _list.add(scriptNode);
+  }
+
 
   int newEntry(Timecode? tcIn, {String? charName = "char name", String? dial = 'dialogue', Timecode? videoStartTc, bool sortAfterAdding = true}) {
     charName ??= "";
