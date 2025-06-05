@@ -35,40 +35,41 @@ class ConformPage extends StatelessWidget {
           style: TextStyle(color: Colors.red),),
       ),
       body: ListView(
-          children: [
-            Text("Source framerate: ${context.read<SettingsBloc>().state.inputFramerate}"),
-            const Text("Destination framerate:"),
-            _fpsSelectorWidget(),
-            
-            const Text("Select sheet name:"),
-            
-            ValueListenableBuilder(
-              valueListenable: _conformedFps,
-              builder: (context, value, child) {
-                return TextFormField(
-                  key: UniqueKey(),
-                  initialValue: "${_sheetNameConformed.value}_${_conformedFps.value}",
-                  onChanged: (value) {
-                    _sheetNameConformed.value = value;
-                  },
-                );
-              },),
-            ValueListenableBuilder(valueListenable: _sheetNameConformed, builder: (context, value, child) {
-              if (_sheetNameConformed.value == context.read<SettingsBloc>().state.selectedSheetName) {
-                return const OutlinedButton(
-                  onPressed: null,
-                  child: Text("Unable to save to the same sheetname as the original!"));
-              }
-
-              return OutlinedButton(
-                onPressed: () {
-                  ScriptList scriptListConformed = scriptList.conformToOtherFps(_conformedFps.value);
-                  _saveFileWithSnackbar(context, scriptListConformed, _sheetNameConformed.value);
+        padding: const EdgeInsets.all(8.0),
+        children: [
+          Text("Source framerate: ${context.read<SettingsBloc>().state.inputFramerate}"),
+          const Text("Destination framerate:"),
+          _fpsSelectorWidget(),
+          
+          const Text("Select sheet name:"),
+          
+          ValueListenableBuilder(
+            valueListenable: _conformedFps,
+            builder: (context, value, child) {
+              return TextFormField(
+                key: UniqueKey(),
+                initialValue: "${_sheetNameConformed.value}_${_conformedFps.value}",
+                onChanged: (value) {
+                  _sheetNameConformed.value = value;
                 },
-                child: const Text("Conform!"));
-              },),
-          ],
-        ));
+              );
+            },),
+          ValueListenableBuilder(valueListenable: _sheetNameConformed, builder: (context, value, child) {
+            if (_sheetNameConformed.value == context.read<SettingsBloc>().state.selectedSheetName) {
+              return const OutlinedButton(
+                onPressed: null,
+                child: Text("Unable to save to the same sheetname as the original!"));
+            }
+
+            return OutlinedButton(
+              onPressed: () {
+                ScriptList scriptListConformed = scriptList.conformToOtherFps(_conformedFps.value);
+                _saveFileWithSnackbar(context, scriptListConformed, _sheetNameConformed.value);
+              },
+              child: const Text("Conform!"));
+            },),
+        ],
+      ));
   }
 
 

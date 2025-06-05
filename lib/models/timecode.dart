@@ -205,5 +205,9 @@ class Timecode implements Comparable<Timecode> {
     return _asString();
   }
 
+  Timecode conformToOtherFps(double destinationFps){
+    return Timecode.fromFramesCount(framesCount(), destinationFps);
+  }
+
 
 }

@@ -83,8 +83,7 @@ class ScriptList {
 
     for (ScriptNode element in getList()) {
       // TODO: Timecode conform - adjust for the start TC
-      Timecode tcNew = Timecode.fromFramesCount(element.tcIn.framesCount(), destinationFps);
-      ScriptNode elementConformed = ScriptNode(tcNew, element.charName, element.dialLoc, element.dialOrg);
+      ScriptNode elementConformed = ScriptNode(element.tcIn.conformToOtherFps(destinationFps), element.charName, element.dialLoc, element.dialOrg);
       destinationScriptList.addNode(elementConformed);
 
     }
