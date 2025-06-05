@@ -77,6 +77,21 @@ class ScriptList {
     _list.add(scriptNode);
   }
 
+/// generate ScriptList with other fps
+  ScriptList conformToOtherFps(double destinationFps){
+    ScriptList destinationScriptList = ScriptList(List<ScriptNode>.empty(growable: true));
+
+    for (ScriptNode element in getList()) {
+      // TODO: Timecode conform - adjust for the start TC
+      Timecode tcNew = Timecode.fromFramesCount(element.tcIn.framesCount(), destinationFps);
+      ScriptNode elementConformed = ScriptNode(tcNew, element.charName, element.dialLoc, element.dialOrg);
+      destinationScriptList.addNode(elementConformed);
+
+    }
+
+    return destinationScriptList;
+  }
+
 
   int newEntry(Timecode? tcIn, {String? charName = "char name", String? dial = 'dialogue', Timecode? videoStartTc, bool sortAfterAdding = true}) {
     charName ??= "";

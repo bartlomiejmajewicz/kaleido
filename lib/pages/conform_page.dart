@@ -15,13 +15,13 @@ class ConformPage extends StatelessWidget {
   ConformPage({super.key, required this.title});
 
   final String title;
-  String _sheetNameForConform="conformed";
   final ValueNotifier<double> _conformedFps = ValueNotifier<double>(25.0);
+  final ValueNotifier<String> _sheetNameConformed = ValueNotifier<String>("conformed");
 
 
   @override
   Widget build(BuildContext context) {
-    _sheetNameForConform = context.read<SettingsBloc>().state.selectedSheetName!;
+    _sheetNameConformed.value = context.read<SettingsBloc>().state.selectedSheetName!;
     var scriptSourceFile = ExcelFile(context.read<SettingsBloc>().state.scriptFilePath!);
     scriptSourceFile!.loadFile();
     ScriptList scriptList;
@@ -47,15 +47,26 @@ class ConformPage extends StatelessWidget {
               builder: (context, value, child) {
                 return TextFormField(
                   key: UniqueKey(),
-                  initialValue: "${_sheetNameForConform}_${_conformedFps.value}",
+                  initialValue: "${_sheetNameConformed.value}_${_conformedFps.value}",
                   onChanged: (value) {
-                    _sheetNameForConform = value;
+                    _sheetNameConformed.value = value;
                   },
                 );
               },),
-            OutlinedButton(
-              onPressed: null, // TODO: code this
-              child: const Text("Conform!"))
+            ValueListenableBuilder(valueListenable: _sheetNameConformed, builder: (context, value, child) {
+              if (_sheetNameConformed.value == context.read<SettingsBloc>().state.selectedSheetName) {
+                return const OutlinedButton(
+                  onPressed: null,
+                  child: Text("Unable to save to the same sheetname as the original!"));
+              }
+
+              return OutlinedButton(
+                onPressed: () {
+                  ScriptList scriptListConformed = scriptList.conformToOtherFps(_conformedFps.value);
+                  _saveFileWithSnackbar(context, scriptListConformed, _sheetNameConformed.value);
+                },
+                child: const Text("Conform!"));
+              },),
           ],
         ));
   }
@@ -84,14 +95,15 @@ Widget _fpsSelectorWidget() {
   }
 
 
-  int _saveFile(BuildContext context, ScriptList scriptList){
+
+    int _saveFileToNewSheet(BuildContext context, ScriptList scriptList, String sheetName){
     if (!Authorisation.isLicenseActive()) {
       return 100;
     }
     try {
       var scriptSourceFile = ExcelFile(context.read<SettingsBloc>().state.scriptFilePath!);
       scriptSourceFile!.loadFile();
-      scriptSourceFile!.exportListToSheet(scriptList.getList(), context.read<SettingsBloc>().state.selectedSheetName!, context.read<SettingsBloc>().state.timecodeFormatting, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber);
+      scriptSourceFile!.exportListToSheet(scriptList.getList(), sheetName, context.read<SettingsBloc>().state.timecodeFormatting, context.read<SettingsBloc>().state.rowNumber, context.read<SettingsBloc>().state.collNumber);
       scriptSourceFile!.saveFile();
       return 0;
     } catch (e) {
@@ -99,8 +111,8 @@ Widget _fpsSelectorWidget() {
     }
   }
 
-  void _saveFileWithSnackbar(BuildContext context, ScriptList scriptList){
-    if (_saveFile(context, scriptList) == 0) {
+  void _saveFileWithSnackbar(BuildContext context, ScriptList scriptList, String sheetName){
+    if (_saveFileToNewSheet(context, scriptList, sheetName) == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("file saved!"),));
@@ -109,21 +121,6 @@ Widget _fpsSelectorWidget() {
         const SnackBar(
           content: Text("file could NOT be saved"),
             backgroundColor: Colors.red,));
-    }
-  }
-
-  void _performConform(double sourceFps, double destinationFps, String sheetName, ScriptList sourceScriptList){
-    ScriptList destinationScriptList = ScriptList(List<ScriptNode>.empty(growable: true));
-
-    for (ScriptNode element in sourceScriptList.getList()) {
-      // TODO: Timecode conform
-      Timecode tcNew = Timecode();
-      ScriptNode elementConformed = ScriptNode(tcNew, element.charName, element.dialLoc, element.dialOrg);
-      destinationScriptList.addNode(elementConformed);
-    }
-
-    if (kDebugMode) {
-      print(destinationScriptList);
     }
   }
 }

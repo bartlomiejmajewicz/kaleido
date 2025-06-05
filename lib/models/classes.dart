@@ -150,10 +150,10 @@ class ExcelFile extends SourceFile{
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+3, rowIndex: rowNumber+a), TextCellValue(scriptNode.dialOrg));
       a++;
     }
-    while(a<sheetObject.rows.length){
-      sheetObject.removeRow(a);
-      a++;
-    }
+    // while(a<sheetObject.rows.length){
+    //   sheetObject.removeRow(a);
+    //   a++;
+    // } // TODO: POPRAW TO, BO COŚ NIE DZIALA
   }
 
 
