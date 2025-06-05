@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:excel/excel.dart';
+import 'package:path/path.dart';
 import 'package:script_editor/models/scriptNode.dart';
 import 'package:script_editor/models/timecode.dart';
 
@@ -150,10 +151,11 @@ class ExcelFile extends SourceFile{
       sheetObject.updateCell(CellIndex.indexByColumnRow(columnIndex: collNumber+3, rowIndex: rowNumber+a), TextCellValue(scriptNode.dialOrg));
       a++;
     }
-    // while(a<sheetObject.rows.length){
-    //   sheetObject.removeRow(a);
-    //   a++;
-    // } // TODO: POPRAW TO, BO COŚ NIE DZIALA
+    a=a+rowNumber;
+    while(a<(sheetObject.rows.length)){
+      sheetObject.removeRow(a);
+      a++;
+    }
   }
 
 

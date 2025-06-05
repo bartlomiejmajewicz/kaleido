@@ -780,9 +780,18 @@ final ChangeNotifierReload _arrowHighlightedReload = ChangeNotifierReload();
                 itemScrollController: scriptListController,
                 addAutomaticKeepAlives: true,
                 shrinkWrap: false,
-                itemCount: list.length,
+                itemCount: list.length+1,
                 itemBuilder: (context, index) {
-                  return buildRow(context, list[index], index);
+                  if (index == list.length) {
+                    return OutlinedButtonWithShortcut(
+                      kns: KeyboardShortcutNode((){
+                        int newEntryIndex = scriptList.newEntry(scriptList.getList().last.tcIn+Timecode("00:00:00:01", context.read<SettingsBloc>().state.inputFramerate), charName: charName01.text, videoStartTc: context.read<SettingsBloc>().state.startingTimecode, dial: "");
+                        _lowerPanelReload.reload();
+                        scriptList.getItemById(newEntryIndex).dialFocusNode.requestFocus();
+                      },),
+                      child: const Text("add char #1 at the bottom"),);
+                  }
+                    return buildRow(context, list[index], index);
                 },
               ),
             ),
